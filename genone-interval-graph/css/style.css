@@ -1,0 +1,33 @@
+svg {
+  border: 1px solid red;
+}
+svg .axis text {
+  font: 10px sans-serif;
+  fill: steelblue;
+}
+svg rect.shape {
+  stroke: #CCC;
+  fill: #EAEAEA;
+}
+svg line.border {
+  stroke: #777;
+}
+svg line.gridline {
+  stroke: #777;
+  opacity: 0.5;
+  stroke-dasharray: 2 2;
+}
+svg path.connection {
+  fill: none;
+  shape-rendering: "optimizeQuality";
+}
+svg path.connection.local {
+  stroke-width: 2;
+  stroke: #777;
+  opacity: 0.5;
+}
+svg path.connection.junction {
+  stroke-width: 2;
+  stroke: red;
+  opacity: 0.5;
+}
