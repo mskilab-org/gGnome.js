@@ -5,6 +5,18 @@ svg .axis text {
   font: 10px sans-serif;
   fill: steelblue;
 }
+svg .legend-container .tick line {
+  stroke: #777;
+  
+}
+svg .legend-container text {
+  font: 12px sans-serif;
+  fill: #000;
+}
+svg .panels-container .axis--x g.tick line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+}
 svg rect.shape {
   stroke: #CCC;
   fill: #EAEAEA;
@@ -30,4 +42,9 @@ svg path.connection.junction {
   stroke-width: 2;
   stroke: red;
   opacity: 0.5;
+}
+svg	.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
 }
