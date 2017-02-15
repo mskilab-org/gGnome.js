@@ -1,187 +1,247 @@
 // The configuration parameters
 // The Golden Ratio
 var phi = 1.618;
-var totalWidth = $('#plot-container').width(), totalHeight = $(window).height();
-var margins = {top: 20, bottom: 50, left: 30, right: 30, gap: 20, bar: 10, legendFontSize: 12, legendHeight: 100 };
-var width = totalWidth - margins.left - margins.right;
-var height = totalHeight - margins.top - margins.bottom;
-var legendHeight = margins.legendHeight;
-var plotsHeight = height - legendHeight - margins.gap;
+var throttleTimer; //used for redrawing upon resize
+var totalWidth, totalHeight, width, height, plotsHeight;
+var margins = {top: 20, bottom: 50, left: 30, right: 30, gap: 20, bar: 10, legendFontSize: 12, legendHeight: 100, chromosomeContainerHeight: 30 };
 var colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
 // define the line
 var line = d3.line().curve(d3.curveBasis).x(function(d) { return d[0]; }).y(function(d) { return d[1]; });
-
-// The proposed data format
-var json = {
-  intervals: [
-    {id:1, chromosome: 16, startPoint: 13108, endPoint: 19607, jabba: 6, strand: '+'},
-    {id:2, chromosome: 16, startPoint: 19808, endPoint: 21400, jabba: 4, strand: '*'},
-    {id:3, chromosome: 17, startPoint: 30108, endPoint: 31607, jabba: 6, strand: '+'},
-    {id:4, chromosome: 17, startPoint: 31808, endPoint: 32900, jabba: 8, strand: '*'},
-    {id:5, chromosome: 18, startPoint: 43000, endPoint: 43489, jabba: 6, strand: '+'},
-    {id:6, chromosome: 18, startPoint: 43590, endPoint: 43901, jabba: 4, strand: '*'}
-  ],
-  connections: [
-    {id: 1, source: -1, sink: 2, type: 'local'},
-    {id: 2, source: -2, sink: -3, type: 'local'},
-    {id: 3, source: 3, sink: -4, type: 'junction'},
-    {id: 4, source: 4, sink: 5, type: 'junction'},
-    {id: 5, source: -6, sink: 6, type: 'junction'},
-  ]
-}
-
 // The Data Processing part
 var chromosomeBins = getChromosomeBins(data);
 
-// The SVG hosting the visualisation
-var svg = d3.select('#plot-container').append('svg').attr('class', 'plot').attr('width', totalWidth).attr('height', totalHeight);
+// The actual drawing
+draw();
+window.pc = data
+d3.select(window).on('resize', throttle);
+
+function draw() {
+	// Clear any existing svg
+	d3.select('#plot-container svg').remove();
 	
-var panels = d3.range(3).map(function(d,i) { return {id: d, chromosome: (d + 1) }});
-var panelContainerWidth = (width - (panels.length - 1) * margins.gap) / panels.length;
-
-svg.append('defs').append('clipPath')
-    .attr('id', 'clip')
-    .append('rect')
-    .attr('width', panelContainerWidth)
-    .attr('height', plotsHeight);
+	totalWidth = $('#plot-container').width();
+	totalHeight = $(window).height();
+	width = totalWidth - margins.left - margins.right;
+	height = totalHeight - margins.top - margins.bottom;
+	plotsHeight = height - margins.legendHeight - margins.gap;
 	
-// Add the Brushes container
-var panelsContainer = svg.append('g')
-  .attr('class', 'panels-container')
-  .attr('transform', 'translate(' + [margins.left, height - plotsHeight] + ')');
+	// The SVG hosting the visualisation
+	var svg = d3.select('#plot-container').append('svg').attr('class', 'plot').attr('width', totalWidth).attr('height', totalHeight);
+	
+	var panels = d3.range(3).map(function(d,i) { return {id: d, chromosome: (d + 1) }});
+	var panelContainerWidth = (width - (panels.length - 1) * margins.gap) / panels.length;
 
-var yScale = d3.scaleLinear().domain([0, d3.max(flatten(chromosomeBins.values().map(function(d,i) { return 10 + 0 * d.maxY;})))]).range([plotsHeight, 0]).nice();
-var yAxis = d3.axisLeft(yScale).ticks(10, 's');
+	svg.append('defs').append('clipPath')
+	    .attr('id', 'clip')
+	    .append('rect')
+	    .attr('width', panelContainerWidth)
+	    .attr('height', plotsHeight);
+	
+	// Add the Brushes container
+	var panelsContainer = svg.append('g')
+	  .attr('class', 'panels-container')
+	  .attr('transform', 'translate(' + [margins.left, height - plotsHeight] + ')');
 
-panelsContainer.append('g')
-  .attr('class', 'axis axis--y')
-  .attr('transform', 'translate(' + [0, 0] + ')')
-  .call(yAxis);
+	var yScale = d3.scaleLinear().domain([0, d3.max(flatten(chromosomeBins.values().map(function(d,i) { return 10 + 0 * d.maxY;})))]).range([plotsHeight, 0]).nice();
+	var yAxis = d3.axisLeft(yScale).ticks(10, 's');
+
+	panelsContainer.append('g')
+	  .attr('class', 'axis axis--y')
+	  .attr('transform', 'translate(' + [0, 0] + ')')
+	  .call(yAxis);
   
-var panelContainer = panelsContainer.selectAll('g.panel-container')
-  .data(panels, function(d,i) { return d.id })
-  .enter()
-  .append('g')
-  .attr('class', function(d,i) { return 'panel-container panel-' + d.id })
-  .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
-  .each(function(d,i) {
-    d.scale = d3.scaleLinear().domain(getChromosomesExtent(chromosomeBins)).range([0, panelContainerWidth]);
-    d.axis = d3.axisBottom(d.scale).tickSize(-plotsHeight).ticks(10, 's');
-	d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
-    d3.select(this).append('g')
-      .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + [0, plotsHeight] + ')')
-      .call(d.axis)
-	  .selectAll('text')
-      .attr('transform', 'rotate(45)')
-	  .style('text-anchor', 'start');
-  });
+	var panelContainer = panelsContainer.selectAll('g.panel-container')
+	  .data(panels, function(d,i) { return d.id })
+	  .enter()
+	  .append('g')
+	  .attr('class', function(d,i) { return 'panel-container panel-' + d.id })
+	  .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
 
-var legendContainer = svg.append('g')
-  .attr('class', 'legend-container')
-  .attr('transform', 'translate(' + [margins.left, margins.top] + ')');
+	panelContainer.append('g')
+	  .attr('transform', 'translate(' + [0, 0] + ')')
+	  .append('rect')
+	  .attr('class', 'background')
+	  .attr('width', panelContainerWidth)
+	  .attr('height', plotsHeight)
+	  .style('opacity', function(d,i) { return 0.1; })
+	  .style('fill', function(d,i) { return colorScale(i); });
 
-var chromosomeContainerHeight = 30; 
-var chromosomeContainer = legendContainer.selectAll('g.chromosome-container')
-  .data(panels, function(d,i) { return d.id})
-  .enter()
-  .append('g')
-  .attr('class', function(d,i) { return 'chromosome-container chromosome-' + d.id })
-  .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
-  .each(function(d,i) {
-    d.scale2 = d3.scaleLinear().domain(getChromosomesExtent(chromosomeBins)).range([0, panelContainerWidth]).nice();
-    d.axis2 = d3.axisBottom(d.scale2).ticks(10, 's');
-    d3.select(this).append('g')
-      .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + [margins.legendFontSize, chromosomeContainerHeight] + ')')
-      .call(d.axis2).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
-  });
+  panelContainer
+	  .each(function(d,i) {
+	    d.scale = d3.scaleLinear().domain(getChromosomesExtent(chromosomeBins)).range([0, panelContainerWidth]);
+	    d.axis = d3.axisBottom(d.scale).tickSize(-plotsHeight).ticks(10, 's');
+		  d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
+	    d3.select(this).append('g')
+	      .attr('class', 'axis axis--x')
+	      .attr('transform', 'translate(' + [0, plotsHeight] + ')')
+	      .call(d.axis)
+		  .selectAll('text')
+	      .attr('transform', 'rotate(45)')
+		  .style('text-anchor', 'start');
+	  });
+		
+	panelContainer.append('rect')
+	  .attr('class', 'zoom')
+	  .attr('width', panelContainerWidth)
+	  .attr('height', plotsHeight)
+	  .each(function(d,i) {
+	     d3.select(this).call(d.zoom);
+	   });
+			
+  // Add the legend
+	var legendContainer = svg.append('g')
+	  .attr('class', 'legend-container')
+	  .attr('transform', 'translate(' + [margins.left, margins.top] + ')');
+
+	var chromosomeContainer = legendContainer.selectAll('g.chromosome-container')
+	  .data(panels, function(d,i) { return d.id})
+	  .enter()
+	  .append('g')
+	  .attr('class', function(d,i) { return 'chromosome-container chromosome-' + d.id })
+	  .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
+	  .each(function(d,i) {
+	    d.scale2 = d3.scaleLinear().domain(getChromosomesExtent(chromosomeBins)).range([0, panelContainerWidth]).nice();
+	    d.axis2 = d3.axisBottom(d.scale2).ticks(10, 's');
+	    d3.select(this).append('g')
+	      .attr('class', 'axis axis--x')
+	      .attr('transform', 'translate(' + [0, margins.chromosomeContainerHeight] + ')')
+	      .call(d.axis2).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
+	  });
   
-chromosomeContainer.append('g')
-  .attr('transform', 'translate(' + [margins.legendFontSize, 0] + ')')
-  .append('rect')
-  .attr('class', 'chromosome')
-  .attr('width', panelContainerWidth)
-  .attr('height', chromosomeContainerHeight)
-  .style('opacity', function(d,i) { return 0.8; })
-  .style('fill', function(d,i) { return colorScale(i); })
-  .style('stroke', function(d,i) { return d3.rgb(colorScale(i)).darker(1); });
+	chromosomeContainer.append('g')
+	  .attr('transform', 'translate(' + [0, 0] + ')')
+	  .append('rect')
+	  .attr('class', 'chromosome')
+	  .attr('width', panelContainerWidth)
+	  .attr('height', margins.chromosomeContainerHeight)
+	  .style('opacity', function(d,i) { return 0.8; })
+	  .style('fill', function(d,i) { return colorScale(i); })
+	  .style('stroke', function(d,i) { return d3.rgb(colorScale(i)).darker(1); });
   
-chromosomeContainer.append('g')
-  .attr('transform', 'translate(' + [margins.legendFontSize, 0] + ')')
-  .attr('class', function(d,i) { return 'brush brush-' + d.id; })
-  .each(function(d,i) {
-    d.brush = d3.brushX().extent([[0, 0], [panelContainerWidth, chromosomeContainerHeight]]).on('brush end', brushed);
-    d3.select(this).call(d.brush).call(d.brush.move, d.scale2.range());
-  });
+	chromosomeContainer.append('g')
+	  .attr('transform', 'translate(' + [0, 0] + ')')
+	  .attr('class', function(d,i) { return 'brush brush-' + d.id; })
+	  .each(function(d,i) {
+	    d.brush = d3.brushX().extent([[0, 0], [panelContainerWidth, margins.chromosomeContainerHeight]]).on('brush end', brushed);
+	    d3.select(this).call(d.brush).call(d.brush.move, d.scale2.range());
+	  });
 
-function drawIntervals(panel, scale, dataArray) {
+	function drawIntervals(panel, scale, dataArray) {
 
-  var shapes = panel.selectAll('rect.shape').data(dataArray, function(d,i) {return d.iid});
+	  var shapes = panel.selectAll('rect.shape').data(dataArray, function(d,i) {return d.iid});
 
-  shapes.enter().append('rect')
-    .attr('class', 'shape')
-    .attr('id', function(d,i) { return 'shape' + d.iid; })
-  .style('clip-path','url(#clip)')
-    .each(function(d,i) {
-      d.startX = scale(d.startPoint);
-      d.startY = yScale(d.y);
-      d.endX = scale(d.endPoint);
-      d.endY = yScale(d.y);
-    })
-    .attr('x', function(d,i) { return scale(d.startPoint); })
-    .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
-    .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
-    .attr('height', margins.bar);
+	  shapes.enter().append('rect')
+	    .attr('class', 'shape')
+	    .attr('id', function(d,i) { return 'shape' + d.iid; })
+	    .style('clip-path','url(#clip)')
+	    .each(function(d,i) {
+	      d.startX = scale(d.startPoint);
+	      d.startY = yScale(d.y);
+	      d.endX = scale(d.endPoint);
+	      d.endY = yScale(d.y);
+				d.intervalLength = d.endPoint - d.startPoint;
+				d.popoverTitle = popoverTitle(d,i);
+				d.popoverContent = popoverContent(d,i);
+	    })
+	    .attr('x', function(d,i) { return scale(d.startPoint); })
+	    .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
+	    .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
+	    .attr('height', margins.bar);
 
-  shapes
-    .attr('x', function(d,i) { return scale(d.startPoint); })
-    .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
-    .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
-    .attr('height', margins.bar);
+	  shapes
+	    .attr('x', function(d,i) { return scale(d.startPoint); })
+	    .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
+	    .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
+	    .attr('height', margins.bar)
+		  .on('mousemove', function(d,i) {
+		    var popover = d3.select('.popover');
+		    popover.select('.popover-title').html(d.popoverTitle);
+		    popover.select('.popover-content').html(d.popoverContent);
+		    popover.select('.popover-content span').style('color', d.color)
+		    popover
+		      .style("left", (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+		      .style("top", (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+		      .classed('hidden', false)
+		      .style('display', 'block')
+		      .transition()
+		      .duration(5)
+		      .style('opacity', 1);
+		  });
 
-  shapes.exit().remove();
+	  shapes.exit().remove();
+	}
+	
+  function popoverTitle(d,i) {
+    return 'Interval #' + d.title;
+  }
+
+  function popoverContent(d,i) {
+    var content = '', label = '', value = '';
+    label = 'Chromosome';
+    value = d.chromosome;
+    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
+    label = 'Start Point';
+    value = d3.format(',')(d.startPoint);
+    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
+    label = 'End Point';
+    value = d3.format(',')(d.endPoint);
+    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
+    label = 'Interval Length';
+    value = d3.format(',')(d.intervalLength);
+    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
+    label = 'Strand';
+    value = d.strand;
+    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
+    return '<div class="row"><div class="col-lg-12"><table width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
+  }
+
+	// Callback when brushing is finished
+	function brushed() {
+	  if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
+	    var s = d3.event.selection || [0, panelContainerWidth];
+		var brushData = d3.select(this).datum();
+		var chromo = d3.select('.chromosome-' + brushData.id);
+		var chromoData = chromo.datum();
+	    var domain = s.map(chromoData.scale2.invert, chromoData.scale2);
+	    var panel = d3.select('.panel-' + brushData.id)
+	    var panelData = panel.datum();
+	    panelData.scale.domain(domain);
+	    panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
+		panel.select('.zoom').call(panelData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
+		var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
+	    drawIntervals(panel, panelData.scale, intervals) 
+	}
+
+	function zoomed(panel) {
+	  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+	  var t = d3.event.transform;
+	  var chromo = d3.select('.chromosome-' + panel.id);
+	  var chromoData = chromo.datum();
+	  var panel = d3.select('.panel-' + panel.id);
+	  var panelData = panel.datum();
+	  var domain = t.rescaleX(chromoData.scale2).domain();
+	  panelData.scale.domain(domain);
+	  panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
+	  chromo.select('.brush').call(chromoData.brush.move, panelData.scale.range().map(t.invertX, t));
+	  var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
+	  drawIntervals(panel, panelData.scale, intervals) 
+	}
 }
 
-panelContainer.append("rect")
-    .attr("class", "zoom")
-    .attr("width", panelContainerWidth)
-    .attr("height", plotsHeight)
-    .each(function(d,i) {
-    	d3.select(this).call(d.zoom);
-    });
-
-// Callback when brushing is finished
-function brushed() {
-  if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
-    var s = d3.event.selection || [0, panelContainerWidth];
-	var brushData = d3.select(this).datum();
-	var chromo = d3.select('.chromosome-' + brushData.id);
-	var chromoData = chromo.datum();
-    var domain = s.map(chromoData.scale2.invert, chromoData.scale2);
-    var panel = d3.select('.panel-' + brushData.id)
-    var panelData = panel.datum();
-    panelData.scale.domain(domain);
-    panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
-	panel.select('.zoom').call(panelData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
-	var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
-    drawIntervals(panel, panelData.scale, intervals) 
+function throttle() {
+  window.clearTimeout(throttleTimer);
+  throttleTimer = window.setTimeout(function() {
+    draw();
+  }, 200);
 }
 
-function zoomed(panel) {
-  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-  var t = d3.event.transform;
-  var chromo = d3.select('.chromosome-' + panel.id);
-  var chromoData = chromo.datum();
-  var panel = d3.select('.panel-' + panel.id);
-  var panelData = panel.datum();
-  var domain = t.rescaleX(chromoData.scale2).domain();
-  panelData.scale.domain(domain);
-  panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
-  chromo.select('.brush').call(chromoData.brush.move, panelData.scale.range().map(t.invertX, t));
-  var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
-  drawIntervals(panel, panelData.scale, intervals) 
-}
+// Remove any other open popovers
+$(document).on('mousemove', function(event) {
+  if (!$(event.target).is('.shape')) {
+    d3.select('.popover').transition().duration(5)
+      .style('opacity', 0);
+  }
+});
 /*
 
 // Add the X axis
