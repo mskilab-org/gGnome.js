@@ -26,9 +26,3 @@ function getChromosomeBins(dataArray) {
   });
   return bins;
 }
-
-function getChromosomesExtent(bins) {
-  var minPoint = d3.min(bins.values().map(function(d,i) { return d.minPoint}));
-  var maxPoint = d3.max(bins.values().map(function(d,i) { return d.maxPoint}));
-  return [minPoint, maxPoint];
-}
