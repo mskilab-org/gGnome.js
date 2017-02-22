@@ -1,6 +1,3 @@
-svg {
-  border: 1px solid red;
-}
 svg .axis text {
   font: 12px sans-serif;
   fill: steelblue;
@@ -12,15 +9,28 @@ svg .legend-container text {
   font: 12px sans-serif;
   fill: steelblue;
 }
-svg .legend-container text.button-text {
-  font: 14px sans-serif;
-  fill: black;
+svg .control-container circle {
+  cursor: pointer;
 }
-svg .legend-container text.drop-shadow {
+svg .control-container circle.highlight {
+  stroke: #333;
+  stroke-width: 2;
+  filter: url('#md-shadow');
+}
+svg .control-container circle.selected {
+  stroke: #333;
+  stroke-width: 2;
+  filter: url('#md-shadow');
+}
+svg .control-container text.button-text {
   font: 14px sans-serif;
-  stroke: white;
-  stroke-width: 1.66px;
-  opacity: 0.9;
+  fill: white;
+  paint-order: stroke;
+  stroke: #777;
+  stroke-width: 1.33px;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  pointer-events: none;
 }
 svg .panels-container .axis--x g.tick line {
   stroke: #777;
@@ -50,7 +60,7 @@ svg path.connection.local {
   stroke: #777;
   opacity: 0.5;
 }
-svg path.connection.junction {
+svg path.connection.junction, svg path.connection.ALT {
   stroke-width: 2;
   stroke: red;
   opacity: 0.5;
