@@ -36,6 +36,9 @@ svg .panels-container .axis--x g.tick line {
   stroke: #777;
   stroke-dasharray: 2,2;
 }
+svg rect.shape.highlighted {
+  fill: white !important;
+}
 svg rect.shape {
   stroke: #777;
   fill: #EAEAEA;
@@ -64,6 +67,10 @@ svg path.connection.junction, svg path.connection.ALT {
   stroke-width: 2;
   stroke: red;
   opacity: 0.5;
+}
+svg path.connection.highlighted {
+  stroke-width: 2;
+  opacity: 1;
 }
 svg  .zoom {
   cursor: move;

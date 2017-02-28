@@ -10,8 +10,7 @@ var margins = {top: 20, bottom: 50, left: 30, right: 30, gap: 20, bar: 10, legen
 var colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
 // define the line
 var line = d3.line().curve(d3.curveBasis).x(function(d) { return d[0]; }).y(function(d) { return d[1]; });
-// The Data Processing part
-var chromosomeBins = getChromosomeBins(data);
+
 var metadata = data.metadata.reduce(function(hash, elem){ hash[elem.chromosome] = elem; return hash }, {});
 var intervalBins = data.intervals.reduce(function(hash, elem){ hash[elem.iid] = elem; return hash }, {});
 var connectionBins = data.connections.reduce(function(hash, elem){ 
@@ -286,7 +285,7 @@ function draw() {
     var shapes = panel.selectAll('rect.shape').data(dataArray, function(d,i) {return d.iid});
 
     shapes.enter().append('rect')
-      .attr('class', 'shape')
+      .attr('class', 'popovered shape')
       .attr('id', function(d,i) { return 'shape' + d.iid; })
       .style('clip-path','url(#clip)')
       .each(function(d,i) {
@@ -295,8 +294,8 @@ function draw() {
         d.endX = scale(d.endPoint);
         d.endY = yScale(d.y);
         d.intervalLength = d.endPoint - d.startPoint;
-        d.popoverTitle = popoverTitle(d,i);
-        d.popoverContent = popoverContent(d,i);
+        d.popoverTitle = popoverIntervalTitle(d,i);
+        d.popoverContent = popoverIntervalContent(d,i);
       })
       .attr('x', function(d,i) { return scale(d.startPoint); })
       .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
@@ -308,17 +307,22 @@ function draw() {
       .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
       .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
       .attr('height', margins.bar)
-
       .style('fill', function(d,i) { return metadata[d.chromosome].color; })
       .style('stroke', function(d,i) { return d3.rgb(metadata[d.chromosome].color).darker(1); })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
       .on('mousemove', function(d,i) {
         var popover = d3.select('.popover');
         popover.select('.popover-title').html(d.popoverTitle);
         popover.select('.popover-content').html(d.popoverContent);
         popover.select('.popover-content span').style('color', d.color)
         popover
-          .style("left", (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-          .style("top", (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
           .classed('hidden', false)
           .style('display', 'block')
           .transition()
@@ -335,36 +339,76 @@ function draw() {
 
     connections.exit().remove();
 
-    connections.attr('d', function(d,i) { return line(calculateConnectorEndpoints(connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+    connections.attr('d', function(d,i) { return line(calculateConnectorEndpoints(d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
 
     connections
       .enter()
       .append('path')
-      .attr('class', function(d,i) { return 'connection local ' + d.type; })
+      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
       .style('clip-path','url(#clip)')
-      .attr('d', function(d,i) { return line(calculateConnectorEndpoints(connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+      .attr('d', function(d,i) { return line(calculateConnectorEndpoints(d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
+      .each(function(d,i) {
+        d.popoverTitle = popoverConnectionTitle(d,i);
+        d.popoverContent = popoverConnectionContent(d,i);
+      })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) {
+        var popover = d3.select('.popover');
+        popover.select('.popover-title').html(d.popoverTitle);
+        popover.select('.popover-content').html(d.popoverContent);
+        popover.select('.popover-content span').style('color', d.color)
+        popover
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .classed('hidden', false)
+          .style('display', 'block')
+          .transition()
+          .duration(5)
+          .style('opacity', 1);
+      });
   }
 
-  function calculateConnectorEndpoints(connector, chromosome) {
+  function calculateConnectorEndpoints(record, connector, chromosome) {
+    record.sourceJabba = connector.source.y;
+    record.sinkJabba = connector.sink.y;
     if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
+      record.sourcePoint = connector.source.endPoint;
+      record.sinkPoint = connector.sink.startPoint;
+      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
       return [
         [chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
+       // [1.01 * chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
         [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
         [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
+       // [0.99 * chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)],
         [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
     } else if ((connector.connection.source > 0) && (connector.connection.sink > 0)) {
+      record.sourcePoint = connector.source.endPoint;
+      record.sinkPoint = connector.sink.endPoint;
+      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
       return [
         [chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
         [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
         [chromosome.scale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
         [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
     } else if ((connector.connection.source < 0) && (connector.connection.sink < 0)) {
+      record.sourcePoint = connector.source.startPoint;
+      record.sinkPoint = connector.sink.startPoint;
+      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
       return [
         [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
         [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
         [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
         [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
     } else if ((connector.connection.source < 0) && (connector.connection.sink > 0)) {
+      record.sourcePoint = connector.source.startPoint;
+      record.sinkPoint = connector.sink.endPoint;
+      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
       return [
         [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
         [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
@@ -372,32 +416,7 @@ function draw() {
         [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
     }
   }
-  function popoverTitle(d,i) {
-    return 'Interval #' + d.title;
-  }
 
-  function popoverContent(d,i) {
-    var content = '', label = '', value = '';
-    label = 'Chromosome';
-    value = d.chromosome;
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    label = 'Jabba';
-    value = d.y;
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    label = 'Start Point';
-    value = d3.format(',')(d.startPoint);
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    label = 'End Point';
-    value = d3.format(',')(d.endPoint);
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    label = 'Interval Length';
-    value = d3.format(',')(d.intervalLength);
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    label = 'Strand';
-    value = d.strand;
-    content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + value + '</td></tr>';
-    return '<div class="row"><div class="col-lg-12"><table width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
-  }
 
   // Callback when brushing is finished
   function brushed() {
@@ -440,7 +459,7 @@ function throttle() {
 
 // Remove any other open popovers
 $(document).on('mousemove', function(event) {
-  if (!$(event.target).is('.shape')) {
+  if (!$(event.target).is('.popovered')) {
     d3.select('.popover').transition().duration(5)
       .style('opacity', 0);
   }
