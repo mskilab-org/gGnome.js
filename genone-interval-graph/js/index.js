@@ -11,26 +11,11 @@ var colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b
 // define the line
 var line = d3.line().curve(d3.curveBasis).x(function(d) { return d[0]; }).y(function(d) { return d[1]; });
 
-var metadata = data.metadata.reduce(function(hash, elem){ hash[elem.chromosome] = elem; return hash }, {});
-var intervalBins = data.intervals.reduce(function(hash, elem){ hash[elem.iid] = elem; return hash }, {});
-var connectionBins = data.connections.reduce(function(hash, elem){ 
-  hash[elem.cid] = {
-    connection: elem,
-    source: intervalBins[Math.abs(elem.source)],
-    sink: intervalBins[Math.abs(elem.sink)]
-  }; 
-  return hash; }, {});
-var localConnectionChromosomeBins = data.connections.reduce(function(hash, elem){
-  var source = connectionBins[elem.cid].source;
-  var sink = connectionBins[elem.cid].sink;
-  if (source.chromosome === sink.chromosome) {
-    if (!hash[source.chromosome]) {
-      hash[source.chromosome] = [];
-    }
-    hash[source.chromosome].push(elem);
-  }
-  return hash; }, {});
-
+var metadata = getMetadata(data);
+var intervalBins = getIntervalBins(data);
+var connectionBins = getConnectionBins(data, intervalBins);
+var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins);
+var interChromosomeConnectionBins;
 // The actual drawing
 draw();
 
@@ -57,6 +42,7 @@ function draw() {
 
   var yScale = d3.scaleLinear().domain([0, 10]).range([plotsHeight, 0]).nice();
   var yAxis = d3.axisLeft(yScale).ticks(10, 's');
+  interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
 
   // Controls container
   drawControls();
@@ -70,6 +56,10 @@ function draw() {
     .attr('class', 'axis axis--y')
     .attr('transform', 'translate(' + [0, 0] + ')')
     .call(yAxis);
+
+  var interChromosomeConnectionsContainer = svg.append('g')
+    .attr('class', 'inter-chromosome-connections-container')
+    .attr('transform', 'translate(' + [margins.left, height - plotsHeight] + ')');
 
   updatePanels(panels);
 
@@ -87,6 +77,13 @@ function draw() {
       .attr('id', 'clip')
       .append('rect')
       .attr('width', panelContainerWidth)
+      .attr('height', plotsHeight);
+
+
+    defs.append('clipPath')
+      .attr('id', 'clipWidth')
+      .append('rect')
+      .attr('width', width)
       .attr('height', plotsHeight);
 
     // create filter and assign provided id
@@ -176,6 +173,7 @@ function draw() {
         d3.select(this).classed('selected', true);
         var panelData = d3.select(d3.select(d3.select(this.parentNode).node().parentNode).node().parentNode).datum();
         panels[panelData.column] = Object.assign({}, metadata[d3.select(this).datum().chromosome], {column: panelData.column});
+        interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
         updatePanels(panels);
         updateLegend(panels);
       });
@@ -212,6 +210,7 @@ function draw() {
     container
       .each(function(d,i) {
         d.scale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
+        d.panelScale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([d.column * (panelContainerWidth + margins.gap), (d.column + 1) * panelContainerWidth + d.column * margins.gap]);
         d.axis = d3.axisBottom(d.scale).tickSize(-plotsHeight).ticks(10, 's');
         d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
         d3.select(this).append('g')
@@ -339,14 +338,14 @@ function draw() {
 
     connections.exit().remove();
 
-    connections.attr('d', function(d,i) { return line(calculateConnectorEndpoints(d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+    connections.attr('d', function(d,i) { return line(calculateConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
 
     connections
       .enter()
       .append('path')
       .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
       .style('clip-path','url(#clip)')
-      .attr('d', function(d,i) { return line(calculateConnectorEndpoints(d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
+      .attr('d', function(d,i) { return line(calculateConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
       .each(function(d,i) {
         d.popoverTitle = popoverConnectionTitle(d,i);
         d.popoverContent = popoverConnectionContent(d,i);
@@ -373,50 +372,45 @@ function draw() {
       });
   }
 
-  function calculateConnectorEndpoints(record, connector, chromosome) {
-    record.sourceJabba = connector.source.y;
-    record.sinkJabba = connector.sink.y;
-    if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-       // [1.01 * chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-       // [0.99 * chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)],
-        [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source > 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
-    }
-  }
+  function drawInterChromosomeConnections(container) {
 
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.cid});
+ 
+    connections.exit().remove();
+
+    connections.attr('d', function(d,i) { return line(calculateInterConnectorEndpoints(yScale, d, connectionBins[d.cid], panels)); });
+
+    connections
+      .enter()
+      .append('path')
+      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
+      .style('clip-path','url(#clipWidth)')
+      .attr('d', function(d,i) { return line(calculateInterConnectorEndpoints(yScale, d, connectionBins[d.cid], panels)); })
+      .each(function(d,i) {
+        d.popoverTitle = popoverConnectionTitle(d,i);
+        d.popoverContent = popoverConnectionContent(d,i);
+      })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) {
+        var popover = d3.select('.popover');
+        popover.select('.popover-title').html(d.popoverTitle);
+        popover.select('.popover-content').html(d.popoverContent);
+        popover.select('.popover-content span').style('color', d.color)
+        popover
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .classed('hidden', false)
+          .style('display', 'block')
+          .transition()
+          .duration(5)
+          .style('opacity', 1);
+      });
+  }
 
   // Callback when brushing is finished
   function brushed() {
@@ -425,12 +419,14 @@ function draw() {
     var brushData = d3.select(this).datum();
     var domain = s.map(brushData.scale2.invert, brushData.scale2);
     brushData.scale.domain(domain);
+    brushData.panelScale.domain(domain);
     var panel = d3.selectAll('.panel-container').filter(function(d,i) { return d.column === brushData.column && d.chromosome === brushData.chromosome });
     panel.select('.axis--x').call(brushData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     panel.select('.zoom').call(brushData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
+    drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
 
   // Callback when the panel is zoomed
@@ -441,11 +437,13 @@ function draw() {
     var chromo = d3.selectAll('.chromosome-container').filter(function(d,i) { return d.column === panelData.column && d.chromosome === panelData.chromosome });
     var domain = t.rescaleX(panelData.scale2).domain();
     panelData.scale.domain(domain);
+    panelData.panelScale.domain(domain);
     panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     chromo.select('.brush').call(panelData.brush.move, panelData.scale.range().map(t.invertX, t));
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
+    drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
 }
 

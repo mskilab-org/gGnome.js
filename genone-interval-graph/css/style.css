@@ -59,9 +59,9 @@ svg path.connection {
   shape-rendering: "optimizeQuality";
 }
 svg path.connection.local {
-  stroke-width: 2;
+  stroke-width: 1;
   stroke: #777;
-  opacity: 0.5;
+  opacity: 0.33;
 }
 svg path.connection.junction, svg path.connection.ALT {
   stroke-width: 2;
