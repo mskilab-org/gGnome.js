@@ -3967,7 +3967,9 @@ var data = {
     {cid: 2601, source: -703, sink:1332, title: "", type: "REF", weight: 1},
     {cid: 2602, source: -708, sink:1333, title: "", type: "REF", weight: 1},
     {cid: 2603, source: -709, sink:1334, title: "", type: "REF", weight: 1},
-    {cid: 2604, source: -710, sink:1335, title: "", type: "REF", weight: 2}
+    {cid: 2604, source: -710, sink:1335, title: "", type: "REF", weight: 2},
+    {cid: 2605, source: -710,            title: "", type: "UKN", weight: 2},
+    {cid: 2606,               sink:1335, title: "", type: "UKN", weight: 2}
   ]
 }
 

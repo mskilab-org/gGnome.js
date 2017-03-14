@@ -15,6 +15,7 @@ var metadata = getMetadata(data);
 var intervalBins = getIntervalBins(data);
 var connectionBins = getConnectionBins(data, intervalBins);
 var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins);
+var uknownConnectionChromosomeBins = getUknownConnectionBins(data, connectionBins);
 var interChromosomeConnectionBins;
 // The actual drawing
 draw();
@@ -234,6 +235,8 @@ function draw() {
 
     container.append('g').attr('class', 'local-connections-container');
 
+    container.append('g').attr('class', 'unknown-connections-container');
+
   }
 
   function updateLegend(newPanels) {
@@ -412,6 +415,46 @@ function draw() {
       });
   }
 
+  function drawUnknownConnections(container) {
+
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (uknownConnectionChromosomeBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+
+    connections.exit().remove();
+
+    connections.attr('d', function(d,i) { return line(calculateUknownConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+
+    connections
+      .enter()
+      .append('path')
+      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
+      .style('clip-path','url(#clip)')
+      .attr('d', function(d,i) { return line(calculateUknownConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
+      .each(function(d,i) {
+        d.popoverTitle = popoverConnectionTitle(d,i);
+        d.popoverContent = popoverConnectionContent(d,i);
+      })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) {
+        var popover = d3.select('.popover');
+        popover.select('.popover-title').html(d.popoverTitle);
+        popover.select('.popover-content').html(d.popoverContent);
+        popover.select('.popover-content span').style('color', d.color)
+        popover
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .classed('hidden', false)
+          .style('display', 'block')
+          .transition()
+          .duration(5)
+          .style('opacity', 1);
+      });
+  }
+
   // Callback when brushing is finished
   function brushed() {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
@@ -426,7 +469,9 @@ function draw() {
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
+    drawUnknownConnections(panel.select('g.unknown-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
+
   }
 
   // Callback when the panel is zoomed
@@ -443,7 +488,9 @@ function draw() {
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
+    drawUnknownConnections(panel.select('g.unknown-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
+
   }
 }
 
@@ -462,75 +509,4 @@ $(document).on('mousemove', function(event) {
       .style('opacity', 0);
   }
 });
-/*
 
-// Add the X axis
-var xAxisContainer = svg.append('g').attr('transform', 'translate(' + [margins.left, margins.top + height] + ')');
-xAxisContainer.selectAll('g.axis').data(bins.values()).enter().append('g').attr('class', 'axis').each(function(d,i) { d3.select(this).call(d.axis).selectAll('text').style('text-anchor', 'end').attr('dx', '-.8em').attr('dy', '.15em').attr('transform', 'rotate(-65)'); });
-
-// Add the Y axis
-svg.append('g').attr('class', 'y axis').attr('transform', 'translate(' + [margins.left - 0 * margins.gap, margins.top] + ')').call(d3.axisLeft(yScale));
-
-// Add the horizontal grid lines
-var gridContainer = svg.append('g').attr('transform', 'translate(' + [margins.left, margins.top + height] + ')')
-.selectAll('g.grid').data(domains.filter(function(d,i) { return i % 2 === 0 })).enter().append('g').attr('class', 'grid').attr('transform', function(d,i) { return 'translate(' + [xScale(d) + 0.5, 0] +')'});
-
-gridContainer.selectAll('line.gridline').data(d3.range(yScale.domain()[1])).enter().append('line').attr('class', 'gridline').attr('transform', function(d,i) { return 'translate(' + [0, -yScale(d)] + ')'; }).attr('x2', regionWidth)
-
-var plot = svg.append('g').attr('transform', 'translate(' + [margins.left, margins.top] + ')');
-plot.selectAll('line.border').data(domains).enter().append('line').attr('class', 'border')
-  .attr('transform', function(d,i) { return 'translate(' + [xScale(d) + 0.5, 0] +')'}).attr('y2', height);
-
-plot.selectAll('rect.shape').data(json.intervals, function(d,i) {return d.id}).enter().append('rect').attr('class', 'shape')
-  .attr('id', function(d,i) { return 'shape' + d.id; })
-  .each(function(d,i) {
-    d.startX = bins.get(d.chromosome).scale(d.startPoint);
-    d.startY = yScale(d.jabba);
-    d.endX = bins.get(d.chromosome).scale(d.endPoint);
-    d.endY = yScale(d.jabba);
-  })
-  .attr('x', function(d,i) { return bins.get(d.chromosome).scale(d.startPoint); }).attr('y', function(d,i) { return yScale(d.jabba) - 0.5 * margins.bar; })
-  .attr('width', function(d,i) { return bins.get(d.chromosome).scale(d.endPoint) - bins.get(d.chromosome).scale(d.startPoint); }).attr('height', margins.bar);
-
-var connectionsContainer = svg.append('g').attr('class', 'connections-container').attr('transform', 'translate(' + [margins.left, margins.top] + ')');
-connectionsContainer.selectAll('path.connection').data(json.connections.sort(function(a,b) { return d3.ascending(d3.select('#shape' + Math.abs(a.source)).datum().startX,d3.select('#shape' + Math.abs(b.sink)).datum().startX)}), function(d,i) { return d.id}).enter().append('path').attr('class', function(d,i) { return 'connection ' + d.type; })
-  .each(function(d,i) {
-    var startInterval = d3.select('#shape' + Math.abs(d.source)).datum();
-    var endInterval = d3.select('#shape' + Math.abs(d.sink)).datum();
-    var offsetY = Math.sign(startInterval.endY - endInterval.endY) * margins.bar / 1;
-    if (Math.abs(d.source) === Math.abs(d.sink)) {
-      d.points = [[startInterval.endX,startInterval.endY], 
-            [1.05 * startInterval.endX, startInterval.endY],
-            [0.5 * (startInterval.endX + endInterval.startX) + 0.25 * (endInterval.startY - startInterval.endY),
-            0.5 * (endInterval.startY + startInterval.endY) - 0.25 * (endInterval.startX - startInterval.endX) ],
-            [0.95 * endInterval.startX, endInterval.startY],
-            [endInterval.startX, endInterval.startY]];
-    } else {
-      if ((d.source < 0) && (d.sink > 0)) {
-        d.points = [[startInterval.endX,startInterval.endY], 
-                    [1.05 * startInterval.endX, startInterval.endY - offsetY],
-                    [0.95 * endInterval.startX, endInterval.startY + offsetY],
-                    [endInterval.startX, endInterval.startY]];
-      }
-      if ((d.source < 0) && (d.sink < 0)) {
-        d.points = [[startInterval.endX,startInterval.endY], 
-                    [1.05 * startInterval.endX, startInterval.endY - offsetY],
-                    [1.05 * endInterval.endX, endInterval.endY + offsetY],
-                    [endInterval.endX, endInterval.endY]];
-      }
-      if ((d.source > 0) && (d.sink > 0)) {
-        d.points = [[startInterval.startX,startInterval.startY], 
-                    [0.95 * startInterval.startX, startInterval.startY - offsetY],
-                    [0.95 * endInterval.startX, endInterval.startY + offsetY],
-                    [endInterval.startX, endInterval.startY]];
-      }
-      if ((d.source > 0) && (d.sink < 0)) {
-        d.points = [[startInterval.startX,startInterval.startY], 
-                    [0.95 * startInterval.startX, startInterval.startY - offsetY],
-                    [1.05 * endInterval.endX, endInterval.endY + offsetY],
-                    [endInterval.endX, endInterval.endY]];
-      }
-    }
-  })
-  .attr('d', function(d,i) { return line(d.points); })
-*/
