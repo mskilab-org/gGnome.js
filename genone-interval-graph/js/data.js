@@ -1,4 +1,4 @@
-var data = {
+var data2 = {
   metadata: [
     { chromosome: '1', startPoint: 1, endPoint: 249250621, color: '#1f77b4'},
     { chromosome: '2', startPoint: 1, endPoint: 243199373, color: '#ff7f0e'},

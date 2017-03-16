@@ -20,6 +20,8 @@ var interChromosomeConnectionBins;
 // The actual drawing
 draw();
 
+window.pc = data2;
+
 d3.select(window).on('resize', throttle);
 
 function draw() {
