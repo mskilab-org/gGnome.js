@@ -15,12 +15,12 @@ var metadata = getMetadata(data);
 var intervalBins = getIntervalBins(data);
 var connectionBins = getConnectionBins(data, intervalBins);
 var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins);
-var uknownConnectionChromosomeBins = getUknownConnectionBins(data, connectionBins);
+var uknownConnectionChromosomeBins = getLooseConnectionBins(data, connectionBins);
+var yMax = d3.max(data.intervals.map(function(d,i) { return d.y; }));
 var interChromosomeConnectionBins;
+
 // The actual drawing
 draw();
-
-window.pc = data2;
 
 d3.select(window).on('resize', throttle);
 
@@ -33,7 +33,7 @@ function draw() {
   width = totalWidth - margins.left - margins.right;
   height = totalHeight - margins.top - margins.bottom;
   plotsHeight = height - margins.legendHeight - margins.gap;
-
+  
   // The SVG hosting the visualisation
   var svg = d3.select('#plot-container').append('svg').attr('class', 'plot').attr('width', totalWidth).attr('height', totalHeight);
 
@@ -43,8 +43,8 @@ function draw() {
 
   drawFilters();
 
-  var yScale = d3.scaleLinear().domain([0, 10]).range([plotsHeight, 0]).nice();
-  var yAxis = d3.axisLeft(yScale).ticks(10, 's');
+  var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
+  var yAxis = d3.axisLeft(yScale).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
   interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
 
   // Controls container
@@ -423,14 +423,14 @@ function draw() {
 
     connections.exit().remove();
 
-    connections.attr('d', function(d,i) { return line(calculateUknownConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+    connections.attr('d', function(d,i) { return line(calculateLooseConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
 
     connections
       .enter()
       .append('path')
       .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
       .style('clip-path','url(#clip)')
-      .attr('d', function(d,i) { return line(calculateUknownConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
+      .attr('d', function(d,i) { return line(calculateLooseConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
       .each(function(d,i) {
         d.popoverTitle = popoverConnectionTitle(d,i);
         d.popoverContent = popoverConnectionContent(d,i);
