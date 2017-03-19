@@ -41,7 +41,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   });
 }
 // The hashmap mapping the connection id to the unknown connections within the same chromosome
-function getUknownConnectionBins(dataArray, connectionBins) {
+function getLooseConnectionBins(dataArray, connectionBins) {
   return dataArray.connections.reduce(function(hash, elem) {
   var source = connectionBins[elem.cid].source;
   var sink = connectionBins[elem.cid].sink;
@@ -109,8 +109,10 @@ function calculateConnectorEndpoints(yScale, record, connector, chromosome) {
     record.sourcePoint = connector.source.endPoint;
     record.sinkPoint = connector.sink.startPoint;
     record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-    return [[chromosome.scale(connector.source.endPoint),yScale(connector.source.y)],
-            [0.5 * (chromosome.scale(connector.source.endPoint) + chromosome.scale(connector.sink.startPoint)),yScale(connector.source.y) - 20],
+    return [[chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
+            [chromosome.scale(1.01 * connector.source.endPoint), yScale(connector.source.y)],
+            [0.5 * (chromosome.scale(connector.source.endPoint) + chromosome.scale(connector.sink.startPoint)), yScale(connector.source.y) - 20],
+            [chromosome.scale(0.99 * connector.sink.startPoint), yScale(connector.sink.y)],
             [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
   } else {
     if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
@@ -208,7 +210,7 @@ function calculateInterConnectorEndpoints(yScale, record, connector, panelsArray
 }
 
 // The array of points forming the unknown connections with one endpoint missing
-function calculateUknownConnectorEndpoints(yScale, record, connector, chromosome) {
+function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome) {
   if (!record.source && !record.sink) return;
   var touchpointX, touchpointY, touchpointSign;
   if (record.source && !record.sink) {
