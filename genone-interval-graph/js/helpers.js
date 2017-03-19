@@ -23,7 +23,7 @@ function getLocalConnectionBins(dataArray, connectionBins) {
   return dataArray.connections.reduce(function(hash, elem) {
   var source = connectionBins[elem.cid].source;
   var sink = connectionBins[elem.cid].sink;
-  if ((elem.type !== 'UKN') && (source.chromosome === sink.chromosome)) {
+  if ((elem.type !== 'LOOSE') && (source.chromosome === sink.chromosome)) {
     if (!hash[source.chromosome]) {
       hash[source.chromosome] = [];
     }
@@ -37,7 +37,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   return dataArray.connections.filter(function(elem, index) {
     var source = connectionBins[elem.cid].source;
     var sink = connectionBins[elem.cid].sink;
-    return ((elem.type !== 'UKN') && (source.chromosome != sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
+    return ((elem.type !== 'LOOSE') && (source.chromosome != sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
   });
 }
 // The hashmap mapping the connection id to the unknown connections within the same chromosome

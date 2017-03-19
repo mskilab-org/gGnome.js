@@ -68,7 +68,7 @@ svg path.connection.junction, svg path.connection.ALT {
   stroke: red;
   opacity: 0.5;
 }
-svg path.connection.UKN {
+svg path.connection.LOOSE {
   stroke-width: 2;
   stroke: blue;
   stroke-dasharray: 3, 2;
