@@ -31,16 +31,34 @@ function getLocalConnectionBins(dataArray, connectionBins) {
   }
   return hash; }, {});
 }
-// The hashmap mapping the connection id to the connections between intervals in different chromosomes
+// The hashmap mapping the connection id to the connections between intervals in different chromosomes selected on the panels
 function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   var panelChromosomes = panels.map(function(d,i) { return d.chromosome; });
   return dataArray.connections.filter(function(elem, index) {
     var source = connectionBins[elem.cid].source;
     var sink = connectionBins[elem.cid].sink;
-    return ((elem.type !== 'LOOSE') && (source.chromosome != sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
+    return ((elem.type !== 'LOOSE') && (source.chromosome !== sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
   });
 }
-// The hashmap mapping the connection id to the unknown connections within the same chromosome
+// The hashmap mapping the connection id to the connections between intervals in different chromosomes, not selected on the panels
+function getLocalInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
+  var panelChromosomes = panels.map(function(d,i) { return d.chromosome; });
+  return dataArray.connections.reduce(function(hash, elem) {
+  var source = connectionBins[elem.cid].source;
+  var sink = connectionBins[elem.cid].sink;
+  if ((elem.type !== 'LOOSE') && (source.chromosome !== sink.chromosome) && !((panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)))) {
+    if (!hash[source.chromosome]) {
+      hash[source.chromosome] = [];
+    }
+    if (!hash[sink.chromosome]) {
+      hash[sink.chromosome] = [];
+    }
+    hash[source.chromosome].push(elem);
+    hash[sink.chromosome].push(elem);
+  }
+  return hash; }, {});
+}
+// The hashmap mapping the connection id to the loose connections within the same chromosome
 function getLooseConnectionBins(dataArray, connectionBins) {
   return dataArray.connections.reduce(function(hash, elem) {
   var source = connectionBins[elem.cid].source;
@@ -209,7 +227,7 @@ function calculateInterConnectorEndpoints(yScale, record, connector, panelsArray
   }
 }
 
-// The array of points forming the unknown connections with one endpoint missing
+// The array of points forming the loose connections with one endpoint missing
 function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome) {
   if (!record.source && !record.sink) return;
   var touchpointX, touchpointY, touchpointSign;
@@ -231,7 +249,32 @@ function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome)
   }
   return [
     [chromosome.scale(touchpointX), yScale(touchpointY)],
-    [chromosome.scale(touchpointX) + touchpointSign * 20, yScale(touchpointY + 0.17)],
-    [chromosome.scale(touchpointX) - touchpointSign * 20, yScale(touchpointY + 0.34)],
+    [chromosome.scale(touchpointX) + touchpointSign * 10, yScale(touchpointY + 0.17)],
+    [chromosome.scale(touchpointX) - touchpointSign * 10, yScale(touchpointY + 0.34)],
     [chromosome.scale(touchpointX), yScale(touchpointY + 0.5)]];
+}
+
+// The array of points forming the connections with the other end in another chromosome
+function calculateLocalInterConnectorEndpoints(yScale, record, connector, chromosomeObject) {
+  var touchpointX, touchpointY, touchpointSign;
+  if (connector.source.chromosome === chromosomeObject.chromosome) {
+    record.sourceJabba = connector.source.y;
+    record.sourceChromosome = connector.source.chromosome;
+    record.sourcePoint = connector.connection.source > 0 ? connector.source.endPoint : connector.source.startPoint;
+    touchpointX = record.sourcePoint;
+    touchpointY = connector.source.y;
+    touchpointSign = Math.sign(connector.connection.source);
+  }
+  if (connector.sink.chromosome === chromosomeObject.chromosome) {
+    record.sinkJabba = connector.sink.y;
+    record.sinkChromosome = connector.sink.chromosome;
+    record.sinkPoint = connector.connection.sink > 0 ? connector.sink.endPoint : connector.sink.startPoint;
+    touchpointX = record.sinkPoint;
+    touchpointY = connector.sink.y;
+    touchpointSign = Math.sign(connector.connection.sink);
+  }
+  return [
+    [chromosomeObject.scale(touchpointX), yScale(touchpointY)],
+	[chromosomeObject.scale(touchpointX) + touchpointSign * 10, yScale(touchpointY - 0.25)],
+    [chromosomeObject.scale(touchpointX) - touchpointSign * 10, yScale(touchpointY - 0.5)]];
 }

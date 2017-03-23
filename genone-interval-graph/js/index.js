@@ -15,9 +15,10 @@ var metadata = getMetadata(data);
 var intervalBins = getIntervalBins(data);
 var connectionBins = getConnectionBins(data, intervalBins);
 var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins);
-var uknownConnectionChromosomeBins = getLooseConnectionBins(data, connectionBins);
+var looseConnectionChromosomeBins = getLooseConnectionBins(data, connectionBins);
 var yMax = d3.max(data.intervals.map(function(d,i) { return d.y; }));
 var interChromosomeConnectionBins;
+var localInterChromosomeConnectionBins;
 
 // The actual drawing
 draw();
@@ -46,6 +47,7 @@ function draw() {
   var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
   var yAxis = d3.axisLeft(yScale).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
   interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+  localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
 
   // Controls container
   drawControls();
@@ -150,7 +152,7 @@ function draw() {
       .append('g')
       .attr('class', 'chromo-buttons-group')
       .selectAll('g.chromo-button-container')
-      .data(data.metadata, function(d,i) { return 'column-' + d.column + 'chromo-' + d.chromosome})
+      .data(function(d,i) { return data.metadata.map(function(e,j) {return {chromoObject: e, column: d.column}})}, function(d,i) { return 'column-' + d.column + 'chromo-' + d.chromoObject.chromosome})
       .enter()
       .append('g')
       .attr('class', 'chromo-button-container')
@@ -158,35 +160,24 @@ function draw() {
 
     chromoButtonContainer.append('circle')
       .attr('class', 'chromo-circle')
-      .classed('selected', function(d,i) { 
-        var column = d3.select(d3.select(d3.select(this.parentNode).node().parentNode).node().parentNode).datum().column;
-        return  panels[column].chromosome === d.chromosome;
-      })
+      .classed('selected', function(d,i) { return  panels[d.column].chromosome === d.chromoObject.chromosome; })
       .attr('cx', 0.5 * margins.chromobuttonsHeight)
       .attr('cy', 0.5 * margins.chromobuttonsHeight)
       .attr('r', 0.5 * margins.chromobuttonsHeight)
-      .attr('fill', function(d,i) { return d.color})
+      .attr('fill', function(d,i) { return d.chromoObject.color})
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlight', true);
       })
       .on('mouseout', function(d,i) {
         d3.select(this).classed('highlight', false);
-      }).on('click', function(d,i) {
-        d3.select(d3.select(this.parentNode).node().parentNode).selectAll('circle').classed('selected', false);
-        d3.select(this).classed('selected', true);
-        var panelData = d3.select(d3.select(d3.select(this.parentNode).node().parentNode).node().parentNode).datum();
-        panels[panelData.column] = Object.assign({}, metadata[d3.select(this).datum().chromosome], {column: panelData.column});
-        interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
-        updatePanels(panels);
-        updateLegend(panels);
-      });
+      }).on('click', function(d,i) { refreshPanel(d.column, d.chromoObject.chromosome); });
 
     chromoButtonContainer.append('text')
       .attr('class', 'button-text')
       .attr('transform', 'translate(' + [0.5 * margins.chromobuttonsHeight, 0.5 * margins.chromobuttonsHeight] + ')')
       .attr('text-anchor', 'middle')
       .attr('dy', 0.33 * margins.legendFontSize)
-      .text(function(d,i) { return d.chromosome; });
+      .text(function(d,i) { return d.chromoObject.chromosome; });
   }
 
   function updatePanels(newPanels) {
@@ -236,8 +227,10 @@ function draw() {
     container.append('g').attr('class', 'shapes-container');
 
     container.append('g').attr('class', 'local-connections-container');
-
-    container.append('g').attr('class', 'unknown-connections-container');
+	
+    container.append('g').attr('class', 'local-inter-connections-container');
+	
+    container.append('g').attr('class', 'loose-connections-container');
 
   }
 
@@ -417,9 +410,9 @@ function draw() {
       });
   }
 
-  function drawUnknownConnections(container) {
+  function drawLooseConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (uknownConnectionChromosomeBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (looseConnectionChromosomeBins[d.chromosome] || []); }, function(d,i) { return d.cid});
 
     connections.exit().remove();
 
@@ -457,6 +450,64 @@ function draw() {
       });
   }
 
+  function drawLocalInterConnections(container) {
+
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (localInterChromosomeConnectionBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+
+    connections.exit().remove();
+
+    connections.attr('d', function(d,i) { return line(calculateLocalInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
+
+    connections
+      .enter()
+      .append('path')
+      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
+      .style('clip-path','url(#clip)')
+      .attr('d', function(d,i) { return line(calculateLocalInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
+      .each(function(d,i) {
+        d.popoverTitle = popoverConnectionTitle(d,i);
+        d.popoverContent = popoverConnectionContent(d,i);
+        var chromosomeObject = d3.select(this.parentNode).datum();
+        d.outerChromosome = (connectionBins[d.cid].source.chromosome === chromosomeObject.chromosome) ? connectionBins[d.cid].sink.chromosome : connectionBins[d.cid].source.chromosome;
+      })
+      .style('stroke', function(d,i) { return d3.rgb(metadata[d.outerChromosome].color).darker(1); })
+      .on('click', function(d,i) {
+        /*
+        refreshPanel(0, connectionBins[d.cid].source.chromosome);
+        refreshPanel(1, d.outerChromosome);
+        refreshPanel(2, "17");
+        */
+        var column = 1;
+        d3.select('.control-container.column-' + column).selectAll('circle').classed('selected', false);
+        d3.select('.control-container.column-' + column).selectAll('circle').filter(function(e,j) { return e.chromoObject.chromosome === d.outerChromosome }).classed('selected', true);
+        panels[column] = Object.assign({}, metadata[d.outerChromosome], {column: column});
+        interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+        localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
+        updatePanels(panels);
+        updateLegend(panels);
+      })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) {
+        var popover = d3.select('.popover');
+        popover.select('.popover-title').html(d.popoverTitle);
+        popover.select('.popover-content').html(d.popoverContent);
+        popover.select('.popover-content span').style('color', d.color)
+        popover
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .classed('hidden', false)
+          .style('display', 'block')
+          .transition()
+          .duration(5)
+          .style('opacity', 1);
+      });
+  }
+
   // Callback when brushing is finished
   function brushed() {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
@@ -471,9 +522,9 @@ function draw() {
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
-    drawUnknownConnections(panel.select('g.unknown-connections-container'));
+    drawLooseConnections(panel.select('g.loose-connections-container'));
+    drawLocalInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
-
   }
 
   // Callback when the panel is zoomed
@@ -490,9 +541,18 @@ function draw() {
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
-    drawUnknownConnections(panel.select('g.unknown-connections-container'));
+    drawLooseConnections(panel.select('g.loose-connections-container'));
+    drawLocalInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
+  }
 
+  function refreshPanel(theColumn, theChromosome) {
+    d3.select('.control-container.column-' + theColumn).selectAll('circle').classed('selected', function(d,i) { return d.chromoObject.chromosome === theChromosome });
+    panels[theColumn] = Object.assign({}, metadata[theChromosome], {column: theColumn});
+    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+    localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
+    updatePanels(panels);
+    updateLegend(panels);
   }
 }
 
