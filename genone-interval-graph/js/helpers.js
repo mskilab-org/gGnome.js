@@ -7,7 +7,12 @@ function getMetadata(dataArray) {
 function getIntervalBins(dataArray) {
   return dataArray.intervals.reduce(function(hash, elem) { hash[elem.iid] = elem; return hash }, {});
 }
-
+// merge and deduplicate array in the form [ [1, 2, 3], [101, 2, 1, 10], [2, 1] ]
+function getArraysIntersection(array1, array2) {
+  array1.filter(function(n) {
+    return array2.indexOf(n) !== -1;
+  })
+}
 // The hashmap mapping the connection id to the connection and its intervals
 function getConnectionBins(dataArray, intervalBins) {
   return dataArray.connections.reduce(function(hash, elem) { 
@@ -34,10 +39,13 @@ function getLocalConnectionBins(dataArray, connectionBins) {
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes selected on the panels
 function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   var panelChromosomes = panels.map(function(d,i) { return d.chromosome; });
+  var source, sink, verdict;
   return dataArray.connections.filter(function(elem, index) {
-    var source = connectionBins[elem.cid].source;
-    var sink = connectionBins[elem.cid].sink;
-    return ((elem.type !== 'LOOSE') && (source.chromosome !== sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
+    source = connectionBins[elem.cid].source;
+    sink = connectionBins[elem.cid].sink;
+    verdict = ((elem.type !== 'LOOSE') && (source.chromosome !== sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
+    verdict = verdict && ([source.chromosome, sink.chromosome].filter(function(n) {return [panelChromosomes[0], panelChromosomes[panelChromosomes.length - 1]].indexOf(n) !== -1;}).length < 2);
+    return verdict;
   });
 }
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes, not selected on the panels
@@ -124,14 +132,18 @@ function calculateConnectorEndpoints(yScale, record, connector, chromosome) {
   record.sourceChromosome = connector.source.chromosome;
   record.sinkChromosome = connector.sink.chromosome;
   if ((record.type === 'ALT' ) && (Math.abs(connector.source.y) === Math.abs(connector.sink.y))) {
-    record.sourcePoint = connector.source.endPoint;
-    record.sinkPoint = connector.sink.startPoint;
+    record.sourcePoint = (connector.connection.source < 0) ?  connector.source.startPoint : connector.source.endPoint;
+    record.sinkPoint   = (connector.connection.sink < 0)   ?  connector.sink.startPoint   : connector.sink.endPoint;
     record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-    return [[chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-            [chromosome.scale(1.01 * connector.source.endPoint), yScale(connector.source.y)],
-            [0.5 * (chromosome.scale(connector.source.endPoint) + chromosome.scale(connector.sink.startPoint)), yScale(connector.source.y) - 20],
-            [chromosome.scale(0.99 * connector.sink.startPoint), yScale(connector.sink.y)],
-            [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
+    var origin = d3.min([record.sourcePoint, record.sinkPoint]);
+    var target = d3.max([record.sourcePoint, record.sinkPoint]);
+    var originSign = (origin === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
+    var targetSign = (target === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
+    var originY = connector.source.y;
+    return [[chromosome.scale(origin), yScale(originY)],
+            [chromosome.scale(origin) + Math.sign(originSign) * 25, yScale(originY + 0.75)],
+            [chromosome.scale(target) + Math.sign(targetSign) * 25, yScale(originY + 0.75)],
+            [chromosome.scale(target), yScale(originY)]];
   } else {
     if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
       record.sourcePoint = connector.source.endPoint;

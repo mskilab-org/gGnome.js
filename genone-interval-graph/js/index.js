@@ -84,7 +84,6 @@ function draw() {
       .attr('width', panelContainerWidth)
       .attr('height', plotsHeight);
 
-
     defs.append('clipPath')
       .attr('id', 'clipWidth')
       .append('rect')
