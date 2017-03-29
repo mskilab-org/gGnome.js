@@ -70,12 +70,12 @@ svg path.connection.junction, svg path.connection.ALT {
 }
 svg path.connection.LOOSE {
   stroke-width: 2;
-  stroke: blue;
-  stroke-dasharray: 3, 2;
-  opacity: 0.5;
+  stroke: steelblue;
+  stroke-dasharray: 3, 1;
+  opacity: 0.75;
 }
 svg path.connection.highlighted {
-  stroke-width: 2;
+  stroke-width: 3;
   opacity: 1;
 }
 svg  .zoom {

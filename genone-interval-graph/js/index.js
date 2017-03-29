@@ -350,10 +350,14 @@ function draw() {
         d.popoverContent = popoverConnectionContent(d,i);
       })
       .on('mouseover', function(d,i) {
+        var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', true);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
       })
       .on('mouseout', function(d,i) {
+        var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', false);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
       })
       .on('mousemove', function(d,i) {
         var popover = d3.select('.popover');
@@ -390,10 +394,14 @@ function draw() {
         d.popoverContent = popoverConnectionContent(d,i);
       })
       .on('mouseover', function(d,i) {
+        var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', true);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
       })
       .on('mouseout', function(d,i) {
+        var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', false);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
       })
       .on('mousemove', function(d,i) {
         var popover = d3.select('.popover');

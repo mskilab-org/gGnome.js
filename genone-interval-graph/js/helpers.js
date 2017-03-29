@@ -127,118 +127,96 @@ function popoverConnectionContent(d,i) {
 
 // The array of points forming the connections between its endpoints
 function calculateConnectorEndpoints(yScale, record, connector, chromosome) {
+  var points = [];
   record.sourceJabba = connector.source.y;
   record.sinkJabba = connector.sink.y;
   record.sourceChromosome = connector.source.chromosome;
   record.sinkChromosome = connector.sink.chromosome;
-  if ((record.type === 'ALT' ) && (Math.abs(connector.source.y) === Math.abs(connector.sink.y))) {
-    record.sourcePoint = (connector.connection.source < 0) ?  connector.source.startPoint : connector.source.endPoint;
-    record.sinkPoint   = (connector.connection.sink < 0)   ?  connector.sink.startPoint   : connector.sink.endPoint;
-    record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-    var origin = d3.min([record.sourcePoint, record.sinkPoint]);
-    var target = d3.max([record.sourcePoint, record.sinkPoint]);
-    var originSign = (origin === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
-    var targetSign = (target === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
-    var originY = Math.abs(connector.source.y);
-    var midPointX = 0.5 * chromosome.scale(origin) + 0.5 * chromosome.scale(target);
-    return [[chromosome.scale(origin), yScale(originY)],
-            [d3.min([chromosome.scale(origin) + Math.sign(originSign) * 25, 0.95 * midPointX]), yScale((originY + (originY < 10 ? 0.5 : 5 )))],
-            [midPointX, yScale((originY + (originY < 10 ? 0.75 : 10 )))],
-            [d3.max([chromosome.scale(target) + Math.sign(targetSign) * 25, 1.05 * midPointX]), yScale((originY + (originY < 10 ? 0.5 : 5 )))],
-            [chromosome.scale(target), yScale(originY)]];
-  } else {
-    if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [[chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source > 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.endPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [chromosome.scale(connector.source.startPoint), yScale(connector.source.y)],
-        [chromosome.scale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [chromosome.scale(connector.sink.endPoint), yScale(connector.sink.y)]];
+  record.sourcePoint = (connector.connection.source < 0) ?  connector.source.startPoint : connector.source.endPoint;
+  record.sinkPoint   = (connector.connection.sink < 0)   ?  connector.sink.startPoint   : connector.sink.endPoint;
+  record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
+  var origin = d3.min([record.sourcePoint, record.sinkPoint]);
+  var target = d3.max([record.sourcePoint, record.sinkPoint]);
+  var originSign = (origin === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
+  var targetSign = (target === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
+  var originY = (origin === record.sourcePoint) ? Math.abs(connector.source.y) : Math.abs(connector.sink.y);
+  var targetY = (target === record.sourcePoint) ? Math.abs(connector.source.y) : Math.abs(connector.sink.y);
+  var midPointX = 0.5 * chromosome.scale(origin) + 0.5 * chromosome.scale(target);
+  var midPointY = 0.5 * originY + 0.5 * targetY;
+  if (record.type === 'ALT' ) {
+    if (Math.abs(connector.source.y) === Math.abs(connector.sink.y)) {
+      points = [
+              [chromosome.scale(origin), yScale(originY)],
+              [d3.min([chromosome.scale(origin) + Math.sign(originSign) * 5, 0.95 * midPointX]), yScale(originY)],
+              [d3.min([chromosome.scale(origin) + Math.sign(originSign) * 25, 0.95 * midPointX]), yScale((midPointY + (midPointY < 10 ? 0.5 : 5 )))],
+              [midPointX, yScale((midPointY + (midPointY < 10 ? 0.75 : 10 )))],
+              [d3.max([chromosome.scale(target) + Math.sign(targetSign) * 25, 1.05 * midPointX]), yScale((midPointY + (midPointY < 10 ? 0.5 : 5 )))],
+              [d3.max([chromosome.scale(target) + Math.sign(targetSign) * 5, 1.05 * midPointX]), yScale(targetY)],
+              [chromosome.scale(target), yScale(targetY)]];
+    } else {
+      points = [
+              [chromosome.scale(origin), yScale(originY)],
+              [chromosome.scale(origin) + Math.sign(originSign) * 5, yScale(originY)],
+              [chromosome.scale(origin) + Math.sign(originSign) * 25, yScale((originY + Math.sign(targetY - originY) * (originY < 10 ? 0.25 : 5 )))],
+              [chromosome.scale(target) + Math.sign(targetSign) * 25, yScale((targetY - Math.sign(targetY - originY) * (targetY < 10 ? 0.25 : 5 )))],
+              [chromosome.scale(target) + Math.sign(targetSign) * 5, yScale(targetY)],
+              [chromosome.scale(target), yScale(targetY)]];
     }
+  } else {
+    points = [
+            [chromosome.scale(origin), yScale(originY)],
+            [chromosome.scale(target), yScale(targetY)]];
   }
+  return points;
 }
 
 // The array of points forming the connections between its endpoints in different chromosomes
 function calculateInterConnectorEndpoints(yScale, record, connector, panelsArray) {
+  var points = [];
+  var sourceChromosome = panelsArray.filter(function(d,i) { return d.chromosome === connector.source.chromosome })[0];
+  var sinkChromosome = panelsArray.filter(function(d,i) { return d.chromosome === connector.sink.chromosome })[0];
+
   record.sourceJabba = connector.source.y;
   record.sinkJabba = connector.sink.y;
-  var sourceChromosome = panelsArray.filter(function(d,i) { return d.chromosome === "" + connector.source.chromosome })[0]; // TODO Refactor 
-  var sinkChromosome = panelsArray.filter(function(d,i) { return d.chromosome === "" + connector.sink.chromosome })[0]; // TODO Refactor 
   record.sourceChromosome = sourceChromosome.chromosome;
   record.sinkChromosome = sinkChromosome.chromosome;
-  if ((record.type === 'ALT' ) && (Math.abs(connector.source.y) === Math.abs(connector.sink.y))) {
-    record.sourcePoint = connector.source.endPoint;
-    record.sinkPoint = connector.sink.startPoint;
-    record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-    return [[sourceChromosome.panelScale(connector.source.endPoint),yScale(connector.source.y)],
-            [0.5 * (sourceChromosome.panelScale(connector.source.endPoint) + sinkChromosome.panelScale(connector.sink.startPoint)),yScale(connector.source.y) - 20],
-            [sinkChromosome.panelScale(connector.sink.startPoint), yScale(connector.sink.y)]];
-  } else {
-    if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [[sourceChromosome.panelScale(connector.source.endPoint), yScale(connector.source.y)],
-        [sourceChromosome.panelScale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source > 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.endPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [sourceChromosome.panelScale(connector.source.endPoint), yScale(connector.source.y)],
-        [sourceChromosome.panelScale(connector.source.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.endPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink < 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.startPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [sourceChromosome.panelScale(connector.source.startPoint), yScale(connector.source.y)],
-        [sourceChromosome.panelScale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.startPoint), yScale(connector.sink.y)]];
-    } else if ((connector.connection.source < 0) && (connector.connection.sink > 0)) {
-      record.sourcePoint = connector.source.startPoint;
-      record.sinkPoint = connector.sink.endPoint;
-      record.distance = Math.abs(record.sinkPoint - record.sourcePoint);
-      return [
-        [sourceChromosome.panelScale(connector.source.startPoint), yScale(connector.source.y)],
-        [sourceChromosome.panelScale(connector.source.startPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.endPoint), 0.5 * (yScale(connector.source.y) + yScale(connector.sink.y))],
-        [sinkChromosome.panelScale(connector.sink.endPoint), yScale(connector.sink.y)]];
+  record.sourcePoint = (connector.connection.source < 0) ?  connector.source.startPoint : connector.source.endPoint;
+  record.sinkPoint   = (connector.connection.sink < 0)   ?  connector.sink.startPoint   : connector.sink.endPoint;
+
+  var origin = d3.min([sourceChromosome.panelScale(record.sourcePoint), sinkChromosome.panelScale(record.sinkPoint)]);
+  var target = d3.max([sourceChromosome.panelScale(record.sourcePoint), sinkChromosome.panelScale(record.sinkPoint)]);
+  var originSign = (origin === sourceChromosome.panelScale(record.sourcePoint)) ? connector.connection.source : connector.connection.sink;
+  var targetSign = (target === sourceChromosome.panelScale(record.sourcePoint)) ? connector.connection.source : connector.connection.sink;
+  var originY = (origin === sourceChromosome.panelScale(record.sourcePoint)) ? Math.abs(connector.source.y) : Math.abs(connector.sink.y);
+  var targetY = (target === sourceChromosome.panelScale(record.sourcePoint)) ? Math.abs(connector.source.y) : Math.abs(connector.sink.y);
+  var midPointX = 0.5 * origin + 0.5 * target;
+  var midPointY = 0.5 * originY + 0.5 * targetY;
+
+  if (record.type === 'ALT' ) {
+    if (Math.abs(connector.source.y) === Math.abs(connector.sink.y)) {
+      points = [
+              [origin, yScale(originY)],
+              [d3.min([origin + Math.sign(originSign) * 5, 0.95 * midPointX]), yScale(originY)],
+              [d3.min([origin + Math.sign(originSign) * 25, 0.95 * midPointX]), yScale((midPointY + (midPointY < 10 ? 0.5 : 5 )))],
+              [midPointX, yScale((midPointY + (midPointY < 10 ? 0.75 : 10 )))],
+              [d3.max([target + Math.sign(targetSign) * 25, 1.05 * midPointX]), yScale((midPointY + (midPointY < 10 ? 0.5 : 5 )))],
+              [d3.max([target + Math.sign(targetSign) * 5, 1.05 * midPointX]), yScale(targetY)],
+              [target, yScale(targetY)]];
+    } else {
+      points = [
+              [origin, yScale(originY)],
+              [origin + Math.sign(originSign) * 5, yScale(originY)],
+              [origin + Math.sign(originSign) * 25, yScale((originY + Math.sign(targetY - originY) * (originY < 10 ? 0.25 : 5 )))],
+              [target + Math.sign(targetSign) * 25, yScale((targetY - Math.sign(targetY - originY) * (targetY < 10 ? 0.25 : 5 )))],
+              [target + Math.sign(targetSign) * 5, yScale(targetY)],
+              [target, yScale(targetY)]];
     }
+  } else {
+    points = [
+            [origin, yScale(originY)],
+            [target, yScale(targetY)]];
   }
+  return points;
 }
 
 // The array of points forming the loose connections with one endpoint missing
@@ -263,9 +241,8 @@ function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome)
   }
   return [
     [chromosome.scale(touchpointX), yScale(touchpointY)],
-    [chromosome.scale(touchpointX) + touchpointSign * 10, yScale(touchpointY + 0.17)],
-    [chromosome.scale(touchpointX) - touchpointSign * 10, yScale(touchpointY + 0.34)],
-    [chromosome.scale(touchpointX), yScale(touchpointY + 0.5)]];
+    [chromosome.scale(touchpointX) + touchpointSign * 15, yScale(touchpointY + (touchpointY < 10 ? 0.25 : 5 ))],
+    [chromosome.scale(touchpointX) + touchpointSign * 5, yScale(touchpointY + (touchpointY < 10 ? 0.75 : 5 ))]];
 }
 
 // The array of points forming the connections with the other end in another chromosome
@@ -289,6 +266,6 @@ function calculateLocalInterConnectorEndpoints(yScale, record, connector, chromo
   }
   return [
     [chromosomeObject.scale(touchpointX), yScale(touchpointY)],
-	[chromosomeObject.scale(touchpointX) + touchpointSign * 10, yScale(touchpointY - 0.25)],
-    [chromosomeObject.scale(touchpointX) - touchpointSign * 10, yScale(touchpointY - 0.5)]];
+    [chromosomeObject.scale(touchpointX) + touchpointSign * 15, yScale(touchpointY - (touchpointY < 10 ? 0.25 : 5 ))],
+    [chromosomeObject.scale(touchpointX) - touchpointSign * 5, yScale(touchpointY - (touchpointY < 10 ? 0.75 : 5 ))]];
 }
