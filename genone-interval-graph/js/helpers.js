@@ -44,7 +44,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
     source = connectionBins[elem.cid].source;
     sink = connectionBins[elem.cid].sink;
     verdict = ((elem.type !== 'LOOSE') && (source.chromosome !== sink.chromosome) && (panelChromosomes.includes(source.chromosome)) && (panelChromosomes.includes(sink.chromosome)));
-    verdict = verdict && ([source.chromosome, sink.chromosome].filter(function(n) {return [panelChromosomes[0], panelChromosomes[panelChromosomes.length - 1]].indexOf(n) !== -1;}).length < 2);
+    //verdict = verdict && ([source.chromosome, sink.chromosome].filter(function(n) {return [panelChromosomes[0], panelChromosomes[panelChromosomes.length - 1]].indexOf(n) !== -1;}).length < 2);
     return verdict;
   });
 }
@@ -139,10 +139,12 @@ function calculateConnectorEndpoints(yScale, record, connector, chromosome) {
     var target = d3.max([record.sourcePoint, record.sinkPoint]);
     var originSign = (origin === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
     var targetSign = (target === record.sourcePoint) ? connector.connection.source : connector.connection.sink;
-    var originY = connector.source.y;
+    var originY = Math.abs(connector.source.y);
+    var midPointX = 0.5 * chromosome.scale(origin) + 0.5 * chromosome.scale(target);
     return [[chromosome.scale(origin), yScale(originY)],
-            [chromosome.scale(origin) + Math.sign(originSign) * 25, yScale(originY + 0.75)],
-            [chromosome.scale(target) + Math.sign(targetSign) * 25, yScale(originY + 0.75)],
+            [d3.min([chromosome.scale(origin) + Math.sign(originSign) * 25, 0.95 * midPointX]), yScale((originY + (originY < 10 ? 0.5 : 5 )))],
+            [midPointX, yScale((originY + (originY < 10 ? 0.75 : 10 )))],
+            [d3.max([chromosome.scale(target) + Math.sign(targetSign) * 25, 1.05 * midPointX]), yScale((originY + (originY < 10 ? 0.5 : 5 )))],
             [chromosome.scale(target), yScale(originY)]];
   } else {
     if ((connector.connection.source > 0) && (connector.connection.sink < 0)) {
