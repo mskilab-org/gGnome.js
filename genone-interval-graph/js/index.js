@@ -45,7 +45,7 @@ function draw() {
   drawFilters();
 
   var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
-  var yAxis = d3.axisLeft(yScale).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
+  var yAxis = d3.axisLeft(yScale).tickSize(-width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
   interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
   localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
 
@@ -61,6 +61,8 @@ function draw() {
     .attr('class', 'axis axis--y')
     .attr('transform', 'translate(' + [0, 0] + ')')
     .call(yAxis);
+
+    panelsContainer.select('.axis.axis--y .domain').remove();
 
   var interChromosomeConnectionsContainer = svg.append('g')
     .attr('class', 'inter-chromosome-connections-container')
@@ -204,7 +206,7 @@ function draw() {
       .each(function(d,i) {
         d.scale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
         d.panelScale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([d.column * (panelContainerWidth + margins.gap), (d.column + 1) * panelContainerWidth + d.column * margins.gap]);
-        d.axis = d3.axisBottom(d.scale).tickSize(-plotsHeight).ticks(10, 's');
+        d.axis = d3.axisBottom(d.scale).ticks(10, 's');
         d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
         d3.select(this).append('g')
           .attr('class', 'axis axis--x')
