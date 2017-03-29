@@ -247,19 +247,19 @@ function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome)
 
 // The array of points forming the connections with the other end in another chromosome
 function calculateLocalInterConnectorEndpoints(yScale, record, connector, chromosomeObject) {
+  record.sourceJabba = connector.source.y;
+  record.sinkJabba = connector.sink.y;
+  record.sourceChromosome = connector.source.chromosome;
+  record.sinkChromosome = connector.sink.chromosome;
+  record.sourcePoint = (connector.connection.source < 0) ?  connector.source.startPoint : connector.source.endPoint;
+  record.sinkPoint   = (connector.connection.sink < 0)   ?  connector.sink.startPoint   : connector.sink.endPoint;
   var touchpointX, touchpointY, touchpointSign;
   if (connector.source.chromosome === chromosomeObject.chromosome) {
-    record.sourceJabba = connector.source.y;
-    record.sourceChromosome = connector.source.chromosome;
-    record.sourcePoint = connector.connection.source > 0 ? connector.source.endPoint : connector.source.startPoint;
     touchpointX = record.sourcePoint;
     touchpointY = connector.source.y;
     touchpointSign = Math.sign(connector.connection.source);
   }
   if (connector.sink.chromosome === chromosomeObject.chromosome) {
-    record.sinkJabba = connector.sink.y;
-    record.sinkChromosome = connector.sink.chromosome;
-    record.sinkPoint = connector.connection.sink > 0 ? connector.sink.endPoint : connector.sink.startPoint;
     touchpointX = record.sinkPoint;
     touchpointY = connector.sink.y;
     touchpointSign = Math.sign(connector.connection.sink);
