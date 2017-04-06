@@ -186,6 +186,13 @@ function draw() {
 
     var panelContainer = panelsContainer.selectAll('g.panel-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome });
 
+    newPanels.forEach(function(d,i) {
+      d.scale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
+      d.panelScale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([d.column * (panelContainerWidth + margins.gap), (d.column + 1) * panelContainerWidth + d.column * margins.gap]);
+      d.axis = d3.axisBottom(d.scale).ticks(10, 's');
+      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
+    });
+
     panelContainer.exit().remove();
 
     var container = panelContainer
