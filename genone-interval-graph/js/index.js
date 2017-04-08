@@ -63,7 +63,7 @@ function draw() {
     .attr('transform', 'translate(' + [0, 0] + ')')
     .call(yAxis);
 
-    panelsContainer.select('.axis.axis--y .domain').remove();
+  panelsContainer.select('.axis.axis--y .domain').remove();
 
   var interChromosomeConnectionsContainer = svg.append('g')
     .attr('class', 'inter-chromosome-connections-container')
@@ -184,14 +184,10 @@ function draw() {
 
   function updatePanels(newPanels) {
 
-    var panelContainer = panelsContainer.selectAll('g.panel-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome });
+    // force the redrawing of the panels
+    panelsContainer.selectAll('g.panel-container').remove();
 
-    newPanels.forEach(function(d,i) {
-      d.scale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
-      d.panelScale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([d.column * (panelContainerWidth + margins.gap), (d.column + 1) * panelContainerWidth + d.column * margins.gap]);
-      d.axis = d3.axisBottom(d.scale).ticks(10, 's');
-      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
-    });
+    var panelContainer = panelsContainer.selectAll('g.panel-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome });
 
     panelContainer.exit().remove();
 
@@ -224,26 +220,29 @@ function draw() {
           .attr('transform', 'rotate(45)')
         .style('text-anchor', 'start');
       });
-    
+
     container.append('rect')
       .attr('class', 'zoom')
       .attr('width', panelContainerWidth)
       .attr('height', plotsHeight)
       .each(function(d,i) {
-         d3.select(this).call(d.zoom);
-       });
+        d3.select(this).call(d.zoom);
+      });
 
     container.append('g').attr('class', 'shapes-container').style('clip-path','url(#clip)');
 
     container.append('g').attr('class', 'local-connections-container').style('clip-path','url(#clip)');
-	
+
     container.append('g').attr('class', 'local-inter-connections-container').style('clip-path','url(#clip)');
-	
+
     container.append('g').attr('class', 'loose-connections-container').style('clip-path','url(#clip)');
 
   }
 
   function updateLegend(newPanels) {
+
+    // force the redrawing of the legends
+    legendContainer.selectAll('g.chromosome-container').remove();
 
     var chromosomeContainer = legendContainer.selectAll('g.chromosome-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome});
 
@@ -492,12 +491,8 @@ function draw() {
         var panelSelections = panels.map(function(e,j) { return e.chromosome; });
         alteredColumn = (clickedColumn > 0) ? clickedColumn - 1 : clickedColumn + 1;
         panelSelections[alteredColumn] = d.outerChromosome;
-        console.log(panelSelections)
         panelSelections.forEach(function(chromosome, column) {
-          d3.selectAll('.control-'+ column + '-' + chromosome).each(function(e, j) {
-              var onClickFunc = d3.select(this).on('click');
-              onClickFunc.apply(this, [e, j]);
-          });
+          refreshPanel(column, chromosome);
         });
       })
       .on('mouseover', function(d,i) {

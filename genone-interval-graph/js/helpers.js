@@ -265,8 +265,4 @@ function calculateLocalInterConnectorEndpoints(yScale, record, connector, chromo
   }
   record.touchpointSign = touchpointSign;
   return [chromosomeObject.scale(touchpointX), yScale(touchpointY)];
-  //return [
-  //  [chromosomeObject.scale(touchpointX), yScale(touchpointY)],
-  //  [chromosomeObject.scale(touchpointX) + touchpointSign * 15, yScale(touchpointY - (touchpointY < 10 ? 0.25 : 5 ))],
-  // [chromosomeObject.scale(touchpointX) - touchpointSign * 5, yScale(touchpointY - (touchpointY < 10 ? 0.75 : 5 ))]];
 }
