@@ -278,7 +278,7 @@ function draw() {
     container
       .append('g')
       .attr('transform', 'translate(' + [0, margins.legendHeight - margins.chromoAxis - margins.chromosomeContainerHeight - margins.legendGap] + ')')
-      .attr('class', function(d,i) { return 'brush brush-' + d.chromosome; })
+      .attr('class', function(d,i) { return 'brush brush-' + d.column; })
       .each(function(d,i) {
         d.brush = d3.brushX().extent([[0, 0], [panelContainerWidth, margins.chromosomeContainerHeight]]).on('brush end', brushed);
         d3.select(this).call(d.brush).call(d.brush.move, d.scale2.range());
@@ -332,6 +332,13 @@ function draw() {
           .transition()
           .duration(5)
           .style('opacity', 1);
+      })
+      .on('dblclick', function(d,i) {
+        var brushData = d3.select(this.parentNode).datum();
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.startPoint), brushData.scale2(d.endPoint)].sort(d3.ascending));
+        var startPoint = d3.select(this.parentNode).datum().scale.invert(-0.1 * panelContainerWidth);
+        var endPoint = d3.select(this.parentNode).datum().scale.invert(1.1 * panelContainerWidth);
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
       });
 
     shapes.exit().remove();
@@ -377,6 +384,13 @@ function draw() {
           .transition()
           .duration(5)
           .style('opacity', 1);
+      })
+      .on('dblclick', function(d,i) {
+        var brushData = d3.select(this.parentNode).datum();
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.sourcePoint), brushData.scale2(d.sinkPoint)].sort(d3.ascending));
+        var startPoint = d3.select(this.parentNode).datum().scale.invert(-0.1 * panelContainerWidth);
+        var endPoint = d3.select(this.parentNode).datum().scale.invert(1.1 * panelContainerWidth);
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
       });
   }
 
@@ -421,6 +435,21 @@ function draw() {
           .transition()
           .duration(5)
           .style('opacity', 1);
+      })
+      .on('dblclick', function(d,i) {
+        var bin = connectionBins[d.cid];
+        var brushData1 = panels.filter(function(e,j) { return e.chromosome === d.sourceChromosome})[0];
+        d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(bin.source.startPoint), brushData1.scale2(bin.source.endPoint)].sort(d3.ascending));
+        brushData1 = panels.filter(function(e,j) { return e.chromosome === d.sourceChromosome})[0];
+        var startPoint1 = brushData1.scale.invert(-0.1 * panelContainerWidth);
+        var endPoint1 = brushData1.scale.invert(1.1 * panelContainerWidth);
+        d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(startPoint1), brushData1.scale2(endPoint1)]);
+        var brushData2 = panels.filter(function(e,j) { return e.chromosome === d.sinkChromosome})[0];
+        d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(bin.sink.startPoint), brushData2.scale2(bin.sink.endPoint)].sort(d3.ascending));
+        brushData2 = panels.filter(function(e,j) { return e.chromosome === d.sinkChromosome})[0];
+        var startPoint2 = brushData2.scale.invert(-0.1 * panelContainerWidth);
+        var endPoint2 = brushData2.scale.invert(1.1 * panelContainerWidth);
+        d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(startPoint2), brushData2.scale2(endPoint2)]);
       });
   }
 
@@ -563,6 +592,7 @@ function draw() {
     updatePanels(panels);
     updateLegend(panels);
   }
+
 }
 
 // Act upon window resize
