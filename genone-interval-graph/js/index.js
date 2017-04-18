@@ -301,6 +301,8 @@ function draw() {
         d.popoverTitle = popoverIntervalTitle(d,i);
         d.popoverContent = popoverIntervalContent(d,i);
       })
+      .style('fill', function(d,i) { return metadata[d.chromosome].color; })
+      .style('stroke', function(d,i) { return d3.rgb(metadata[d.chromosome].color).darker(1); })
       .attr('x', function(d,i) { return scale(d.startPoint); })
       .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
       .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
@@ -346,7 +348,7 @@ function draw() {
 
   function drawLocalConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (localConnectionChromosomeBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByDomain(localConnectionChromosomeBins[d.chromosome], d.scale.domain(), connectionBins) || []); }, function(d,i) { return d.cid});
 
     connections.exit().remove();
 
@@ -455,7 +457,7 @@ function draw() {
 
   function drawLooseConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (looseConnectionChromosomeBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByDomain(looseConnectionChromosomeBins[d.chromosome], d.scale.domain(), connectionBins) || []); }, function(d,i) { return d.cid});
 
     connections.exit().remove();
 
@@ -557,7 +559,8 @@ function draw() {
     var panel = d3.selectAll('.panel-container').filter(function(d,i) { return d.column === brushData.column && d.chromosome === brushData.chromosome });
     panel.select('.axis--x').call(brushData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     panel.select('.zoom').call(brushData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
-    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome)});
+    //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0])))});
+    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome);});
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
     drawLooseConnections(panel.select('g.loose-connections-container'));
@@ -576,7 +579,8 @@ function draw() {
     panelData.panelScale.domain(domain);
     panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     chromo.select('.brush').call(panelData.brush.move, panelData.scale.range().map(t.invertX, t));
-    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome)});
+    //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0]))) });
+    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome); });
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
     drawLooseConnections(panel.select('g.loose-connections-container'));
