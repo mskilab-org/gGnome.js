@@ -84,6 +84,22 @@ function getLooseConnectionBins(dataArray, connectionBins) {
   }
   return hash; }, {});
 }
+// The array of connections within the specified domain
+function filterConnectionsByDomain(connections, domain, connectionBins) {
+  return connections.filter(function(d,i) {
+    var connection = connectionBins[d.cid];
+    var filter = false;
+    if (connection.source) {
+      filter = filter || ((connection.source.startPoint <= domain[1]) && (connection.source.startPoint >= domain[0])) ||
+      ((connection.source.endPoint <= domain[1]) && (connection.source.endPoint >= domain[0]));
+    }
+    if (connection.sink) {
+      filter = filter || ((connection.sink.startPoint <= domain[1]) && (connection.sink.startPoint >= domain[0])) ||
+      ((connection.sink.endPoint <= domain[1]) && (connection.sink.endPoint >= domain[0]));
+    }
+    return filter;
+  });
+}
 // The title for the popover on the intervals
 function popoverIntervalTitle(d,i) {
   return 'Interval #' + d.title;
