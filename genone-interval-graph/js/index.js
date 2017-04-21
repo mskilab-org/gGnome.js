@@ -225,6 +225,7 @@ function draw() {
       .attr('class', 'zoom')
       .attr('width', panelContainerWidth)
       .attr('height', plotsHeight)
+      .attr('transform','translate(0.5,0)')
       .each(function(d,i) {
         d3.select(this).call(d.zoom);
       });
@@ -398,7 +399,7 @@ function draw() {
 
   function drawInterChromosomeConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByPanelDomains(interChromosomeConnectionBins, panels, connectionBins) || []); }, function(d,i) { return d.cid});
  
     connections.exit().remove();
 
