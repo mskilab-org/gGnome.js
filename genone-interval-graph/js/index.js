@@ -19,7 +19,7 @@ var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins)
 var looseConnectionChromosomeBins = getLooseConnectionBins(data, connectionBins);
 var yMax = d3.max(data.intervals.map(function(d,i) { return d.y; }));
 var interChromosomeConnectionBins;
-var localInterChromosomeConnectionBins;
+var anchorInterChromosomeConnectionBins;
 
 // The actual drawing
 draw();
@@ -47,8 +47,8 @@ function draw() {
 
   var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
   var yAxis = d3.axisLeft(yScale).tickSize(-width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
-  interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
-  localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
+  //interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+  anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
 
   // Controls container
   drawControls();
@@ -399,7 +399,7 @@ function draw() {
 
   function drawInterChromosomeConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByPanelDomains(interChromosomeConnectionBins, panels, connectionBins) || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.cid});
  
     connections.exit().remove();
 
@@ -495,20 +495,20 @@ function draw() {
       });
   }
 
-  function drawLocalInterConnections(container) {
+  function drawAnchorInterConnections(container) {
 
-    var connections = container.selectAll('path.arc').data(function(d,i) { return (localInterChromosomeConnectionBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.arc').data(function(d,i) { return (anchorInterChromosomeConnectionBins[d.chromosome] || []); }, function(d,i) { return d.cid});
 
     connections.exit().remove();
 
-    connections.attr('transform', function(d,i) { return 'translate(' + [calculateLocalInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')'})
+    connections.attr('transform', function(d,i) { return 'translate(' + [calculateAnchorInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')'})
     .attr('d', arc)
 
     connections
       .enter()
       .append('path')
       .attr('class', function(d,i) { return 'popovered arc'; })
-      .attr('transform', function(d,i) { return 'translate(' + [calculateLocalInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')';})
+      .attr('transform', function(d,i) { return 'translate(' + [calculateAnchorInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')';})
       .attr('d', arc)
       .each(function(d,i) {
         d.popoverTitle = popoverConnectionTitle(d,i);
@@ -562,10 +562,11 @@ function draw() {
     panel.select('.zoom').call(brushData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
     //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0])))});
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome);});
+    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
     drawLooseConnections(panel.select('g.loose-connections-container'));
-    drawLocalInterConnections(panel.select('g.local-inter-connections-container'));
+    drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
 
@@ -582,18 +583,19 @@ function draw() {
     chromo.select('.brush').call(panelData.brush.move, panelData.scale.range().map(t.invertX, t));
     //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0]))) });
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome); });
+    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
     drawLocalConnections(panel.select('g.local-connections-container'));
     drawLooseConnections(panel.select('g.loose-connections-container'));
-    drawLocalInterConnections(panel.select('g.local-inter-connections-container'));
+    drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
 
   function refreshPanel(theColumn, theChromosome) {
     d3.select('.control-container.column-' + theColumn).selectAll('circle').classed('selected', function(d,i) { return d.chromoObject.chromosome === theChromosome });
     panels[theColumn] = Object.assign({}, metadata[theChromosome], {column: theColumn});
-    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
-    localInterChromosomeConnectionBins = getLocalInterChromosomeConnectionBins(data, panels, connectionBins);
+    //interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+    anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
     updatePanels(panels);
     updateLegend(panels);
   }

@@ -39,16 +39,30 @@ function getLocalConnectionBins(dataArray, connectionBins) {
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes selected on the panels
 function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   var panelChromosomes = panels.map(function(d,i) { return d.chromosome; });
-  var panelChromosome1, panelChromosome2, sink, verdict;
+  var panelChromosome1, panelChromosome2, sink, domain1, domain2, verdict;
   var results = [];
   for (var i = 0; i < panelChromosomes.length - 1; i++) {
     panelChromosome1 = panelChromosomes[i];
     panelChromosome2 = panelChromosomes[i + 1];
+    domain1 = panels[i].scale.domain();
+    domain2 = panels[i+1].scale.domain();
     dataArray.connections.forEach(function(elem, index) {
       source = connectionBins[elem.cid].source;
       sink = connectionBins[elem.cid].sink;
       verdict = (elem.type !== 'LOOSE') //&& (source.chromosome !== sink.chromosome);
       verdict = verdict && (((source.chromosome === panelChromosome1) && (sink.chromosome === panelChromosome2)) || ((source.chromosome === panelChromosome2) && (sink.chromosome === panelChromosome1)));
+      if (verdict && (source.chromosome === panelChromosome1) && (sink.chromosome === panelChromosome2)) {
+        verdict = verdict && ((elem.source > 0) || ((source.startPoint <= domain1[1]) && (source.startPoint >= domain1[0]))) &&
+        ((elem.source < 0) || ((source.endPoint <= domain1[1]) && (source.endPoint >= domain1[0])))
+        && (((elem.sink > 0) || (((sink.startPoint <= domain2[1]) && (sink.startPoint >= domain2[0])))) &&
+        ((elem.sink > 0) || ((sink.endPoint <= domain2[1]) && (sink.endPoint >= domain2[0]))));
+      }
+      if (verdict && ((source.chromosome === panelChromosome2) && (sink.chromosome === panelChromosome1))) {
+        verdict = verdict && (((elem.source > 0) || ((source.startPoint <= domain2[1]) && (source.startPoint >= domain2[0]))) &&
+        ((elem.source < 0) || ((source.endPoint <= domain2[1]) && (source.endPoint >= domain2[0]))))
+        && ((((elem.sink > 0) || ((sink.startPoint <= domain1[1]) && (sink.startPoint >= domain1[0])))) &&
+        ((elem.sink < 0) || ((sink.endPoint <= domain1[1]) && (sink.endPoint >= domain1[0]))));
+      }
       if (verdict) {
         results.push(elem);
       }
@@ -57,7 +71,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   return results;
 }
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes, not selected on the panels
-function getLocalInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
+function getAnchorInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
   var panelChromosomes = panels.map(function(d,i) { return d.chromosome; });
   return dataArray.connections.reduce(function(hash, elem) {
   var source = connectionBins[elem.cid].source;
@@ -95,7 +109,7 @@ function getLooseConnectionBins(dataArray, connectionBins) {
 }
 // The array of connections within the specified domain
 function filterConnectionsByDomain(connections, domain, connectionBins) {
-  return connections.filter(function(d,i) {
+  return (connections || []).filter(function(d,i) {
     var connection = connectionBins[d.cid];
     var filter;
     if (connection.source && !connection.sink) {
@@ -114,34 +128,6 @@ function filterConnectionsByDomain(connections, domain, connectionBins) {
     }
     return filter;
   });
-}
-// The array of connections within the domains of the visible panels
-function filterConnectionsByPanelDomains(connections, panels, connectionBins) {
-  window.pc = {connections: connections, panels: panels, connectionBins: connectionBins};
-  var chromosome, source, sink, domain, results = [];
-  var filterSource, filterSink;
-  panels.forEach(function(panel, index) {
-    chromosome = panel.chromosome;
-    domain = panel.scale.domain();
-    connections.forEach(function(elem, jindex) {
-      source = connectionBins[elem.cid].source;
-      sink = connectionBins[elem.cid].sink;
-      filterSource = true;
-      filterSink = true
-      if (source.chromosome === chromosome) {
-        filterSource = ((source.startPoint <= domain[1]) && (source.startPoint >= domain[0])) ||
-        ((source.endPoint <= domain[1]) && (source.endPoint >= domain[0]));
-      }
-      if (sink.chromosome === chromosome) {
-        filterSink = ((sink.startPoint <= domain[1]) && (sink.startPoint >= domain[0])) ||
-        ((sink.endPoint <= domain[1]) && (sink.endPoint >= domain[0]));
-      }
-      if (filterSource && filterSink) {
-        results.push(elem);
-      }
-    });
-  });
-  return results;
 }
 // The title for the popover on the intervals
 function popoverIntervalTitle(d,i) {
@@ -231,6 +217,7 @@ function calculateConnectorEndpoints(yScale, record, connector, chromosome) {
 // The array of points forming the connections between its endpoints in different chromosomes
 function calculateInterConnectorEndpoints(yScale, record, connector, panelsArray) {
   var points = [];
+  // TODO: REFACTOR for cases with the same chromosome on different panels
   var sourceChromosome = panelsArray.filter(function(d,i) { return d.chromosome === connector.source.chromosome })[0];
   var sinkChromosome = panelsArray.filter(function(d,i) { return d.chromosome === connector.sink.chromosome })[0];
 
@@ -304,7 +291,7 @@ function calculateLooseConnectorEndpoints(yScale, record, connector, chromosome)
 }
 
 // The array of points forming the connections with the other end in another chromosome
-function calculateLocalInterConnectorEndpoints(yScale, record, connector, chromosomeObject) {
+function calculateAnchorInterConnectorEndpoints(yScale, record, connector, chromosomeObject) {
   record.sourceJabba = connector.source.y;
   record.sinkJabba = connector.sink.y;
   record.sourceChromosome = connector.source.chromosome;
