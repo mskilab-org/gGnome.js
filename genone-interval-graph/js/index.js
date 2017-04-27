@@ -15,8 +15,6 @@ var arc = d3.arc().innerRadius(0).outerRadius(margins.bar/2).startAngle(0).endAn
 var metadata = getMetadata(data);
 var intervalBins = getIntervalBins(data);
 var connectionBins = getConnectionBins(data, intervalBins);
-var localConnectionChromosomeBins = getLocalConnectionBins(data, connectionBins);
-var looseConnectionChromosomeBins = getLooseConnectionBins(data, connectionBins);
 var yMax = d3.max(data.intervals.map(function(d,i) { return d.y; }));
 var interChromosomeConnectionBins;
 var anchorInterChromosomeConnectionBins;
@@ -39,15 +37,23 @@ function draw() {
   // The SVG hosting the visualisation
   var svg = d3.select('#plot-container').append('svg').attr('class', 'plot').attr('width', totalWidth).attr('height', totalHeight);
 
-  var panels = data.metadata.slice(0,3).map(function(d,i) { var elem = Object.assign({}, d); elem.column = i; return elem;});
+  var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
+
+  var panels = data.metadata.slice(0,3).map(function(d,i) { 
+    var elem = Object.assign({}, d); 
+    elem.column = i; 
+    elem.yScale = yScale;
+    elem.lineRenderer = line;
+    elem.arcRenderer = arc;
+    return elem;
+  });
 
   var panelContainerWidth = (width - (panels.length - 1) * margins.gap) / panels.length;
 
   drawFilters();
 
-  var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
+ 
   var yAxis = d3.axisLeft(yScale).tickSize(-width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
-  //interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
   anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
 
   // Controls container
@@ -232,11 +238,7 @@ function draw() {
 
     container.append('g').attr('class', 'shapes-container').style('clip-path','url(#clip)');
 
-    container.append('g').attr('class', 'local-connections-container').style('clip-path','url(#clip)');
-
     container.append('g').attr('class', 'local-inter-connections-container').style('clip-path','url(#clip)');
-
-    container.append('g').attr('class', 'loose-connections-container').style('clip-path','url(#clip)');
 
   }
 
@@ -322,20 +324,7 @@ function draw() {
       .on('mouseout', function(d,i) {
         d3.select(this).classed('highlighted', false);
       })
-      .on('mousemove', function(d,i) {
-        var popover = d3.select('.popover');
-        popover.select('.popover-title').html(d.popoverTitle);
-        popover.select('.popover-content').html(d.popoverContent);
-        popover.select('.popover-content span').style('color', d.color)
-        popover
-          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
-          .classed('hidden', false)
-          .style('display', 'block')
-          .transition()
-          .duration(5)
-          .style('opacity', 1);
-      })
+      .on('mousemove', function(d,i) { return loadPopover(d);})
       .on('dblclick', function(d,i) {
         var brushData = d3.select(this.parentNode).datum();
         d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.startPoint), brushData.scale2(d.endPoint)].sort(d3.ascending));
@@ -347,151 +336,61 @@ function draw() {
     shapes.exit().remove();
   }
 
-  function drawLocalConnections(container) {
-
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByDomain(localConnectionChromosomeBins[d.chromosome], d.scale.domain(), connectionBins) || []); }, function(d,i) { return d.cid});
-
-    connections.exit().remove();
-
-    connections.attr('d', function(d,i) { return line(calculateConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
-
-    connections
-      .enter()
-      .append('path')
-      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
-      .attr('d', function(d,i) { return line(calculateConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
-      .each(function(d,i) {
-        d.popoverTitle = popoverConnectionTitle(d,i);
-        d.popoverContent = popoverConnectionContent(d,i);
-      })
-      .on('mouseover', function(d,i) {
-        var connector = connectionBins[d.cid];
-        d3.select(this).classed('highlighted', true);
-        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
-      })
-      .on('mouseout', function(d,i) {
-        var connector = connectionBins[d.cid];
-        d3.select(this).classed('highlighted', false);
-        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
-      })
-      .on('mousemove', function(d,i) {
-        var popover = d3.select('.popover');
-        popover.select('.popover-title').html(d.popoverTitle);
-        popover.select('.popover-content').html(d.popoverContent);
-        popover.select('.popover-content span').style('color', d.color)
-        popover
-          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
-          .classed('hidden', false)
-          .style('display', 'block')
-          .transition()
-          .duration(5)
-          .style('opacity', 1);
-      })
-      .on('dblclick', function(d,i) {
-        var brushData = d3.select(this.parentNode).datum();
-        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.sourcePoint), brushData.scale2(d.sinkPoint)].sort(d3.ascending));
-        var startPoint = d3.select(this.parentNode).datum().scale.invert(-0.1 * panelContainerWidth);
-        var endPoint = d3.select(this.parentNode).datum().scale.invert(1.1 * panelContainerWidth);
-        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
-      });
-  }
-
   function drawInterChromosomeConnections(container) {
 
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.cid});
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.identifier});
  
     connections.exit().remove();
 
-    connections.attr('d', function(d,i) { return line(calculateInterConnectorEndpoints(yScale, d, connectionBins[d.cid], panels)); });
+    connections
+      //.attr('id', function(d,i) { return d.identifier; })
+      .attr('class', function(d,i) { return d.styleClass; })
+      .style('clip-path', function(d,i) { return d.clipPath; })
+      .attr('transform', function(d,i) { return d.transform; })
+      .attr('d', function(d,i) { return d.render; });
 
     connections
       .enter()
       .append('path')
-      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
-      .style('clip-path','url(#clipWidth)')
-      .attr('d', function(d,i) { return line(calculateInterConnectorEndpoints(yScale, d, connectionBins[d.cid], panels)); })
-      .each(function(d,i) {
-        d.popoverTitle = popoverConnectionTitle(d,i);
-        d.popoverContent = popoverConnectionContent(d,i);
-      })
+      .attr('id', function(d,i) { return d.identifier; })
+      .attr('class', function(d,i) { return d.styleClass; })
+      .style('clip-path', function(d,i) { return d.clipPath; })
+      .attr('d', function(d,i) { return d.render; })
+      .attr('transform', function(d,i) { return d.transform; })
       .on('mouseover', function(d,i) {
         var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', true);
-        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source && connector.source.iid, connector.sink && connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
       })
       .on('mouseout', function(d,i) {
         var connector = connectionBins[d.cid];
         d3.select(this).classed('highlighted', false);
-        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source.iid,connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source && connector.source.iid, connector.sink && connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
       })
-      .on('mousemove', function(d,i) {
-        var popover = d3.select('.popover');
-        popover.select('.popover-title').html(d.popoverTitle);
-        popover.select('.popover-content').html(d.popoverContent);
-        popover.select('.popover-content span').style('color', d.color)
-        popover
-          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
-          .classed('hidden', false)
-          .style('display', 'block')
-          .transition()
-          .duration(5)
-          .style('opacity', 1);
-      })
+      .on('mousemove', function(d,i) { return loadPopover(d);})
       .on('dblclick', function(d,i) {
-        var bin = connectionBins[d.cid];
-        var brushData1 = panels.filter(function(e,j) { return e.chromosome === d.sourceChromosome})[0];
-        d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(bin.source.startPoint), brushData1.scale2(bin.source.endPoint)].sort(d3.ascending));
-        brushData1 = panels.filter(function(e,j) { return e.chromosome === d.sourceChromosome})[0];
-        var startPoint1 = brushData1.scale.invert(-0.1 * panelContainerWidth);
-        var endPoint1 = brushData1.scale.invert(1.1 * panelContainerWidth);
-        d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(startPoint1), brushData1.scale2(endPoint1)]);
-        var brushData2 = panels.filter(function(e,j) { return e.chromosome === d.sinkChromosome})[0];
-        d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(bin.sink.startPoint), brushData2.scale2(bin.sink.endPoint)].sort(d3.ascending));
-        brushData2 = panels.filter(function(e,j) { return e.chromosome === d.sinkChromosome})[0];
-        var startPoint2 = brushData2.scale.invert(-0.1 * panelContainerWidth);
-        var endPoint2 = brushData2.scale.invert(1.1 * panelContainerWidth);
-        d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(startPoint2), brushData2.scale2(endPoint2)]);
-      });
-  }
-
-  function drawLooseConnections(container) {
-
-    var connections = container.selectAll('path.connection').data(function(d,i) { return (filterConnectionsByDomain(looseConnectionChromosomeBins[d.chromosome], d.scale.domain(), connectionBins) || []); }, function(d,i) { return d.cid});
-
-    connections.exit().remove();
-
-    connections.attr('d', function(d,i) { return line(calculateLooseConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); });
-
-    connections
-      .enter()
-      .append('path')
-      .attr('class', function(d,i) { return 'popovered connection local ' + d.type; })
-      .attr('d', function(d,i) { return line(calculateLooseConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())); })
-      .each(function(d,i) {
-        d.popoverTitle = popoverConnectionTitle(d,i);
-        d.popoverContent = popoverConnectionContent(d,i);
-      })
-      .on('mouseover', function(d,i) {
-        d3.select(this).classed('highlighted', true);
-      })
-      .on('mouseout', function(d,i) {
-        d3.select(this).classed('highlighted', false);
-      })
-      .on('mousemove', function(d,i) {
-        var popover = d3.select('.popover');
-        popover.select('.popover-title').html(d.popoverTitle);
-        popover.select('.popover-content').html(d.popoverContent);
-        popover.select('.popover-content span').style('color', d.color)
-        popover
-          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
-          .classed('hidden', false)
-          .style('display', 'block')
-          .transition()
-          .duration(5)
-          .style('opacity', 1);
+        if (d.type === 'LOOSE') return;
+        if (d.sourcePanel.column === d.sinkPanel.column) {
+          var brushData = Object.assign({}, d.sourcePanel);
+          d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.sourcePoint), brushData.scale2(d.sinkPoint)].sort(d3.ascending));
+          var startPoint = d3.select('.brush-' + brushData.column).datum().scale.invert(-0.1 * panelContainerWidth);
+          var endPoint = d3.select('.brush-' + brushData.column).datum().scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
+        } else {
+          var bin = connectionBins[d.cid];
+          var brushData1 = Object.assign({}, d.sourcePanel);
+          d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(bin.source.startPoint), brushData1.scale2(bin.source.endPoint)].sort(d3.ascending));
+          brushData1 = d3.select('.brush-' + brushData1.column).datum();
+          var startPoint1 = brushData1.scale.invert(-0.1 * panelContainerWidth);
+          var endPoint1 = brushData1.scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(startPoint1), brushData1.scale2(endPoint1)]);
+          var brushData2 = Object.assign({}, d.sinkPanel);
+          d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(bin.sink.startPoint), brushData2.scale2(bin.sink.endPoint)].sort(d3.ascending));
+          brushData2 = d3.select('.brush-' + brushData2.column).datum();
+          var startPoint2 = brushData2.scale.invert(-0.1 * panelContainerWidth);
+          var endPoint2 = brushData2.scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(startPoint2), brushData2.scale2(endPoint2)]);
+        }
       });
   }
 
@@ -560,12 +459,9 @@ function draw() {
     var panel = d3.selectAll('.panel-container').filter(function(d,i) { return d.column === brushData.column && d.chromosome === brushData.chromosome });
     panel.select('.axis--x').call(brushData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     panel.select('.zoom').call(brushData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
-    //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0])))});
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome);});
     interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
     drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
-    drawLocalConnections(panel.select('g.local-connections-container'));
-    drawLooseConnections(panel.select('g.loose-connections-container'));
     drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
@@ -581,25 +477,35 @@ function draw() {
     panelData.panelScale.domain(domain);
     panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
     chromo.select('.brush').call(panelData.brush.move, panelData.scale.range().map(t.invertX, t));
-    //var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome) && (((d.startPoint <= domain[1]) && (d.startPoint >= domain[0])) || ((d.endPoint <= domain[1]) && (d.endPoint >= domain[0]))) });
     var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome); });
     interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
     drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
-    drawLocalConnections(panel.select('g.local-connections-container'));
-    drawLooseConnections(panel.select('g.loose-connections-container'));
     drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
     drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
   }
 
   function refreshPanel(theColumn, theChromosome) {
     d3.select('.control-container.column-' + theColumn).selectAll('circle').classed('selected', function(d,i) { return d.chromoObject.chromosome === theChromosome });
-    panels[theColumn] = Object.assign({}, metadata[theChromosome], {column: theColumn});
-    //interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+    panels[theColumn] = Object.assign({}, metadata[theChromosome], {column: theColumn, yScale: yScale, lineRenderer: line, arcRenderer: arc });
     anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
     updatePanels(panels);
     updateLegend(panels);
   }
 
+  function loadPopover(d) {
+    var popover = d3.select('.popover');
+    popover.select('.popover-title').html(d.popoverTitle);
+    popover.select('.popover-content').html(d.popoverContent);
+    popover.select('.popover-content span').style('color', d.color)
+    popover
+      .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+      .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+      .classed('hidden', false)
+      .style('display', 'block')
+      .transition()
+      .duration(5)
+      .style('opacity', 1);
+  }
 }
 
 // Act upon window resize
