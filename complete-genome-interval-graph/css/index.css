@@ -1,3 +1,14 @@
 svg.plot {
   border: 2px solid black;
 }
+
+.brush .selection {
+  stroke: #000;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+.highlighted .selection {
+  stroke: orange;
+  stroke-width: 2;
+}

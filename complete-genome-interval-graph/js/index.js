@@ -13,7 +13,7 @@ $(function() {
   // Act upon json reload
   $('#' + dataSelector).on('rendered.bs.select', event => {
     d3.json($('#' + dataSelector).val(), dataInput => {
-      frame.updateDataInput(dataInput);
+      frame.dataInput = dataInput;
       frame.render();
     });
   });
