@@ -19,7 +19,8 @@
       </div>
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
-            <select class="selectpicker"  data-header="Select a data file" show-tick>
+            <select id="data-selector" class="selectpicker"  data-header="Select a data file" show-tick>
+              <option value="https://api.myjson.com/bins/a1069">Patient a1069</option>
               <option value="https://api.myjson.com/bins/a1069">Patient a1069</option>
             </select>
          </div>
@@ -47,5 +48,7 @@
   <script src='http://d3js.org/d3-scale-chromatic.v0.3.min.js'></script>
   <script src='./js/index.js'></script>
   <script src='./js/frame.js'></script>
+  <script src='./js/svg-filter.js'></script>
+  <script src='./js/chromo.js'></script>
 </body>
 </html>
