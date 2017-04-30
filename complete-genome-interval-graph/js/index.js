@@ -5,7 +5,7 @@ $(function() {
   var plotContainerId = 'plot-container';
   var dataSelector = 'data-selector';
   var totalWidth = $('#' + plotContainerId).width();
-  var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
+  var totalHeight = $(window).height() - 2 * $('#' + plotContainerId).offset().top;
   
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
@@ -23,7 +23,7 @@ $(function() {
     window.clearTimeout(throttleTimer);
     throttleTimer = window.setTimeout(() => {
       totalWidth = $('#' + plotContainerId).width();
-      totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
+      totalHeight = $(window).height() - 2 * $('#' + plotContainerId).offset().top;
       frame.updateDimensions(totalWidth, totalHeight);
       frame.render();
     }, 200);

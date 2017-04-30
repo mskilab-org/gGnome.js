@@ -116,6 +116,7 @@ class Frame {
 
     var width = this.width;
     var activeId = null;
+    var originalSelection;
 
     //keep track of existing brushes
     var brushes = [];
@@ -138,16 +139,19 @@ class Frame {
         .on('brush', brushing)
         .on('end', brushEnd);
 
-      brushes.push({id: Misc.guid, brush: brush});
+      brushes.push({id: Misc.guid, brush: brush, selection: null });
 
       function brushStart() {
         // your stuff here
         console.log('start...')
+        //originalSelection =  d3.event.selection;
       };
 
       function brushing() {
+        if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === "brush")) return; // Only transition after input.
+
         // your stuff here
-        console.log('brushing...')
+        //console.log('brushing...', d3.event.selection)
       }
 
       function brushEnd() {
@@ -166,10 +170,27 @@ class Frame {
         }
 
         activeId = d3.select(this).datum().id;
+        let currentSelection = d3.event.selection;
+        let lowerBound = currentSelection[0], upperBound = currentSelection[1];
+        console.log('brushed...', activeId, currentSelection, originalSelection)
 
-        console.log('brushed...', d3.select(this).node(), d3.select(this).datum())
-        d3.select(this).transition().call(d3.event.target.move, [300,600])
-        //d3.select(this).call(d3.select(this).datum().brush.move, [300,600])
+/*
+        var low  = d3.max(brushes.filter((d, i) => (d.selection !== null) && (d.id !== activeId) && (lowerBound <= d.selection[1]) && (d.selection[1] <= upperBound)).map((d, i) => d.selection[1]));
+        lowerBound = d3.max([low, lowerBound]);
+        var high = d3.min(brushes.filter((d, i) => (d.selection !== null) && (d.id !== activeId) && (lowerBound <= d.selection[0]) && (d.selection[0] <= upperBound)).map((d, i) => d.selection[0]));
+        upperBound = d3.min([high, upperBound]);
+
+        console.log('verdict ', lowerBound, upperBound)
+*/
+        //let verdict = brushes.filter((d, i) => (d.selection !== null) && (d.id !== activeId) && (((d.selection[0] <= lowerBound) && (upperBound <= d.selection[1])) || ((lowerBound <= d.selection[0]) && (d.selection[1] <= upperBound)))).length > 0 ? originalSelection : [lowerBound, upperBound]
+        let verdict = brushes.filter((d, i) => (d.selection !== null) && (d.id !== activeId) && (d3.max([d.selection[0], lowerBound]) <= d3.min([d.selection[1], upperBound]))).length > 0 ? originalSelection : [lowerBound, upperBound]
+
+        d3.select(this).transition().call(d3.event.target.move, verdict)
+
+        brushes.forEach((d, i) => { 
+          var node = d3.select('#brush-' + d.id).node();
+          d.selection = node && d3.brushSelection(node); 
+        });
         // Always draw brushes
         redrawBrushes();
       }
