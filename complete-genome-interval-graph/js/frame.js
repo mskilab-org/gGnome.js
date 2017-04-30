@@ -183,12 +183,10 @@ class Frame {
         // read the active brush current selection
         currentSelection = d3.event.selection;
 
-        let verdict = currentSelection;
+        // rollback if overlapping is detected
         if (otherSelections.filter((d, i) => (d3.max([d[0], currentSelection[0]]) <= d3.min([d[1], currentSelection[1]]))).length > 0) {
-          verdict = originalSelection;
+          d3.select(this).transition().call(d3.event.target.move, originalSelection);
         }
-
-        d3.select(this).transition().call(d3.event.target.move, verdict)
 
         // Always draw brushes
         redrawBrushes();
@@ -233,6 +231,8 @@ class Frame {
       brushes.forEach((d, i) => { 
         var node = d3.select('#brush-' + d.id).node();
         d.selection = node && d3.brushSelection(node); 
+        if (d.selection)
+        console.log(i, d.selection.join(', '))
       });
 
     }
