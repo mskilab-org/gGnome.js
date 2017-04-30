@@ -29,6 +29,12 @@ $(function() {
     }, 200);
   });
 
+  $('html').keyup((e) => {
+      if ((e.keyCode === 46) || (e.keyCode === 8)) {
+          alert('Delete key released');
+          console.log(Misc.guid)
+      }
+  });
 
 });
 

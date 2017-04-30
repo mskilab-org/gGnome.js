@@ -119,10 +119,6 @@ class Frame {
 
     //keep track of existing brushes
     var brushes = [];
-    // We initially generate a SVG group to keep our brushes' DOM elements in:
-
-    // We also keep the actual d3-brush functions and their IDs in a list:
-    var brushes = [];
 
     /* CREATE NEW BRUSH
      *
@@ -135,13 +131,14 @@ class Frame {
      * We will use the selection of a brush in brushend() to differentiate these cases.
      */
     function newBrush() {
+
       var brush = d3.brushX()
         .extent([[0, 0], [width, 30]])
         .on('start', brushStart)
         .on('brush', brushing)
         .on('end', brushEnd);
 
-      brushes.push({id: brushes.length, brush: brush});
+      brushes.push({id: Misc.guid, brush: brush});
 
       function brushStart() {
         // your stuff here
@@ -154,10 +151,13 @@ class Frame {
       }
 
       function brushEnd() {
+        if (!d3.event.sourceEvent) return; // Only transition after input.
+        if (!d3.event.selection) return; // Ignore empty selections.
 
         // Figure out if our latest brush has a selection
         var lastBrushID = brushes[brushes.length - 1].id;
-        var lastBrush = document.getElementById('brush-' + lastBrushID);
+        //var lastBrush = document.getElementById('brush-' + lastBrushID);
+        var lastBrush = d3.select('#brush-' + lastBrushID).node();
         var selection = d3.brushSelection(lastBrush);
 
         // If it does, that means we need another one
@@ -166,27 +166,29 @@ class Frame {
         }
 
         activeId = d3.select(this).datum().id;
-        console.log('brushed...', d3.select(this).datum(), d3.event.sourceEvent.parentNode)
 
+        console.log('brushed...', d3.select(this).node(), d3.select(this).datum())
+        d3.select(this).transition().call(d3.event.target.move, [300,600])
+        //d3.select(this).call(d3.select(this).datum().brush.move, [300,600])
         // Always draw brushes
-        drawBrushes();
+        redrawBrushes();
       }
     }
 
-    function drawBrushes() {
+    function redrawBrushes() {
 
       var brushSelection = gBrushes
         .selectAll('.brush')
         .data(brushes, function (d){ return d.id });
 
-    	// Set up new brushes
+      // Set up new brushes
       brushSelection.enter()
-        .insert("g", '.brush')
+        .insert('g', '.brush')
         .attr('class', 'brush')
         .attr('id', function(brush){ return 'brush-' + brush.id; })
         .each(function(brushObject) {
           //call the brush
-          brushObject.brush(d3.select(this));
+          d3.select(this).call(brushObject.brush);
         });
 
       brushSelection
@@ -197,7 +199,7 @@ class Frame {
             .selectAll('.overlay')
             .style('pointer-events', function() {
               var brush = brushObject.brush;
-              if (brushObject.id === brushes.length - 1 && brush !== undefined) {
+              if (brushObject.id === brushes[brushes.length - 1].id && brush !== undefined) {
                 return 'all';
               } else {
                 return 'none';
@@ -207,10 +209,12 @@ class Frame {
 
       brushSelection.exit()
         .remove();
+      
+      console.log(brushes)
     }
 
     newBrush();
-    drawBrushes();
+    redrawBrushes();
 
   }
 
