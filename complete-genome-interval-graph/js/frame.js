@@ -1,8 +1,9 @@
-class Frame {
+class Frame extends Base {
 
   constructor(plotContainerId, totalWidth, totalHeight) {
+    super();
     // Frame drawing variables
-    this.margins = {top: 30, bottom: 50, left: 30, right: 30, legend: {bar: 30, upperGap: 30, lowerGap: 20}};
+    this.margins = {top: 30, bottom: 40, left: 30, right: 30, legend: {bar: 30, upperGap: 30, lowerGap: 20}, panels: {upperGap: 120, lowerGap: 0, gap: 16}, intervals: {bar: 10}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
 
@@ -30,10 +31,11 @@ class Frame {
     if (this.dataInput === null) return;
     this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
     this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width])//.nice();
-    this.axis = d3.axisBottom(this.genomeScale).ticks(10, 's');
+    this.axis = d3.axisBottom(this.genomeScale).tickValues(this.genomeScale.ticks(10, 's').concat(this.genomeScale.domain())).ticks(10, 's');
     let boundary = 0
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
       let chromo = new Chromo(element);
+      chromo.scaleToGenome = d3.scaleLinear().domain([0, chromo.endPoint]).range([boundary, boundary + chromo.length - 1]);
       chromo.scale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(boundary), this.genomeScale(boundary + chromo.length - 1)])//.nice();
       chromo.innerScale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(chromo.startPoint), this.genomeScale(chromo.endPoint)])//.nice();
       chromo.axis = d3.axisBottom(chromo.innerScale).ticks(5, 's');
@@ -41,6 +43,18 @@ class Frame {
       boundary += chromo.length;
       return hash; 
     }, {});
+    let interval = null;
+    this.intervals = this.dataInput.intervals.map((d ,i) => {
+      interval = Object.assign({}, d);
+      interval.startPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint);
+      interval.endPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint);
+      interval.color = this.chromoBins[interval.chromosome].color;
+      return interval;
+    });
+    this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
+    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 0]).nice();
+    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    this.log()
   }
 
   render() {
@@ -58,11 +72,11 @@ class Frame {
     
     this.updateData();
     
-    this.drawLegend();
-
+    this.renderLegend();
+    this.renderBrushes();
   }
   
-  drawLegend() {
+  renderLegend() {
     this.controlsContainer = this.svg.append('g')
       .attr('class', 'legend-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.top] + ')');
@@ -80,7 +94,7 @@ class Frame {
       .append('g')
       .attr('class', 'frame-axis axis axis--x')
       .call(this.axis); 
-/*
+
     let chromoLegendContainer = this.controlsContainer.selectAll('g.chromo-legend-container')
       .data(Object.values(this.chromoBins), (d, i) => d.chromosome)
       .enter()
@@ -93,10 +107,10 @@ class Frame {
       .attr('class', 'chromo-box')
       .attr('width', (d, i) => d.chromoWidth)
       .attr('height', this.margins.legend.bar)
-      .style('opacity', 0.8)
+      .style('opacity', 0.66)
       .style('fill', (d, i) => d.color)
       .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
- 
+/*
     chromoLegendContainer
       .append('g')
       .attr('class', 'chromo-axis axis axis--x')
@@ -105,144 +119,33 @@ class Frame {
         d3.select(this).call(d.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); 
       });
 */
-    this.drawBrushes();
-  }
-
-  drawBrushes() {
-    //brushes container
-    var gBrushes = this.controlsContainer.append('g')
-    .attr('class', 'brushes')
-    .attr('transform', 'translate(' + [0, this.margins.legend.upperGap] + ')');
-
-    var width = this.width;
-    var activeId = null;
-    var originalSelection;
-    var currentSelection;
-    var otherSelections = [];
-
-    //keep track of existing brushes
-    var brushes = [];
-
-    /* CREATE NEW BRUSH
-     *
-     * This creates a new brush. A brush is both a function (in our array) and a set of predefined DOM elements
-     * Brushes also have selections. While the selection are empty (i.e. a suer hasn't yet dragged)
-     * the brushes are invisible. We will add an initial brush when this viz starts. (see end of file)
-     * Now imagine the user clicked, moved the mouse, and let go. They just gave a selection to the initial brush.
-     * We now want to create a new brush.
-     * However, imagine the user had simply dragged an existing brush--in that case we would not want to create a new one.
-     * We will use the selection of a brush in brushend() to differentiate these cases.
-     */
-    function newBrush() {
-
-      var brush = d3.brushX()
-        .extent([[0, 0], [width, 30]])
-        .on('start', brushStart)
-        .on('brush', brushing)
-        .on('end', brushEnd);
-
-      brushes.push({id: Misc.guid, brush: brush, selection: null });
-
-      function brushStart() {
-        // your stuff here
-        console.log('start...')
-        originalSelection = d3.event.selection;
-        activeId = d3.select(this).datum().id;
-      };
-
-      function brushing() {
-        if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === 'brush')) return; // Only transition after input.
-
-        // your stuff here
-        //console.log('brushing...', d3.event.selection)
-      }
-
-      function brushEnd() {
-        // Only transition after input.
-        if (!d3.event.sourceEvent) return;
-
-        // Ignore empty selections.
-        if (!d3.event.selection) return;
-
-        // Figure out if our latest brush has a selection
-        var lastBrushID = brushes[brushes.length - 1].id;
-        var lastBrush = d3.select('#brush-' + lastBrushID).node();
-        var selection = d3.brushSelection(lastBrush);
-
-        // If it does, that means we need another one
-        if (selection && selection[0] !== selection[1]) {
-          newBrush();
-        }
-
-        // read the current state of all the brushes before you start checking on collisions
-        otherSelections = brushes.filter((d, i) => (d.selection !== null) && (d.id !== activeId)).map((d, i) => {
-          var node = d3.select('#brush-' + d.id).node();
-          return node && d3.brushSelection(node); 
-        });
-
-        // read the active brush current selection
-        currentSelection = d3.event.selection;
-
-        // rollback if overlapping is detected
-        if (otherSelections.filter((d, i) => (d3.max([d[0], currentSelection[0]]) <= d3.min([d[1], currentSelection[1]]))).length > 0) {
-          d3.select(this).transition().call(d3.event.target.move, originalSelection);
-        }
-
-        // Always draw brushes
-        redrawBrushes();
-      }
-    }
-
-    function redrawBrushes() {
-
-      var brushSelection = gBrushes
-        .selectAll('.brush')
-        .data(brushes, function (d){ return d.id });
-
-      // Set up new brushes
-      brushSelection.enter()
-        .insert('g', '.brush')
-        .attr('class', 'brush')
-        .attr('id', function(brush){ return 'brush-' + brush.id; })
-        .each(function(brushObject) {
-          //call the brush
-          d3.select(this).call(brushObject.brush);
-        });
-
-      brushSelection
-        .each(function (brushObject){
-          d3.select(this)
-            .attr('class', 'brush')
-            .classed('highlighted', (d,i) => d.id === activeId)
-            .selectAll('.overlay')
-            .style('pointer-events', function() {
-              var brush = brushObject.brush;
-              if (brushObject.id === brushes[brushes.length - 1].id && brush !== undefined) {
-                return 'all';
-              } else {
-                return 'none';
-              }
-            });
-        })
-
-      brushSelection.exit()
-        .remove();
-
-      brushes.forEach((d, i) => { 
-        var node = d3.select('#brush-' + d.id).node();
-        d.selection = node && d3.brushSelection(node); 
-        if (d.selection)
-        console.log(i, d.selection.join(', '))
-      });
-
-    }
-
-    newBrush();
-    redrawBrushes();
 
   }
 
-  log() {
-    console.log(this);
+  renderBrushes() {
+    this.brushesContainer = this.controlsContainer.append('g')
+      .attr('class', 'brushes')
+      .attr('transform', 'translate(' + [0, this.margins.legend.upperGap] + ')');
+
+    this.panelsContainer = this.svg.append('g')
+      .attr('class', 'panels-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+
+    this.panelsContainer.append('g')
+      .attr('class', 'axis axis--y')
+      .attr('transform', 'translate(' + [0, 0] + ')')
+      .call(this.yAxis);
+
+    this.panelsAxisContainer = this.svg.append('g')
+      .attr('class', 'panels-axis-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.top + this.height] + ')');
+
+    this.shapesContainer = this.svg.append('g')
+      .attr('class', 'shapes-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+
+    this.brushContainer = new BrushContainer(this);
+    this.brushContainer.render();
   }
+
 }
