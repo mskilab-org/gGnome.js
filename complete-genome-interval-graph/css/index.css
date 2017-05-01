@@ -12,3 +12,14 @@ svg.plot {
   stroke: orange;
   stroke-width: 2;
 }
+
+.axis--y g.tick line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+}
+
+rect.panel {
+  stroke: black;
+  stroke-width: 0.9;
+  fill: transparent;
+}
