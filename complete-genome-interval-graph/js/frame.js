@@ -3,7 +3,12 @@ class Frame extends Base {
   constructor(plotContainerId, totalWidth, totalHeight) {
     super();
     // Frame drawing variables
-    this.margins = {top: 30, bottom: 40, left: 30, right: 30, legend: {bar: 30, upperGap: 30, lowerGap: 20}, panels: {upperGap: 120, lowerGap: 0, gap: 16}, intervals: {bar: 10}};
+    this.margins = {
+      top: 30, bottom: 40, left: 30, right: 30,
+      legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
+      panels: {upperGap: 120, lowerGap: 0, gap: 16},
+      brushes: {upperGap: 20, height: 50},
+      intervals: {bar: 10}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
 
@@ -31,7 +36,7 @@ class Frame extends Base {
     if (this.dataInput === null) return;
     this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
     this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width])//.nice();
-    this.axis = d3.axisBottom(this.genomeScale).tickValues(this.genomeScale.ticks(10, 's').concat(this.genomeScale.domain())).ticks(10, 's');
+    this.axis = d3.axisTop(this.genomeScale).tickValues(this.genomeScale.ticks(10, 's').concat(this.genomeScale.domain())).ticks(10, 's');
     let boundary = 0
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
       let chromo = new Chromo(element);
@@ -93,6 +98,7 @@ class Frame extends Base {
     let frameAxisContainer = this.controlsContainer
       .append('g')
       .attr('class', 'frame-axis axis axis--x')
+      .attr('transform', 'translate(' + [0, this.margins.legend.axisTop] + ')')
       .call(this.axis); 
 
     let chromoLegendContainer = this.controlsContainer.selectAll('g.chromo-legend-container')
@@ -125,7 +131,7 @@ class Frame extends Base {
   renderBrushes() {
     this.brushesContainer = this.controlsContainer.append('g')
       .attr('class', 'brushes')
-      .attr('transform', 'translate(' + [0, this.margins.legend.upperGap] + ')');
+      .attr('transform', 'translate(' + [0, this.margins.brushes.upperGap] + ')');
 
     this.panelsContainer = this.svg.append('g')
       .attr('class', 'panels-container')
