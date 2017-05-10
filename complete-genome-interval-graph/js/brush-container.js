@@ -82,6 +82,7 @@ class BrushContainer {
   }
 
   update() {
+
     // first recalculate the current selections
     this.updateFragments();
 
@@ -124,8 +125,10 @@ class BrushContainer {
       d.panelHeight = this.panelHeight;
       d.range = [i * (d.panelWidth + this.frame.margins.panels.gap), (i + 1) * d.panelWidth + i * this.frame.margins.panels.gap];
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
+      d.scale2 = d3.scaleLinear().domain(d.domain).range(d.range);
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
       d.axis = d3.axisBottom(d.innerScale).tickValues(d.innerScale.ticks().concat(d.innerScale.domain())).tickFormat(d3.format(".2s"));
+      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [d.panelWidth, d.panelHeight]]).extent([[0, 0], [d.panelWidth, d.panelHeight]]).on('zoom', () => this.zoomed(d));
       this.frame.intervals
       .filter((e, j) => (e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0]) && (e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
       .forEach((e, j) => {
@@ -135,6 +138,10 @@ class BrushContainer {
         this.visibleIntervals.push(interval);
       });
     });
+  }
+
+  zoomed(fragment) {
+    console.log(fragment);
   }
 
   renderClipPath() {
@@ -198,7 +205,10 @@ class BrushContainer {
       //.transition()
       .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
       .attr('width', (d, i) => d.panelWidth)
-      .attr('height', (d, i) => d.panelHeight + correctionOffset);
+      .attr('height', (d, i) => d.panelHeight + correctionOffset)
+      .each(function(d,i) {
+        d3.select(this).call(d.zoom);
+      });
 
     panelRectangles
       //.transition()

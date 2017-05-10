@@ -3,7 +3,7 @@ svg.plot {
 }
 
 .brush .selection {
-  stroke: #000;
+  stroke: steelblue;
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
@@ -31,4 +31,6 @@ rect.panel {
   stroke: steelblue;
   stroke-width: 2.5;
   fill-opacity: 0.05;
+  cursor: move;
+  pointer-events: all;
 }
