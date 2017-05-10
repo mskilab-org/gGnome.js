@@ -2,12 +2,15 @@ class SvgFilter {
 
   constructor(svgContainer) {
     this.defs = svgContainer.append('defs');
+    this.clipPath = this.defs.append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('width', 0)
+      .attr('height', 0);
   }
 
-  drawClipPath(id, width, height) {
-    this.defs.append('clipPath')
-      .attr('id', id)
-      .append('rect')
+  renderClipPath(width, height) {
+    this.clipPath
       .attr('width', width)
       .attr('height', height);
   }

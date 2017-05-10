@@ -13,13 +13,22 @@ svg.plot {
   stroke-width: 2;
 }
 
+.axis text {
+  font: 11px sans-serif;
+  fill: steelblue;
+}
+
 .axis--y g.tick line {
   stroke: #777;
   stroke-dasharray: 2,2;
 }
 
+.axis--y .domain {
+  stroke: transparent;
+}
+
 rect.panel {
-  stroke: black;
-  stroke-width: 0.9;
-  fill: transparent;
+  stroke: steelblue;
+  stroke-width: 2.5;
+  fill-opacity: 0.05;
 }
