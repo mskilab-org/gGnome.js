@@ -48,13 +48,20 @@ class Frame extends Base {
       boundary += chromo.length;
       return hash; 
     }, {});
-    let interval = null;
-    this.intervals = this.dataInput.intervals.map((d ,i) => {
-      interval = Object.assign({}, d);
+    let interval = null, connection = null;
+    this.intervalBins = {};
+    this.intervals = this.dataInput.intervals.map((d, i) => {
+      let interval = new Interval(d);
       interval.startPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint);
       interval.endPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint);
       interval.color = this.chromoBins[interval.chromosome].color;
+      this.intervalBins[interval.iid] = interval;
       return interval;
+    });
+    this.connections = this.dataInput.connections.map((d ,i) => {
+      connection = new Connection(d);
+      connection.pinpoint(this.intervalBins);
+      return connection;
     });
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 0]).nice();

@@ -98,12 +98,15 @@ class BrushContainer {
     // Draw the intervals
     this.renderIntervals();
 
+    // Draw the interconnections
+    //this.renderInterconnections();
   }
 
   updateFragments() {
-    let node, interval;
+    let node;
     this.visibleFragments = [];
     this.visibleIntervals = [];
+    this.connections = [];
 
     this.fragments.forEach((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
@@ -125,19 +128,29 @@ class BrushContainer {
       d.panelHeight = this.panelHeight;
       d.range = [i * (d.panelWidth + this.frame.margins.panels.gap), (i + 1) * d.panelWidth + i * this.frame.margins.panels.gap];
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
-      d.scale2 = d3.scaleLinear().domain(d.domain).range(d.range);
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
       d.axis = d3.axisBottom(d.innerScale).tickValues(d.innerScale.ticks().concat(d.innerScale.domain())).tickFormat(d3.format(".2s"));
       d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [d.panelWidth, d.panelHeight]]).extent([[0, 0], [d.panelWidth, d.panelHeight]]).on('zoom', () => this.zoomed(d));
       this.frame.intervals
       .filter((e, j) => (e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0]) && (e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
       .forEach((e, j) => {
-        interval = Object.assign({}, e);
+        let interval = Object.assign({}, e);
+        interval.identifier = Misc.guid;
         interval.range = [d.scale(interval.startPlace), d.scale(interval.endPlace)];
         interval.shapeWidth = interval.range[1] - interval.range[0];
         this.visibleIntervals.push(interval);
       });
+      this.frame.connections
+      .filter((e, j) => (e.type !== 'LOOSE') && (e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]) && (e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))
+      .forEach((e, j) => {
+        let connection = Object.assign({}, e);
+        connection.identifier = Misc.guid;
+        connection.points = [[d.scale(connection.source.place), this.frame.yScale(connection.source.y)], [d.scale(connection.sink.place), this.frame.yScale(connection.source.y)]];
+        connection.render = connection.line(connection.points);
+        this.connections.push(connection);
+      });
     });
+    console.log(this.connections)
   }
 
   zoomed(fragment) {
@@ -247,19 +260,26 @@ class BrushContainer {
 
   renderIntervals() {
     let shapes = this.frame.shapesContainer.selectAll('rect.shape')
-      .data(this.visibleIntervals,  (d, i) => d.iid);
+      .data(this.visibleIntervals, (d, i) => d.identifier);
 
     shapes
       .enter()
       .append('rect')
-      .attr('class', 'shape')
+      .attr('class', 'popovered shape')
       .style('clip-path','url(#clip)')
       //.transition()
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d, i) => d.shapeWidth)
       .attr('height', this.frame.margins.intervals.bar)
       .style('fill', (d, i) => d.color)
-      .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+      .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', (d,i) => this.loadPopover(d));
 
     shapes
       //.transition()
@@ -273,4 +293,53 @@ class BrushContainer {
       .remove();
   }
 
+  renderInterconnections() {
+    
+    let connections = this.frame.shapesContainer.selectAll('path.connection')
+      .data(this.connections, (d,i) => d.identifier);
+ 
+    connections.exit().remove();
+
+    connections
+      .attr('class', (d,i) => d.styleClass)
+      .style('clip-path', (d,i) => d.clipPath)
+      .attr('d', (d,i) => d.render);
+
+    connections
+      .enter()
+      .append('path')
+      .attr('id', (d,i) => d.identifier)
+      .attr('class', (d,i) => d.styleClass)
+      .style('clip-path', (d,i) =>  d.clipPath)
+      .attr('d', (d,i) =>  d.render)
+      .on('mouseover', (d,i) => {
+
+      })
+      .on('mouseout', (d,i) => {
+
+      })
+      .on('mousemove', (d,i) => {
+        
+      })
+      .on('dblclick', (d,i) => {
+
+      });
+  }
+  
+  loadPopover(d) {
+    console.log(d)
+    var popover = d3.select('.popover');
+    popover.select('.popover-title').html(d.popoverTitle);
+    popover.select('.popover-content').html(d.popoverContent);
+    popover.select('.popover-content span').style('color', d.color)
+    popover
+      .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+      .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+      .classed('hidden', false)
+      .style('display', 'block')
+      .transition()
+      .duration(5)
+      .style('opacity', 1);
+  }
+  
 }
