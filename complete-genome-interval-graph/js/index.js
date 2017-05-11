@@ -35,6 +35,16 @@ $(function() {
           console.log(Misc.guid)
       }
   });
+  
+  // Remove any other open popovers
+  $(document).on('mousemove', (event) => {
+    if (!$(event.target).is('.popovered')) {
+      d3.select('.popover')
+        .transition()
+        .duration(5)
+        .style('opacity', 0);
+    }
+  });
 
 });
 

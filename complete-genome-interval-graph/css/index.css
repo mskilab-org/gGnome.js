@@ -34,3 +34,42 @@ rect.panel {
   cursor: move;
   pointer-events: all;
 }
+path.connection {
+  fill: none;
+  shape-rendering: "optimizeQuality";
+}
+path.connection.local {
+  stroke-width: 1;
+  stroke: #777;
+  opacity: 0.33;
+}
+path.connection.junction, svg path.connection.ALT {
+  stroke-width: 2;
+  stroke: red;
+  opacity: 0.5;
+}
+path.connection.LOOSE {
+  stroke-width: 2;
+  stroke: steelblue;
+  stroke-dasharray: 3, 1;
+  opacity: 0.75;
+}
+path.connection.highlighted {
+  stroke-width: 3;
+  opacity: 1;
+}
+div.popover {
+  max-width: 100%;
+  position: absolute;
+  pointer-events: none;
+}
+div.popover .table-label {
+  color: #404041;
+  line-height:16px;
+  padding: 5px 0px 3px 0px;
+}
+div.popover .table-value {
+  color: #404041;
+  line-height: 16px;
+  padding: 5px 5px 3px 5px;
+}
