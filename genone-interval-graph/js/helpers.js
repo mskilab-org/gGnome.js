@@ -25,7 +25,7 @@ function getConnectionBins(dataArray, intervalBins) {
 }
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes selected on the panels
 function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
-  console.log('----------------------')
+  // console.log('----------------------')
   var outbounded = [];
   var currentPanel, nextPanel, previousPanel, record;
   var verdict, guard1, guard2, guard3, sourceBounded, sinkBounded;
@@ -102,7 +102,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
           sourceBounded = (record.sourcePoint <= record.sourcePanel.scale.domain()[1]) && (record.sourcePoint >= record.sourcePanel.scale.domain()[0]);
           sinkBounded = (record.sinkPoint <= record.sinkPanel.scale.domain()[1]) && (record.sinkPoint >= record.sinkPanel.scale.domain()[0]);
           verdict = verdict && (sourceBounded && sinkBounded);
-          console.log(i, record.sinkPanel.scale.domain().join())
+          // console.log(i, record.sinkPanel.scale.domain().join())
           if (verdict) {
             record.points = getInterConnectorEndpoints(record);
             record.render = currentPanel.lineRenderer(record.points);
@@ -113,7 +113,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
           }
           if (sourceBounded && !sinkBounded) {
             outbounded.push(record)
-            console.log(i, record.cid, source.iid, record.sinkPoint, record.sourcePanel.chromosome, record.sinkPanel.scale.domain())
+            // console.log(i, record.cid, source.iid, record.sinkPoint, record.sourcePanel.chromosome, record.sinkPanel.scale.domain())
           }
             /* 
             else if (sourceBounded && !sinkBounded) {
@@ -142,7 +142,7 @@ function getInterChromosomeConnectionBins(dataArray, panels, connectionBins) {
       }
     });
   }
-  console.log(outbounded)
+  // console.log(outbounded)
   return results;
 }
 // The hashmap mapping the connection id to the connections between intervals in different chromosomes, not selected on the panels
