@@ -327,14 +327,13 @@ class BrushContainer {
   }
   
   loadPopover(d) {
-    console.log(d)
     var popover = d3.select('.popover');
     popover.select('.popover-title').html(d.popoverTitle);
     popover.select('.popover-content').html(d.popoverContent);
     popover.select('.popover-content span').style('color', d.color)
     popover
-      .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-      .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+      .style('left', (d3.event.pageX - 0.99 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+      .style('top', (d3.event.pageY - 1.39 * popover.node().getBoundingClientRect().height - 3) + 'px')
       .classed('hidden', false)
       .style('display', 'block')
       .transition()
