@@ -41,9 +41,8 @@ class Frame extends Base {
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
       let chromo = new Chromo(element);
       chromo.scaleToGenome = d3.scaleLinear().domain([0, chromo.endPoint]).range([boundary, boundary + chromo.length - 1]);
-      chromo.scale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(boundary), this.genomeScale(boundary + chromo.length - 1)])//.nice();
-      chromo.innerScale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(chromo.startPoint), this.genomeScale(chromo.endPoint)])//.nice();
-      chromo.axis = d3.axisBottom(chromo.innerScale).ticks(5, 's');
+      chromo.scale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(boundary), this.genomeScale(boundary + chromo.length - 1)]);
+      chromo.innerScale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(chromo.startPoint), this.genomeScale(chromo.endPoint)]);
       hash[element.chromosome] = chromo; 
       boundary += chromo.length;
       return hash; 
@@ -123,15 +122,6 @@ class Frame extends Base {
       .style('opacity', 0.66)
       .style('fill', (d, i) => d.color)
       .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
-/*
-    chromoLegendContainer
-      .append('g')
-      .attr('class', 'chromo-axis axis axis--x')
-      .attr('transform', 'translate(' + [0, this.margins.legend.bar + this.margins.legend.lowerGap] + ')')
-      .each(function(d,i) { 
-        d3.select(this).call(d.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); 
-      });
-*/
 
   }
 
@@ -154,6 +144,7 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.top + this.height] + ')');
 
     this.shapesContainer = this.svg.append('g')
+
       .attr('class', 'shapes-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
 

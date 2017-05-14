@@ -33,12 +33,53 @@ class BrushContainer {
         self.originalSelection = d3.event.selection;
         self.activeId = d3.select(this).datum().id;
       })
-      .on('brush', () => {
-        // brushing happens gere
-        if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === 'brush')) return; // Only transition after input.
-        this.update()
+      .on('brush', function() {
+        // brushing happens here
+
+        // ignore brush-by-zoom
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
+
+        // Only transition after input.
+        if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === 'brush')) return;
+
+        let fragment = d3.select(this).datum();
+
+        let limits = [200, 500];
+        let originalSelection = fragment.selection;
+        let currentSelection = d3.event.selection;
+        let selection = Object.assign([], currentSelection);
+        let node;
+        
+        // read the current state of all the self.fragments before you start checking on collisions
+        self.otherSelections = self.fragments.filter((d, i) => (d.selection !== null) && (d.id !== self.activeId)).map((d, i) => {
+          node = d3.select('#brush-' + d.id).node();
+          return node && d3.brushSelection(node); 
+        });
+
+        // read the active brush current selection
+        self.currentSelection = d3.event.selection;
+
+        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => d[1] < selection[0]).map((d, i) => d[1]));
+        console.log(lowerEdge)
+        
+        if (selection[1] >= limits[1]) {
+          selection[1] = limits[1];
+          selection[0] = d3.min([selection[0], limits[1] - 1]);
+        } 
+        if (selection[0] <= limits[0]) {
+          selection[0] = limits[0];
+          selection[1] = d3.max([selection[1], limits[0] + 1]);
+        }
+        if ((selection) && (selection[1] !== selection[0])) {
+          d3.select(this).call(fragment.brush.move, selection.sort())
+        }
+
+        self.update()
       })
       .on('end', () => {
+        // ignore brush-by-zoom
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
+        
         // Only transition after input.
         if (!d3.event.sourceEvent) return;
 
@@ -56,22 +97,13 @@ class BrushContainer {
           this.createBrush();
         }
 
-        // read the current state of all the self.fragments before you start checking on collisions
-        this.otherSelections = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== this.activeId)).map((d, i) => {
-          node = d3.select('#brush-' + d.id).node();
-          return node && d3.brushSelection(node); 
-        });
-
-        // read the active brush current selection
-        this.currentSelection = d3.event.selection;
-
         /* rollback if overlapping is detected
         if (self.otherSelections.filter((d, i) => (d3.max([d[0], self.currentSelection[0]]) <= d3.min([d[1], self.currentSelection[1]]))).length > 0) {
           d3.select(this).transition().call(d3.event.target.move, self.originalSelection).on('end', () => {
-            update();
+            self.update();
           });
         } else {
-          update();
+          self.update();
         }
         */
 
@@ -111,7 +143,7 @@ class BrushContainer {
     this.fragments.forEach((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
       fragment.selection = node && d3.brushSelection(node);
-      fragment.domain = fragment.selection && fragment.selection.map(this.frame.genomeScale.invert);
+      fragment.domain = fragment.selection && fragment.selection.map(this.frame.genomeScale.invert,this.frame.genomeScale);
       if (fragment.selection) {
         this.visibleFragments.push(Object.assign({}, fragment));
       }
@@ -123,14 +155,15 @@ class BrushContainer {
 
     // now sort the visible self.fragments from smallest to highest
     this.visibleFragments = Object.assign([], this.visibleFragments.sort((x, y) => d3.ascending(x.selection[0], y.selection[0])));
+
     this.visibleFragments.forEach((d, i) => {
       d.panelWidth = this.panelWidth;
       d.panelHeight = this.panelHeight;
       d.range = [i * (d.panelWidth + this.frame.margins.panels.gap), (i + 1) * d.panelWidth + i * this.frame.margins.panels.gap];
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
-      d.axis = d3.axisBottom(d.innerScale).tickValues(d.innerScale.ticks().concat(d.innerScale.domain())).tickFormat(d3.format(".2s"));
-      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [d.panelWidth, d.panelHeight]]).extent([[0, 0], [d.panelWidth, d.panelHeight]]).on('zoom', () => this.zoomed(d));
+      d.axis = d3.axisBottom(d.innerScale).tickValues(d.innerScale.ticks().concat(d.innerScale.domain())).tickFormat(d3.format(".3s"));
+      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [this.frame.width, d.panelHeight]]).extent([[0, 0], [this.frame.width, d.panelHeight]]).on('zoom', () => this.zoomed(d));
       this.frame.intervals
       .filter((e, j) => (e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0]) && (e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
       .forEach((e, j) => {
@@ -150,11 +183,41 @@ class BrushContainer {
         this.connections.push(connection);
       });
     });
-    console.log(this.connections)
   }
 
   zoomed(fragment) {
-    console.log(fragment);
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
+    let t = d3.event.transform;
+    fragment.scale.domain(t.rescaleX(this.frame.genomeScale).domain());
+    d3.select('#brush-' + fragment.id).call(fragment.brush.move, this.frame.genomeScale.range().map(t.invertX, t));
+    this.updateFragments();
+
+    // update clipPath
+    this.renderClipPath();
+
+    // draw the brushes
+    this.renderBrushes();
+
+    // Draw the panel rectangles
+    let panelRectangles = this.frame.panelsContainer.selectAll('rect.panel')
+      .data(this.visibleFragments,  (d, i) => d.id);
+
+    panelRectangles
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('width', (d, i) => d.panelWidth)
+
+    //Axis
+    let panelsAxis = this.frame.panelsAxisContainer.selectAll('g.axis')
+      .data(this.visibleFragments,  (d, i) => d.id);
+
+    panelsAxis
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
+      .each(function(d,i) { 
+        d3.select(this).call(d.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); 
+      });
+
+    // Draw the intervals
+    this.renderIntervals();
   }
 
   renderClipPath() {
@@ -204,6 +267,7 @@ class BrushContainer {
   }
 
   renderPanels() {
+    let self = this;
     let correctionOffset = 1; // used for aligning the rectenges on the y Axis lines
 
     // Draw the panel rectangles
@@ -220,13 +284,22 @@ class BrushContainer {
       .attr('width', (d, i) => d.panelWidth)
       .attr('height', (d, i) => d.panelHeight + correctionOffset)
       .each(function(d,i) {
-        d3.select(this).call(d.zoom);
+        d3.select(this)
+          .call(d.zoom.transform, d3.zoomIdentity
+          .scale(self.frame.width / (d.selection[1] - d.selection[0]))
+          .translate(-d.selection[0], 0));
       });
 
     panelRectangles
       //.transition()
       .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('width', (d, i) => d.panelWidth);
+      .attr('width', (d, i) => d.panelWidth)
+      .each(function(d,i) {
+        d3.select(this).call(d.zoom)
+         .call(d.zoom.transform, d3.zoomIdentity
+         .scale(self.frame.width / (d.selection[1] - d.selection[0]))
+         .translate(-d.selection[0], 0));
+      });
 
     panelRectangles
       .exit()
@@ -266,7 +339,6 @@ class BrushContainer {
       .enter()
       .append('rect')
       .attr('class', 'popovered shape')
-      .style('clip-path','url(#clip)')
       //.transition()
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d, i) => d.shapeWidth)
