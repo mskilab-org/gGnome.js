@@ -60,7 +60,8 @@ class BrushContainer {
         self.currentSelection = d3.event.selection;
 
         let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => d[1] < selection[0]).map((d, i) => d[1]));
-        console.log(lowerEdge)
+        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => d[0] > selection[1]).map((d, i) => d[1]));
+        console.log(lowerEdge, upperEdge)
         
         if (selection[1] >= limits[1]) {
           selection[1] = limits[1];
