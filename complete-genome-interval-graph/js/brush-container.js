@@ -44,7 +44,6 @@ class BrushContainer {
 
         let fragment = d3.select(this).datum();
 
-        let limits = [200, 500];
         let originalSelection = fragment.selection;
         let currentSelection = d3.event.selection;
         let selection = Object.assign([], currentSelection);
@@ -56,25 +55,26 @@ class BrushContainer {
           return node && d3.brushSelection(node); 
         });
 
-        // read the active brush current selection
-        self.currentSelection = d3.event.selection;
+        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1])).map((d, i) => d[1]));
+        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1])).map((d, i) => d[0]));
 
-        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => d[1] < selection[0]).map((d, i) => d[1]));
-        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => d[0] > selection[1]).map((d, i) => d[1]));
-        console.log(lowerEdge, upperEdge)
-        
-        if (selection[1] >= limits[1]) {
-          selection[1] = limits[1];
-          selection[0] = d3.min([selection[0], limits[1] - 1]);
-        } 
-        if (selection[0] <= limits[0]) {
-          selection[0] = limits[0];
-          selection[1] = d3.max([selection[1], limits[0] + 1]);
-        }
-        if ((selection) && (selection[1] !== selection[0])) {
-          d3.select(this).call(fragment.brush.move, selection.sort())
+        if ((upperEdge !== undefined) && (selection[1] >= upperEdge)) {
+          selection[1] = upperEdge;
+          selection[0] = d3.min([selection[0], upperEdge - 1]);
+        } else {
+          
         }
 
+        if ((lowerEdge !== undefined) && (selection[0] <= lowerEdge)) {
+          selection[0] = lowerEdge;
+          selection[1] = d3.max([selection[1], lowerEdge + 1]);
+        } else {
+          
+        }
+
+        if ((selection !== undefined) && (selection !== null) && (selection[1] !== selection[0])) {
+          d3.select(this).call(fragment.brush.move, selection)
+        }
         self.update()
       })
       .on('end', () => {
@@ -97,16 +97,6 @@ class BrushContainer {
         if (selection && selection[0] !== selection[1]) {
           this.createBrush();
         }
-
-        /* rollback if overlapping is detected
-        if (self.otherSelections.filter((d, i) => (d3.max([d[0], self.currentSelection[0]]) <= d3.min([d[1], self.currentSelection[1]]))).length > 0) {
-          d3.select(this).transition().call(d3.event.target.move, self.originalSelection).on('end', () => {
-            self.update();
-          });
-        } else {
-          self.update();
-        }
-        */
 
         this.update();
     });
@@ -140,6 +130,8 @@ class BrushContainer {
     this.visibleFragments = [];
     this.visibleIntervals = [];
     this.connections = [];
+
+    //this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]))
 
     this.fragments.forEach((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
