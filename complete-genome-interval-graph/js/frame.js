@@ -51,20 +51,22 @@ class Frame extends Base {
     this.intervalBins = {};
     this.intervals = this.dataInput.intervals.map((d, i) => {
       let interval = new Interval(d);
-      interval.startPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint);
-      interval.endPlace = this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint);
+      interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+      interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
       interval.color = this.chromoBins[interval.chromosome].color;
       this.intervalBins[interval.iid] = interval;
       return interval;
     });
-    this.connections = this.dataInput.connections.map((d ,i) => {
-      connection = new Connection(d);
-      connection.pinpoint(this.intervalBins);
-      return connection;
-    });
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 0]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    this.connections = this.dataInput.connections.map((d ,i) => {
+      connection = new Connection(d);
+      connection.pinpoint(this.intervalBins);
+      connection.xScale = this.genomeScale;
+      connection.yScale = this.yScale;
+      return connection;
+    });
     this.log()
   }
 
@@ -144,8 +146,11 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.top + this.height] + ')');
 
     this.shapesContainer = this.svg.append('g')
-
       .attr('class', 'shapes-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+
+    this.connectionsContainer = this.svg.append('g')
+      .attr('class', 'connections-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
 
     this.brushContainer = new BrushContainer(this);
