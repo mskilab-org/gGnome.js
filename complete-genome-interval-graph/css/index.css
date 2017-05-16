@@ -34,6 +34,9 @@ rect.panel {
   cursor: move;
   pointer-events: all;
 }
+rect.shape.highlighted {
+  fill: white !important;
+}
 path.connection {
   fill: none;
   shape-rendering: "optimizeQuality";
@@ -55,13 +58,14 @@ path.connection.LOOSE {
   opacity: 0.75;
 }
 path.connection.highlighted {
-  stroke-width: 3;
-  opacity: 1;
+  stroke-width: 3 !important;;
+  opacity: 1 !important;;
 }
 div.popover {
   max-width: 100%;
   position: absolute;
   pointer-events: none;
+  background: rgba(255,255,255,0.5);
 }
 div.popover .table-label {
   color: #404041;
