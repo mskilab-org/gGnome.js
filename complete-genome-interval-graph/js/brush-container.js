@@ -43,7 +43,7 @@ class BrushContainer {
         if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === 'brush')) return;
 
         let fragment = d3.select(this).datum();
-
+		
         let originalSelection = fragment.selection;
         let currentSelection = d3.event.selection;
         let selection = Object.assign([], currentSelection);
@@ -55,29 +55,36 @@ class BrushContainer {
           return node && d3.brushSelection(node); 
         });
 
-        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1])).map((d, i) => d[1]));
-        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null)).filter((d, i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1])).map((d, i) => d[0]));
+		// calculate the lower allowed selection edge this brush can move
+        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null))
+		  .filter((d, i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1]))
+		  .map((d, i) => d[1]));
+		  
+		// calculate the upper allowed selection edge this brush can move
+        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null))
+		  .filter((d, i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1]))
+		  .map((d, i) => d[0]));
 
+		// if there is an upper edge, then set this to be the upper bound of the current selection
         if ((upperEdge !== undefined) && (selection[1] >= upperEdge)) {
           selection[1] = upperEdge;
           selection[0] = d3.min([selection[0], upperEdge - 1]);
-        } else {
-          
-        }
-
+        } 
+		// if there is a lower edge, then set this to the be the lower bound of the current selection
         if ((lowerEdge !== undefined) && (selection[0] <= lowerEdge)) {
           selection[0] = lowerEdge;
           selection[1] = d3.max([selection[1], lowerEdge + 1]);
-        } else {
-          
         }
-
+		
+		// move the brush to stay within the allowed bounded selection zone
         if ((selection !== undefined) && (selection !== null) && (selection[1] !== selection[0])) {
-          d3.select(this).call(fragment.brush.move, selection)
+          d3.select(this).call(fragment.brush.move, selection);
         }
-        self.update()
+		
+		// finally, update the chart with the selection in question
+        self.update();
       })
-      .on('end', () => {
+      .on('end', function() {
         // ignore brush-by-zoom
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
         
@@ -88,17 +95,17 @@ class BrushContainer {
         if (!d3.event.selection) return;
 
         // Figure out if our latest brush has a selection
-        let lastBrushID = this.fragments[this.fragments.length - 1].id;
+        let lastBrushID = self.fragments[self.fragments.length - 1].id;
         let lastBrush = d3.select('#brush-' + lastBrushID).node();
         let selection = d3.brushSelection(lastBrush);
-        let node = null;
 
         // If it does, that means we need another one
         if (selection && selection[0] !== selection[1]) {
-          this.createBrush();
+          self.createBrush();
         }
 
-        this.update();
+		// finally, update the chart with the selection in question
+        self.update();
     });
 
     this.fragments.push(new Fragment(brush));
@@ -131,8 +138,10 @@ class BrushContainer {
     this.visibleIntervals = [];
     this.connections = [];
 
-    //this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]))
+	// delete any brushes that have a zero selection size
+    this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
 
+	// filter the brushes that are visible on the screen
     this.fragments.forEach((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
       fragment.selection = node && d3.brushSelection(node);
@@ -149,6 +158,7 @@ class BrushContainer {
     // now sort the visible self.fragments from smallest to highest
     this.visibleFragments = Object.assign([], this.visibleFragments.sort((x, y) => d3.ascending(x.selection[0], y.selection[0])));
 
+	// Determine the panel parameters for rendering
     this.visibleFragments.forEach((d, i) => {
       d.panelWidth = this.panelWidth;
       d.panelHeight = this.panelHeight;
@@ -157,7 +167,8 @@ class BrushContainer {
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
       d.axis = d3.axisBottom(d.innerScale).tickValues(d.innerScale.ticks().concat(d.innerScale.domain())).tickFormat(d3.format(".3s"));
       d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [this.frame.width, d.panelHeight]]).extent([[0, 0], [this.frame.width, d.panelHeight]]).on('zoom', () => this.zoomed(d));
-      this.frame.intervals
+      // filter the intervals
+	  this.frame.intervals
       .filter((e, j) => (e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0]) && (e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
       .forEach((e, j) => {
         let interval = Object.assign({}, e);
@@ -166,6 +177,7 @@ class BrushContainer {
         interval.shapeWidth = interval.range[1] - interval.range[0];
         this.visibleIntervals.push(interval);
       });
+	  // filter the connections
       this.frame.connections
       .filter((e, j) => (e.type !== 'LOOSE') && (e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]) && (e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))
       .forEach((e, j) => {
@@ -179,37 +191,56 @@ class BrushContainer {
   }
 
   zoomed(fragment) {
+	var self = this;
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
+	// set this brush as active
+	this.activeId = fragment.id;
+	
+	// Get the generated domain upon zoom 
     let t = d3.event.transform;
-    fragment.scale.domain(t.rescaleX(this.frame.genomeScale).domain());
-    d3.select('#brush-' + fragment.id).call(fragment.brush.move, this.frame.genomeScale.range().map(t.invertX, t));
+	let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
+	let domain = Object.assign([], zoomedDomain);
+	
+	// Calculate the other domains and the domain bounds for the current brush
+	let otherDomains = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== fragment.id)).map((d, i) => d.domain);
+	let lowerBound = d3.max(otherDomains.filter((d, i) => fragment.domain && (d[1] <= fragment.domain[0])).map((d, i) => d[1]));
+	let upperBound = d3.min(otherDomains.filter((d, i) => fragment.domain && (d[0] >= fragment.domain[1])).map((d, i) => d[0]));
+	
+	// if there is an upper bound, set this to the maximum allowed limit
+	if ((upperBound !== undefined) && (domain[1] >= upperBound)) {
+	  domain[1] = upperBound;
+	  domain[0] = d3.min([domain[0], upperBound - 1]);
+	} 
+	// if there is a lower bound, set this to the lowest allowed limit
+	if ((lowerBound !== undefined) && (domain[0] <= lowerBound)) {
+	  domain[0] = lowerBound;
+	  domain[1] = d3.max([domain[1], lowerBound + 1]);
+	}
+	
+	// update the current brush
+	fragment.scale.domain(domain);
+	let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
+    d3.select('#brush-' + fragment.id).call(fragment.brush.move,selection);
+	
+	// update the data
     this.updateFragments();
+	
+	// update the current brush
+	this.frame.brushesContainer.selectAll('.brush')
+      .data(this.fragments,  (d, i) => d.id)
+      .each(function (e, j){
+        d3.select(this)
+         .classed('highlighted', (d, i) => d.id === self.activeId)
+      });
 
-    // update clipPath
-    this.renderClipPath();
-
-    // draw the brushes
-    this.renderBrushes();
-
-    // Draw the panel rectangles
-    let panelRectangles = this.frame.panelsContainer.selectAll('rect.panel')
-      .data(this.visibleFragments,  (d, i) => d.id);
-
-    panelRectangles
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('width', (d, i) => d.panelWidth)
-
-    //Axis
-    let panelsAxis = this.frame.panelsAxisContainer.selectAll('g.axis')
-      .data(this.visibleFragments,  (d, i) => d.id);
-
-    panelsAxis
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
+    //update the panel axis
+    this.frame.panelsAxisContainer.selectAll('g.axis')
+      .data(this.visibleFragments,  (d, i) => d.id)
       .each(function(d,i) { 
         d3.select(this).call(d.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); 
       });
 
-    // Draw the intervals
+    // update the intervals
     this.renderIntervals();
   }
 
