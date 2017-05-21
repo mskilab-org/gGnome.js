@@ -58,12 +58,11 @@ class Frame extends Base {
       return interval;
     });
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
-    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 0]).nice();
+    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.connections = this.dataInput.connections.map((d ,i) => {
       connection = new Connection(d);
       connection.pinpoint(this.intervalBins);
-      connection.xScale = this.genomeScale;
       connection.yScale = this.yScale;
       return connection;
     });
