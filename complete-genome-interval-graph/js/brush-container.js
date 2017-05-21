@@ -47,7 +47,7 @@ class BrushContainer {
         let currentSelection = d3.event.selection;
         let selection = Object.assign([], currentSelection);
         let node;
-        
+
         // read the current state of all the self.fragments before you start checking on collisions
         self.otherSelections = self.fragments.filter((d, i) => (d.selection !== null) && (d.id !== self.activeId)).map((d, i) => {
           node = d3.select('#brush-' + d.id).node();
@@ -137,7 +137,8 @@ class BrushContainer {
     this.visibleFragments = [];
     this.visibleIntervals = [];
     this.connections = [];
-    this.anchors = [];
+
+    let frameConnections = Object.assign([], this.frame.connections);
 
   // delete any brushes that have a zero selection size
     this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
@@ -180,7 +181,7 @@ class BrushContainer {
         d.visibleIntervals.push(interval);
       });
       // filter the connections on same fragment
-      this.frame.connections
+      frameConnections
         .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
         .forEach((connection, j) => {
           if (connection.source) {
@@ -196,7 +197,7 @@ class BrushContainer {
     });
     // filter the connections between the visible fragments
     k_combinations(this.visibleFragments, 2).forEach((pair, i) => {
-      this.frame.connections
+      frameConnections
         .filter((e, j) => (e.type !== 'LOOSE') 
           && (((e.source.place <= pair[0].domain[1]) && (e.source.place >= pair[0].domain[0]) && (e.sink.place <= pair[1].domain[1]) && (e.sink.place >= pair[1].domain[0]))
           ||((e.source.place <= pair[1].domain[1]) && (e.source.place >= pair[1].domain[0]) && (e.sink.place <= pair[0].domain[1]) && (e.sink.place >= pair[0].domain[0]))))
@@ -207,20 +208,18 @@ class BrushContainer {
           this.connections.push(connection);
         });
     });
-    let visibleConnections = this.connections.map((d, i) => d.cid);
+    let visibleConnections = Object.assign([], this.connections).map((d, i) => d.cid);
     this.visibleFragments.forEach((fragment, i) => {
-      this.frame.connections
-        .filter((e, j) => (e.type !== 'LOOSE') && (!visibleConnections.includes(e.cid))
+      frameConnections
+        .filter((e, j) => { return (e.type !== 'LOOSE') && (!visibleConnections.includes(e.cid))
           && (((e.source.place <= fragment.domain[1]) && (e.source.place >= fragment.domain[0]))
-          ||((e.sink.place <= fragment.domain[1]) && (e.sink.place >= fragment.domain[0]))))
-        .forEach((connection, j) => {
-          connection.source.scale = ((connection.source.place <= fragment.domain[1]) && (connection.source.place >= fragment.domain[0])) ? fragment.scale : null;
-          connection.sink.scale = ((connection.sink.place <= fragment.domain[1]) && (connection.sink.place >= fragment.domain[0])) ? fragment.scale : null;
-          connection.identifier = Misc.guid;
-          this.anchors.push(connection);
+          ||((e.sink.place <= fragment.domain[1]) && (e.sink.place >= fragment.domain[0])))})
+        .forEach((con, j) => {
+          let connection = Object.assign(new Connection(con), con);
+          connection.locateAnchor(fragment);
+          this.connections.push(connection);
         });
     });
-    console.log(this.anchors)
   }
 
   zoomed(fragment) {
@@ -256,14 +255,6 @@ class BrushContainer {
 
     // update the data
     this.updateFragments();
-
-    // update the current brush
-    //this.frame.brushesContainer.selectAll('.brush')
-      //.data(this.fragments,  (d, i) => d.id)
-      //.each(function (e, j){
-      //  d3.select(this)
-         //.classed('highlighted', (d, i) => d.id === fragment.id)
-     // });
 
     //update the panel axis
     this.frame.panelsAxisContainer.selectAll('g.axis')
@@ -451,7 +442,9 @@ class BrushContainer {
 
     connections
       .attr('class', (d,i) => d.styleClass)
-      //.style('clip-path', (d,i) => d.clipPath)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke)
+      .attr('transform', (d,i) => d.transform)
       .attr('d', (d,i) => d.render);
 
     connections
@@ -459,7 +452,9 @@ class BrushContainer {
       .append('path')
       .attr('id', (d,i) => d.identifier)
       .attr('class', (d,i) => d.styleClass)
-      //.style('clip-path', (d,i) =>  d.clipPath)
+      .attr('transform', (d,i) => d.transform)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke)
       .attr('d', (d,i) =>  d.render)
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
@@ -469,7 +464,22 @@ class BrushContainer {
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
       .on('dblclick', (d,i) => {
+        if (d.kind === 'ANCHOR') {
+          console.log(d);
+          this.createBrush();
+          let fragment = this.fragments[this.fragments.length - 1];
+          
+          fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
+          fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+          d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+          this.update();
 
+          //this.update();
+          console.log(this.fragments)
+          //fragment.scale.domain(domain);
+          //let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
+          
+        }
       });
   }
   

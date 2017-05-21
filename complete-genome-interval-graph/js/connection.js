@@ -35,9 +35,64 @@ class Connection extends Base {
     this.distance = ((this.source) && (this.sink)) ? d3.format(',')(Math.abs(this.sink.place - this.source.place)) : '-';
   }
 
+  locateInSameFragment(fragment) {
+    if (this.source) {
+      this.source.scale = fragment.scale;
+    }
+    if (this.sink) {
+      this.sink.scale = fragment.scale;
+    }
+    this.touchScale = fragment.scale;
+    this.identifier = Misc.guid;
+  }
+
+  locateInTwoFragments(fragment1, fragment2) {
+    this.source.scale = ((this.source.place <= fragment1.domain[1]) && (this.source.place >= fragment1.domain[0])) ? fragment1.scale : fragment2.scale;
+    this.sink.scale = ((this.sink.place <= fragment1.domain[1]) && (this.sink.place >= fragment1.domain[0])) ? fragment1.scale : fragment2.scale;
+    this.identifier = Misc.guid;
+  }
+
+  locateAnchor(fragment) {
+    this.kind = 'ANCHOR';
+    this.styleClass = `popovered connection anchor`;
+    if ((this.source.place <= fragment.domain[1]) && (this.source.place >= fragment.domain[0])) {
+      this.source.scale = fragment.scale;
+      this.touchPlaceX = this.source.sign > 0 ? this.source.interval.endPlace : this.source.interval.startPlace;
+      this.touchPlaceY = this.source.y;
+      this.touchPlaceSign = this.source.sign;
+      this.fill = d3.rgb(this.sink.interval.color).darker(1);
+      this.stroke = '#000';
+      this.otherEnd = this.sink;
+    } else {
+      this.sink.scale = fragment.scale;
+      this.touchPlaceX = this.sink.sign > 0 ? this.sink.interval.endPlace : this.sink.interval.startPlace;
+      this.touchPlaceY = this.sink.y;
+      this.touchPlaceSign = this.sink.sign;
+      this.fill = d3.rgb(this.source.interval.color).darker(1);
+      this.stroke = '#000';
+      this.otherEnd = this.source;
+    }
+    this.touchScale = fragment.scale;
+
+    this.identifier = Misc.guid;
+  }
+
+  get transform() {
+    if (this.kind === 'ANCHOR') {
+      this.points = [this.touchScale(this.touchPlaceX), this.yScale(this.touchPlaceY)];
+      return'translate(' + this.points + ')';
+    } else {
+      return 'translate(0,0)';
+    }
+  }
+
   get render() {
-    this.points = this.type === 'LOOSE' ? this.looseConnectorEndpoints : this.interConnectorEndpoints;
-    this.path = this.line(this.points);
+    if (this.kind === 'ANCHOR') {
+      this.path = this.arc(this.touchPlaceSign);
+    } else {
+      this.points = this.type === 'LOOSE' ? this.looseConnectorEndpoints : this.interConnectorEndpoints;
+      this.path = this.line(this.points);
+    }
     return this.path;
   }
 
