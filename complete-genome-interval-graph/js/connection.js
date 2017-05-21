@@ -45,12 +45,12 @@ class Connection extends Base {
   get interConnectorEndpoints() {
     var points = [];
 
-    var origin = d3.min([this.xScale(this.source.place), this.xScale(this.sink.place)]);
-    var target = d3.max([this.xScale(this.source.place), this.xScale(this.sink.place)]);
-    var originSign = (origin === this.xScale(this.source.place)) ? this.source.sign : this.sink.sign;
-    var targetSign = (target === this.xScale(this.source.place)) ? this.source.sign : this.sink.sign;
-    var originY = (origin === this.xScale(this.source.place)) ? Math.abs(this.source.y) : Math.abs(this.sink.y);
-    var targetY = (target === this.xScale(this.source.place)) ? Math.abs(this.source.y) : Math.abs(this.sink.y);
+    var origin = d3.min([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+    var target = d3.max([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+    var originSign = (origin === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
+    var targetSign = (target === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
+    var originY = (origin === this.source.scale(this.source.place)) ? Math.abs(this.source.y) : Math.abs(this.sink.y);
+    var targetY = (target === this.source.scale(this.source.place)) ? Math.abs(this.source.y) : Math.abs(this.sink.y);
     var midPointX = 0.5 * origin + 0.5 * target;
     var midPointY = 0.5 * originY + 0.5 * targetY;
 
@@ -84,9 +84,9 @@ class Connection extends Base {
   // The array of points forming the loose connections with one endpoint missing
   get looseConnectorEndpoints() {
     return [
-      [this.xScale(this.touchPlaceX), this.yScale(this.touchPlaceY)],
-      [this.xScale(this.touchPlaceX) + this.touchPlaceSign * 15, this.yScale(this.touchPlaceY + (this.touchPlaceY < 10 ? 0.25 : 5 ))],
-      [this.xScale(this.touchPlaceX) + this.touchPlaceSign * 5,  this.yScale(this.touchPlaceY + (this.touchPlaceY < 10 ? 0.75 : 5 ))]];
+      [this.touchScale(this.touchPlaceX), this.yScale(this.touchPlaceY)],
+      [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 15, this.yScale(this.touchPlaceY + (this.touchPlaceY < 10 ? 0.25 : 5 ))],
+      [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 5,  this.yScale(this.touchPlaceY + (this.touchPlaceY < 10 ? 0.75 : 5 ))]];
   }
 
   // The title for the popover on the connections

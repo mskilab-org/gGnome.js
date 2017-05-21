@@ -31,7 +31,6 @@ class BrushContainer {
       .on('start', function() {
         // brush starts here
         self.originalSelection = d3.event.selection;
-        self.activeId = d3.select(this).datum().id;
       })
       .on('brush', function() {
         // brushing happens here
@@ -43,7 +42,7 @@ class BrushContainer {
         if (!d3.event || !d3.event.sourceEvent || (d3.event.sourceEvent.type === 'brush')) return;
 
         let fragment = d3.select(this).datum();
-    
+        self.activeId = d3.select(this).datum().id;
         let originalSelection = fragment.selection;
         let currentSelection = d3.event.selection;
         let selection = Object.assign([], currentSelection);
@@ -138,6 +137,7 @@ class BrushContainer {
     this.visibleFragments = [];
     this.visibleIntervals = [];
     this.connections = [];
+    this.anchors = [];
 
   // delete any brushes that have a zero selection size
     this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
@@ -174,65 +174,96 @@ class BrushContainer {
       .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0])) 
         || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
       .forEach((interval, j) => {
-        //let interval = Object.assign({}, e);
         interval.identifier = Misc.guid;
         interval.range = [d.innerScale(interval.startPlace), d.innerScale(interval.endPlace)];
         interval.shapeWidth = interval.range[1] - interval.range[0];
         d.visibleIntervals.push(interval);
       });
-      // filter the connections
+      // filter the connections on same fragment
       this.frame.connections
-      .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
-      .forEach((connection, j) => {
-        connection.xScale = d.scale;
-        connection.identifier = Misc.guid;
-        this.connections.push(connection);
-      });
+        .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
+        .forEach((connection, j) => {
+          if (connection.source) {
+            connection.source.scale = d.scale;
+          }
+          if (connection.sink) {
+            connection.sink.scale = d.scale;
+          }
+          connection.touchScale = d.scale;
+          connection.identifier = Misc.guid;
+          this.connections.push(connection);
+        });
     });
+    // filter the connections between the visible fragments
+    k_combinations(this.visibleFragments, 2).forEach((pair, i) => {
+      this.frame.connections
+        .filter((e, j) => (e.type !== 'LOOSE') 
+          && (((e.source.place <= pair[0].domain[1]) && (e.source.place >= pair[0].domain[0]) && (e.sink.place <= pair[1].domain[1]) && (e.sink.place >= pair[1].domain[0]))
+          ||((e.source.place <= pair[1].domain[1]) && (e.source.place >= pair[1].domain[0]) && (e.sink.place <= pair[0].domain[1]) && (e.sink.place >= pair[0].domain[0]))))
+        .forEach((connection, j) => {
+          connection.source.scale = ((connection.source.place <= pair[0].domain[1]) && (connection.source.place >= pair[0].domain[0])) ? pair[0].scale : pair[1].scale;
+          connection.sink.scale = ((connection.sink.place <= pair[0].domain[1]) && (connection.sink.place >= pair[0].domain[0])) ? pair[0].scale : pair[1].scale;
+          connection.identifier = Misc.guid;
+          this.connections.push(connection);
+        });
+    });
+    let visibleConnections = this.connections.map((d, i) => d.cid);
+    this.visibleFragments.forEach((fragment, i) => {
+      this.frame.connections
+        .filter((e, j) => (e.type !== 'LOOSE') && (!visibleConnections.includes(e.cid))
+          && (((e.source.place <= fragment.domain[1]) && (e.source.place >= fragment.domain[0]))
+          ||((e.sink.place <= fragment.domain[1]) && (e.sink.place >= fragment.domain[0]))))
+        .forEach((connection, j) => {
+          connection.source.scale = ((connection.source.place <= fragment.domain[1]) && (connection.source.place >= fragment.domain[0])) ? fragment.scale : null;
+          connection.sink.scale = ((connection.sink.place <= fragment.domain[1]) && (connection.sink.place >= fragment.domain[0])) ? fragment.scale : null;
+          connection.identifier = Misc.guid;
+          this.anchors.push(connection);
+        });
+    });
+    console.log(this.anchors)
   }
 
   zoomed(fragment) {
-  var self = this;
+    var self = this;
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
-  // set this brush as active
-  this.activeId = fragment.id;
-  
-  // Get the generated domain upon zoom 
+    // set this brush as active
+
+    // Get the generated domain upon zoom 
     let t = d3.event.transform;
-  let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
-  let domain = Object.assign([], zoomedDomain);
-  
-  // Calculate the other domains and the domain bounds for the current brush
-  let otherDomains = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== fragment.id)).map((d, i) => d.domain);
-  let lowerBound = d3.max(otherDomains.filter((d, i) => fragment.domain && (d[1] <= fragment.domain[0])).map((d, i) => d[1]));
-  let upperBound = d3.min(otherDomains.filter((d, i) => fragment.domain && (d[0] >= fragment.domain[1])).map((d, i) => d[0]));
-  
-  // if there is an upper bound, set this to the maximum allowed limit
-  if ((upperBound !== undefined) && (domain[1] >= upperBound)) {
-    domain[1] = upperBound;
-    domain[0] = d3.min([domain[0], upperBound - 1]);
-  } 
-  // if there is a lower bound, set this to the lowest allowed limit
-  if ((lowerBound !== undefined) && (domain[0] <= lowerBound)) {
-    domain[0] = lowerBound;
-    domain[1] = d3.max([domain[1], lowerBound + 1]);
-  }
-  
-  // update the current brush
-  fragment.scale.domain(domain);
-  let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
-    d3.select('#brush-' + fragment.id).call(fragment.brush.move,selection);
-  
-  // update the data
+    let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
+    let domain = Object.assign([], zoomedDomain);
+
+    // Calculate the other domains and the domain bounds for the current brush
+    let otherDomains = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== fragment.id)).map((d, i) => d.domain);
+    let lowerBound = d3.max(otherDomains.filter((d, i) => fragment.domain && (d[1] <= fragment.domain[0])).map((d, i) => d[1]));
+    let upperBound = d3.min(otherDomains.filter((d, i) => fragment.domain && (d[0] >= fragment.domain[1])).map((d, i) => d[0]));
+
+    // if there is an upper bound, set this to the maximum allowed limit
+    if ((upperBound !== undefined) && (domain[1] >= upperBound)) {
+      domain[1] = upperBound;
+      domain[0] = d3.min([domain[0], upperBound - 1]);
+    } 
+    // if there is a lower bound, set this to the lowest allowed limit
+    if ((lowerBound !== undefined) && (domain[0] <= lowerBound)) {
+      domain[0] = lowerBound;
+      domain[1] = d3.max([domain[1], lowerBound + 1]);
+    }
+
+    // update the current brush
+    fragment.scale.domain(domain);
+    let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
+    d3.select('#brush-' + fragment.id).call(fragment.brush.move, selection);
+
+    // update the data
     this.updateFragments();
-  
-  // update the current brush
-  this.frame.brushesContainer.selectAll('.brush')
-      .data(this.fragments,  (d, i) => d.id)
-      .each(function (e, j){
-        d3.select(this)
-         .classed('highlighted', (d, i) => d.id === self.activeId)
-      });
+
+    // update the current brush
+    //this.frame.brushesContainer.selectAll('.brush')
+      //.data(this.fragments,  (d, i) => d.id)
+      //.each(function (e, j){
+      //  d3.select(this)
+         //.classed('highlighted', (d, i) => d.id === fragment.id)
+     // });
 
     //update the panel axis
     this.frame.panelsAxisContainer.selectAll('g.axis')
