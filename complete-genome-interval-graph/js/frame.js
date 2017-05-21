@@ -64,6 +64,11 @@ class Frame extends Base {
       connection = new Connection(d);
       connection.pinpoint(this.intervalBins);
       connection.yScale = this.yScale;
+      connection.arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(this.margins.intervals.bar / 2)
+        .startAngle(0)
+        .endAngle((e, j) => e * Math.PI);
       return connection;
     });
     this.log()
