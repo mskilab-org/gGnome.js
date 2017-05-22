@@ -465,20 +465,16 @@ class BrushContainer {
       .on('mousemove', (d,i) => this.loadPopover(d))
       .on('dblclick', (d,i) => {
         if (d.kind === 'ANCHOR') {
-          console.log(d);
           this.createBrush();
           let fragment = this.fragments[this.fragments.length - 1];
-          
+          fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
+          fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+          this.update();
+          fragment = d3.select('#brush-' + fragment.id).datum();
           fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
           fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
           d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
           this.update();
-
-          //this.update();
-          console.log(this.fragments)
-          //fragment.scale.domain(domain);
-          //let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
-          
         }
       });
   }
