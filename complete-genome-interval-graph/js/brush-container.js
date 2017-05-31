@@ -176,8 +176,9 @@ class BrushContainer {
         || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
       .forEach((interval, j) => {
         interval.identifier = Misc.guid;
-        interval.range = [d.innerScale(interval.startPlace), d.innerScale(interval.endPlace)];
+        interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
         interval.shapeWidth = interval.range[1] - interval.range[0];
+        interval.fragment = d;
         d.visibleIntervals.push(interval);
       });
       // filter the connections on same fragment
@@ -382,6 +383,7 @@ class BrushContainer {
   }
 
   renderIntervals() {
+
     // create the g elements containing the intervals
     let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
       .data(this.visibleFragments,  (d, i) => d.id);
@@ -408,7 +410,6 @@ class BrushContainer {
       .enter()
       .append('rect')
       .attr('class', 'popovered shape')
-      .style('clip-path','url(#clip)')
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d, i) => d.shapeWidth)
       .attr('height', this.frame.margins.intervals.bar)
@@ -420,7 +421,14 @@ class BrushContainer {
       .on('mouseout', function(d,i) {
         d3.select(this).classed('highlighted', false);
       })
-      .on('mousemove', (d,i) => this.loadPopover(d));
+      .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('dblclick', (d,i) => {
+        let fragment = d.fragment;
+        fragment.domain = [0.99 * d.startPlace, 1.01 * d.endPlace];
+        fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+        d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+        this.update();
+      });
 
     shapes
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
@@ -475,6 +483,8 @@ class BrushContainer {
           fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
           d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
           this.update();
+        } else {
+          console.log(d)
         }
       });
   }
