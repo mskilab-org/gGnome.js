@@ -187,9 +187,11 @@ class BrushContainer {
         .forEach((connection, j) => {
           if (connection.source) {
             connection.source.scale = d.scale;
+            connection.source.fragment = d;
           }
           if (connection.sink) {
             connection.sink.scale = d.scale;
+            connection.sink.fragment = d;
           }
           connection.touchScale = d.scale;
           connection.identifier = Misc.guid;
@@ -203,8 +205,20 @@ class BrushContainer {
           && (((e.source.place <= pair[0].domain[1]) && (e.source.place >= pair[0].domain[0]) && (e.sink.place <= pair[1].domain[1]) && (e.sink.place >= pair[1].domain[0]))
           ||((e.source.place <= pair[1].domain[1]) && (e.source.place >= pair[1].domain[0]) && (e.sink.place <= pair[0].domain[1]) && (e.sink.place >= pair[0].domain[0]))))
         .forEach((connection, j) => {
-          connection.source.scale = ((connection.source.place <= pair[0].domain[1]) && (connection.source.place >= pair[0].domain[0])) ? pair[0].scale : pair[1].scale;
-          connection.sink.scale = ((connection.sink.place <= pair[0].domain[1]) && (connection.sink.place >= pair[0].domain[0])) ? pair[0].scale : pair[1].scale;
+          if ((connection.source.place <= pair[0].domain[1]) && (connection.source.place >= pair[0].domain[0])) {
+            connection.source.scale = pair[0].scale;
+            connection.source.fragment = pair[0];
+          } else {
+            connection.source.scale = pair[1].scale;
+            connection.source.fragment = pair[1];
+          }
+          if ((connection.sink.place <= pair[0].domain[1]) && (connection.sink.place >= pair[0].domain[0])) {
+            connection.sink.scale = pair[0].scale;
+            connection.sink.fragment = pair[0];
+          } else {
+            connection.sink.scale = pair[1].scale;
+            connection.sink.fragment = pair[1];
+          }
           connection.identifier = Misc.guid;
           this.connections.push(connection);
         });
@@ -318,7 +332,7 @@ class BrushContainer {
   }
 
   renderPanels() {
-    let self = this;
+    let self = this; window.pc = this;
     let correctionOffset = 1; // used for aligning the rectenges on the y Axis lines
 
     // Draw the panel rectangles
@@ -409,6 +423,7 @@ class BrushContainer {
     shapes
       .enter()
       .append('rect')
+      .attr('id', (d, i) => d.identifier)
       .attr('class', 'popovered shape')
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d, i) => d.shapeWidth)
@@ -424,13 +439,16 @@ class BrushContainer {
       .on('mousemove', (d,i) => this.loadPopover(d))
       .on('dblclick', (d,i) => {
         let fragment = d.fragment;
-        fragment.domain = [0.99 * d.startPlace, 1.01 * d.endPlace];
+        let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
+        let domainOffset = this.frame.margins.intervals.gap / lambda;
+        fragment.domain = [d.startPlace - domainOffset, d.endPlace + domainOffset];
         fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
         d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
         this.update();
       });
 
     shapes
+      .attr('id', (d, i) => d.identifier)
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d, i) => d.shapeWidth)
       .style('fill', (d, i) => d.color)
@@ -479,12 +497,39 @@ class BrushContainer {
           fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
           this.update();
           fragment = d3.select('#brush-' + fragment.id).datum();
-          fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
+          let lambda = (this.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.otherEnd.interval.endPlace - d.otherEnd.interval.startPlace);
+          let domainOffset = this.frame.margins.intervals.gap / lambda;
+          fragment.domain = [d.otherEnd.interval.startPlace - domainOffset, d.otherEnd.interval.endPlace + domainOffset];
           fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
           d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
           this.update();
         } else {
-          console.log(d)
+          if (d.source.fragment.id === d.sink.fragment.id) {
+            let fragment = d.source.fragment;
+            let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / Math.abs(d.source.place - d.sink.place);
+            let domainOffset = this.frame.margins.intervals.gap / lambda;
+            fragment.domain = [d3.min([d.source.place, d.sink.place]) - domainOffset, d3.max([d.source.place, d.sink.place]) + domainOffset];
+            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+            d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+            this.update();
+          } else {
+            // first align the source interval
+            let fragment = d.source.fragment;
+            let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.source.interval.endPlace - d.source.interval.startPlace);
+            let domainOffset = this.frame.margins.intervals.gap / lambda;
+            fragment.domain = [d.source.interval.startPlace - domainOffset, d.source.interval.endPlace + domainOffset];
+            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+            d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+            this.update();
+            // second align the sink interval
+            fragment = d.sink.fragment;
+            lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.sink.interval.endPlace - d.sink.interval.startPlace);
+            domainOffset = this.frame.margins.intervals.gap / lambda;
+            fragment.domain = [d.sink.interval.startPlace - domainOffset, d.sink.interval.endPlace + domainOffset];
+            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+            d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+            this.update();
+          }
         }
       });
   }
