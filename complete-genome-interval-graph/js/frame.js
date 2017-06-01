@@ -8,7 +8,7 @@ class Frame extends Base {
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 120, lowerGap: 0, gap: 16},
       brushes: {upperGap: 20, height: 50},
-      intervals: {bar: 10}};
+      intervals: {bar: 10, gap: 20}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
 
