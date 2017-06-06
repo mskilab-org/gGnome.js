@@ -92,7 +92,11 @@ class Frame extends Base {
     this.renderLegend();
     this.renderBrushes();
   }
-  
+ 
+  runDelete() {
+    this.brushContainer.deleteBrush();
+  }
+ 
   renderLegend() {
     this.controlsContainer = this.svg.append('g')
       .attr('class', 'legend-container')
