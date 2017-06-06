@@ -24,6 +24,10 @@ class BrushContainer {
     this.update();
   }
 
+  deleteBrush() { alert('clicked delete!');
+    console.log(this.activeId);
+  }
+
   createBrush() {
     var self = this;
     var brush = d3.brushX()

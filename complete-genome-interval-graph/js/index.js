@@ -29,13 +29,13 @@ $(function() {
     }, 200);
   });
 
+  // Execute the delete operation
   $('html').keyup((e) => {
-      if ((e.keyCode === 46) || (e.keyCode === 8)) {
-          alert('Delete key released');
-          console.log(Misc.guid)
-      }
+    if ((e.keyCode === 46) || (e.keyCode === 8)) {
+      frame.runDelete();
+    }
   });
-  
+
   // Remove any other open popovers
   $(document).on('mousemove', (event) => {
     if (!$(event.target).is('.popovered')) {
