@@ -176,7 +176,7 @@ class BrushContainer {
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
       d.axis = d3.axisBottom(d.innerScale).ticks(d3.max([d3.min([Math.round(d.panelWidth / 25), 10]),1]), 's');;
-      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [d.panelWidth, d.panelHeight]]).extent([[0, 0], [d.panelWidth, d.panelHeight]]).on('zoom', () => this.zoomed(d));
+      d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [this.frame.width, d.panelHeight]]).extent([[0, 0], [this.frame.width, d.panelHeight]]).on('zoom', () => this.zoomed(d));
       d.chromoAxis = Object.keys(this.frame.chromoBins)
         .map(x => this.frame.chromoBins[x])
         .filter(chromo => chromo.contains(d.domain))
@@ -373,7 +373,7 @@ class BrushContainer {
       .each(function(d,i) {
         d3.select(this)
           .call(d.zoom.transform, d3.zoomIdentity
-          .scale(d.panelWidth / (d.selection[1] - d.selection[0]))
+          .scale(self.frame.width / (d.selection[1] - d.selection[0]))
           .translate(-d.selection[0], 0));
       });
 
@@ -383,7 +383,7 @@ class BrushContainer {
       .each(function(d,i) {
         d3.select(this).call(d.zoom)
          .call(d.zoom.transform, d3.zoomIdentity
-         .scale(d.panelWidth / (d.selection[1] - d.selection[0]))
+         .scale(self.frame.width / (d.selection[1] - d.selection[0]))
          .translate(-d.selection[0], 0));
       });
 
