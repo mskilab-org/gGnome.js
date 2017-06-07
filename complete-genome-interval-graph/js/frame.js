@@ -4,9 +4,9 @@ class Frame extends Base {
     super();
     // Frame drawing variables
     this.margins = {
-      top: 30, bottom: 40, left: 30, right: 30,
+      top: 30, bottom: 70, left: 30, right: 30,
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 120, lowerGap: 0, gap: 16},
+      panels: {upperGap: 160, lowerGap: 0, gap: 16},
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -152,6 +152,10 @@ class Frame extends Base {
     this.panelsAxisContainer = this.svg.append('g')
       .attr('class', 'panels-axis-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.top + this.height] + ')');
+
+    this.panelsChromoAxisContainer = this.svg.append('g')
+      .attr('class', 'panels-chromo-axis-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
       .attr('class', 'shapes-container')
