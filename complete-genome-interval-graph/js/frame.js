@@ -6,7 +6,7 @@ class Frame extends Base {
     this.margins = {
       top: 30, bottom: 70, left: 30, right: 30,
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 160, lowerGap: 0, gap: 16},
+      panels: {upperGap: 160, lowerGap: 0, gap: 16, widthOffset: 1, label: 50},
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -149,11 +149,11 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [0, 0] + ')')
       .call(this.yAxis);
 
-    this.panelsAxisContainer = this.svg.append('g')
+    this.panelsChromoAxisContainerBottom = this.svg.append('g')
       .attr('class', 'panels-axis-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.top + this.height] + ')');
 
-    this.panelsChromoAxisContainer = this.svg.append('g')
+    this.panelsChromoAxisContainerTop = this.svg.append('g')
       .attr('class', 'panels-chromo-axis-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
 
