@@ -16,6 +16,8 @@ svg.plot {
 .axis text {
   font: 11px sans-serif;
   fill: steelblue;
+  pointer-events: none;
+  user-select: none;
 }
 
 .axis--y g.tick line {
