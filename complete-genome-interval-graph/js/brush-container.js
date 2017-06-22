@@ -187,12 +187,10 @@ class BrushContainer {
           let domainEnd   = ((d.domain[1] < chromo.scaleToGenome.range()[1]) && (d.domain[1] >= chromo.scaleToGenome.range()[0])) ? chromo.scaleToGenome.invert(d.domain[1]) : chromo.scaleToGenome.domain()[1];
           let rangeWidth = d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart));
           let scale = d3.scaleLinear().domain([domainStart, domainEnd]).range([0, rangeWidth]);
-          let axisTop = d3.axisTop(scale).ticks(d3.max([d3.min([Math.round(rangeWidth / 25), 10]),1]), 's');
           let axisBottom = d3.axisBottom(scale).ticks(d3.max([d3.min([Math.round(rangeWidth / 25), 10]),1]), 's');
           return {identifier: Misc.guid, transform: 'translate(' + [d.innerScale(chromo.scaleToGenome(domainStart)), 0] + ')',
             labelTopTranslate: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart))), - this.frame.margins.panels.label] + ')',
-            labelBottomTranslate: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart))), this.frame.margins.panels.label] + ')',
-            chromo: chromo, scale: scale, axisTop: axisTop, axisBottom: axisBottom};
+            chromo: chromo, scale: scale, rangeWidth: rangeWidth, axisBottom: axisBottom};
       });
       // filter the intervals
       d.visibleIntervals = [];
@@ -303,9 +301,9 @@ class BrushContainer {
     //update the panel axis Top
     this.frame.panelsChromoAxisContainerTop.selectAll('g.axis')
       .data(this.visibleFragments,  (d, i) => d.id)
-      .each(function(d,i) { 
-        d3.select(this).call(d.axisTop).selectAll('text').attr('transform', 'rotate(-45)').style('text-anchor', 'start');
-        d3.select(this).select('text.label-legend').attr('transform', (d, i) => d.labelTopTranslate); 
+      .each(function(d,i) {
+        d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
+        d3.select(this).select('text.label-legend').attr('transform', (e, j) => d.labelTopTranslate); 
       });
 
     //update the panel axis Top
@@ -352,7 +350,7 @@ class BrushContainer {
           .attr('class', 'brush')
           .classed('highlighted', (d, i) => d.id === self.activeId)
           .selectAll('.overlay')
-          .style('pointer-events',(d,i) => {
+          .style('pointer-events',(d, i) => {
             let brush = fragment.brush;
             if (fragment.id === self.fragments[self.fragments.length - 1].id && brush !== undefined) {
               return 'all';
@@ -412,6 +410,8 @@ class BrushContainer {
   }
 
   renderChromoAxis() {
+    let self = this;
+
     //Chromo Axis Top
     let chromoAxisContainer = this.frame.panelsChromoAxisContainerTop.selectAll('g.chromo-axis-container')
       .data(this.visibleFragments,  (d, i) => d.id);
@@ -429,24 +429,24 @@ class BrushContainer {
       .exit()
       .remove();
 
-    let chromoAxis = chromoAxisContainer.selectAll('g.chromo-axis')
+    let chromoAxis = chromoAxisContainer.selectAll('g.chromo-legend')
       .data((d, i) => d.chromoAxis, (d, i) => d.identifier);
 
     chromoAxis
       .enter()
       .append('g')
-      .attr('class', 'chromo-axis axis axis--x')
+      .attr('class', 'chromo-legend')
       .attr('transform', (d, i) => d.transform)
       .each(function(d,i) {
-        d3.select(this).call(d.axisTop).selectAll('.tick text').attr('transform', 'rotate(-45)').style('text-anchor', 'start').style('fill', (e, j) => d.chromo.color);
-        d3.select(this).append('text').attr('class', 'label-legend').attr('transform', (d, i) => d.labelTopTranslate).text((d,i) => d.chromo.chromosome);
+        d3.select(this).append('rect').attr('width', (e, j) => d.rangeWidth).attr('y', -self.frame.margins.panels.legend).attr('height', self.frame.margins.panels.legend).style('fill', (e, j) => "url('#gradient" + d.chromo.chromosome +"')");
+        d3.select(this).append('text').attr('class', 'label-chromosome').attr('transform', (e, j) => d.labelTopTranslate).text((e, j) => d.chromo.chromosome);
       })
 
     chromoAxis
       .attr('transform', (d, i) => d.transform)
       .each(function(d,i) { 
-        d3.select(this).call(d.axisTop).selectAll('.tick text').attr('transform', 'rotate(-45)').style('text-anchor', 'start').style('fill', (e, j) => d.chromo.color);
-        d3.select(this).select('text.label-legend').attr('transform', (d, i) => d.labelTopTranslate);
+        d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
+        d3.select(this).select('text.label-chromosome').attr('transform', (e, j) => d.labelTopTranslate);
       });
 
     chromoAxis
