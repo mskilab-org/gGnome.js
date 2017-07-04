@@ -56,7 +56,7 @@ class BrushContainer {
         // read the current state of all the self.fragments before you start checking on collisions
         self.otherSelections = self.fragments.filter((d, i) => (d.selection !== null) && (d.id !== self.activeId)).map((d, i) => {
           node = d3.select('#brush-' + d.id).node();
-          return node && d3.brushSelection(node); 
+          return node && d3.brushSelection(node);
         });
 
         // calculate the lower allowed selection edge this brush can move
@@ -73,7 +73,7 @@ class BrushContainer {
         if ((upperEdge !== undefined) && (selection[1] >= upperEdge)) {
           selection[1] = upperEdge;
           selection[0] = d3.min([selection[0], upperEdge - 1]);
-        } 
+        }
 
         // if there is a lower edge, then set this to the be the lower bound of the current selection
         if ((lowerEdge !== undefined) && (selection[0] <= lowerEdge)) {
@@ -92,7 +92,7 @@ class BrushContainer {
       .on('end', function() {
         // ignore brush-by-zoom
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
-        
+
         // Only transition after input.
         if (!d3.event.sourceEvent) return;
 
@@ -138,6 +138,9 @@ class BrushContainer {
 
     // Draw the intervals
     this.renderIntervals();
+
+    // Draw the genes
+    this.renderGenes();
 
     // Draw the interconnections
     this.renderInterconnections();
@@ -195,7 +198,7 @@ class BrushContainer {
       // filter the intervals
       d.visibleIntervals = [];
       this.frame.intervals
-      .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0])) 
+      .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
         || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
       .forEach((interval, j) => {
         interval.identifier = Misc.guid;
@@ -224,7 +227,7 @@ class BrushContainer {
     // filter the connections between the visible fragments
     k_combinations(this.visibleFragments, 2).forEach((pair, i) => {
       frameConnections
-        .filter((e, j) => (e.type !== 'LOOSE') 
+        .filter((e, j) => (e.type !== 'LOOSE')
           && (((e.source.place <= pair[0].domain[1]) && (e.source.place >= pair[0].domain[0]) && (e.sink.place <= pair[1].domain[1]) && (e.sink.place >= pair[1].domain[0]))
           ||((e.source.place <= pair[1].domain[1]) && (e.source.place >= pair[1].domain[0]) && (e.sink.place <= pair[0].domain[1]) && (e.sink.place >= pair[0].domain[0]))))
         .forEach((connection, j) => {
@@ -265,7 +268,7 @@ class BrushContainer {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
     // set this brush as active
 
-    // Get the generated domain upon zoom 
+    // Get the generated domain upon zoom
     let t = d3.event.transform;
     let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
     let domain = Object.assign([], zoomedDomain);
@@ -280,7 +283,7 @@ class BrushContainer {
     if ((upperBound !== undefined) && (domain[1] >= upperBound)) {
       domain[1] = upperBound;
       domain[0] = d3.min([domain[0], upperBound - 1]);
-    } 
+    }
     // if there is a lower bound, set this to the lowest allowed limit
     if ((lowerBound !== undefined) && (domain[0] <= lowerBound)) {
       domain[0] = lowerBound;
@@ -297,20 +300,20 @@ class BrushContainer {
 
     // update the interconnections
     this.renderInterconnections();
-    
+
     //update the panel axis Top
     this.frame.panelsChromoAxisContainerTop.selectAll('g.axis')
       .data(this.visibleFragments,  (d, i) => d.id)
       .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
-        d3.select(this).select('text.label-legend').attr('transform', (e, j) => d.labelTopTranslate); 
+        d3.select(this).select('text.label-legend').attr('transform', (e, j) => d.labelTopTranslate);
       });
 
     //update the panel axis Top
     this.frame.panelsChromoAxisContainerBottom.selectAll('g.axis')
       .data(this.visibleFragments,  (d, i) => d.id)
-      .each(function(d,i) { 
-        d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); 
+      .each(function(d,i) {
+        d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
       });
 
     // update the chromosome axis
@@ -444,7 +447,7 @@ class BrushContainer {
 
     chromoAxis
       .attr('transform', (d, i) => d.transform)
-      .each(function(d,i) { 
+      .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
         d3.select(this).select('text.label-chromosome').attr('transform', (e, j) => d.labelTopTranslate);
       });
@@ -484,7 +487,7 @@ class BrushContainer {
 
     chromoAxisBottom
       .attr('transform', (d, i) => d.transform)
-      .each(function(d,i) { 
+      .each(function(d,i) {
         d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start').style('fill', (e, j) => d.chromo.color);
       });
 
@@ -555,11 +558,73 @@ class BrushContainer {
       .remove();
   }
 
+  renderGenes() {
+    // create the g elements containing the intervals
+    let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
+            .data(this.visibleFragments,  (d, i) => d.id);
+
+    shapesPanels
+        .enter()
+        .append('g')
+        .attr('class', 'shapes-panel')
+        .style('clip-path','url(#clip)')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+        .exit()
+        .remove();
+
+    // add the actual intervals as rectangles
+    let genes = shapesPanels.selectAll('rect.gene')
+            .data((d, i) => d.visibleIntervals, (d, i) =>  d.identifier);
+
+    genes
+        .enter()
+        .append('rect')
+        .attr('id', (d, i) => d.identifier)
+    .attr('class', 'popovered shape')
+            .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+    .attr('width', (d, i) => d.shapeWidth)
+    .attr('height', this.frame.margins.intervals.bar)
+            .style('fill', (d, i) => d.color)
+    .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
+    .on('mouseover', function(d,i) {
+            d3.select(this).classed('highlighted', true);
+        })
+            .on('mouseout', function(d,i) {
+                d3.select(this).classed('highlighted', false);
+            })
+            .on('mousemove', (d,i) => this.loadPopover(d))
+    .on('dblclick', (d,i) => {
+            let fragment = d.fragment;
+        let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
+        let domainOffset = this.frame.margins.intervals.gap / lambda;
+        fragment.domain = [d.startPlace - domainOffset, d.endPlace + domainOffset];
+        fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+        d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+        this.update();
+    });
+
+    genes
+    .attr('id', (d, i) => d.identifier)
+    .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+    .attr('width', (d, i) => d.shapeWidth)
+    .style('fill', (d, i) => d.color)
+    .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+
+    genes
+    .exit()
+    .remove();
+    }
+
   renderInterconnections() {
 
     let connections = this.frame.connectionsContainer.selectAll('path.connection')
       .data(this.connections, (d,i) => d.identifier);
- 
+
     connections.exit().remove();
 
     connections
@@ -651,5 +716,5 @@ class BrushContainer {
       .duration(5)
       .style('opacity', 1);
   }
-  
+
 }
