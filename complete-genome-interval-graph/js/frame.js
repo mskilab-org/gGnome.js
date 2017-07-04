@@ -47,7 +47,7 @@ class Frame extends Base {
       boundary += chromo.length;
       return hash; 
     }, {});
-    let interval = null, connection = null;
+    let interval = null, gene = null, connection = null;
     this.intervalBins = {};
     this.intervals = this.dataInput.intervals.map((d, i) => {
       let interval = new Interval(d);
@@ -57,6 +57,15 @@ class Frame extends Base {
       this.intervalBins[interval.iid] = interval;
       return interval;
     });
+    this.geneBins = {};
+      this.genes = this.dataInput.genes.map((d, i) => {
+      let gene = new Gene(d);
+      gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
+      gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
+      gene.color = this.chromoBins[gene.chromosome].color;
+      this.geneBins[gene.iid] = gene;
+      return gene;
+  });
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
@@ -71,6 +80,7 @@ class Frame extends Base {
         .endAngle((e, j) => e * Math.PI);
       return connection;
     });
+    console.log(this.geneBins)
   }
 
   render() {
