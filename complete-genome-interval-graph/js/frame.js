@@ -8,7 +8,7 @@ class Frame extends Base {
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 160, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
-      intervals: {bar: 10, gap: 20}};
+      intervals: {bar: 10, gap: 20, geneBar: 2}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
 
@@ -63,6 +63,7 @@ class Frame extends Base {
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
       gene.color = this.chromoBins[gene.chromosome].color;
+      gene.y = 0.5;
       this.geneBins[gene.iid] = gene;
       return gene;
   });
@@ -80,7 +81,6 @@ class Frame extends Base {
         .endAngle((e, j) => e * Math.PI);
       return connection;
     });
-    console.log(this.geneBins)
   }
 
   render() {
