@@ -14,6 +14,7 @@ class BrushContainer {
     this.fragments = [];
     this.visibleFragments = [];
     this.visibleIntervals = [];
+    this.visibleGenes = [];
     this.panelWidth = 0;
     this.panelHeight = 0;
   }
@@ -150,6 +151,7 @@ class BrushContainer {
     let node;
     this.visibleFragments = [];
     this.visibleIntervals = [];
+    this.visibleGenes = [];
     this.connections = [];
 
     let frameConnections = Object.assign([], this.frame.connections);
@@ -206,6 +208,19 @@ class BrushContainer {
         interval.shapeWidth = interval.range[1] - interval.range[0];
         interval.fragment = d;
         d.visibleIntervals.push(interval);
+      });
+      // filter the intervals
+      d.visibleGenes = [];
+      this.frame.genes
+      .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
+        || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
+      .forEach((gene, j) => {
+        gene.identifier = Misc.guid;
+        gene.range = [d3.max([0, d.innerScale(gene.startPlace)]), d.innerScale(gene.endPlace)];
+        gene.shapeWidth = gene.range[1] - gene.range[0];
+        gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
+        gene.fragment = d;
+        d.visibleGenes.push(gene);
       });
       // filter the connections on same fragment
       frameConnections
@@ -321,6 +336,9 @@ class BrushContainer {
 
     // update the intervals
     this.renderIntervals();
+
+    // update the genes
+    this.renderGenes();
   }
 
   renderClipPath() {
@@ -499,7 +517,7 @@ class BrushContainer {
   renderIntervals() {
     // create the g elements containing the intervals
     let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
-      .data(this.visibleFragments,  (d, i) => d.id);
+      .data(this.visibleFragments, (d, i) => d.id);
 
     shapesPanels
       .enter()
@@ -560,65 +578,58 @@ class BrushContainer {
 
   renderGenes() {
     // create the g elements containing the intervals
-    let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
-            .data(this.visibleFragments,  (d, i) => d.id);
+    let genesPanels = this.frame.shapesContainer.selectAll('g.genes-panel')
+      .data(this.visibleFragments, (d, i) => d.id);
 
-    shapesPanels
-        .enter()
-        .append('g')
-        .attr('class', 'shapes-panel')
-        .style('clip-path','url(#clip)')
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+    genesPanels
+      .enter()
+      .append('g')
+      .attr('class', 'genes-panel')
+      .style('clip-path','url(#clip)')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
 
-    shapesPanels
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+    genesPanels
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
 
-    shapesPanels
-        .exit()
-        .remove();
+    genesPanels
+      .exit()
+      .remove();
 
     // add the actual intervals as rectangles
-    let genes = shapesPanels.selectAll('rect.gene')
-            .data((d, i) => d.visibleIntervals, (d, i) =>  d.identifier);
+    let genes = genesPanels.selectAll('polygon.geneShape')
+      .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
 
     genes
-        .enter()
-        .append('rect')
-        .attr('id', (d, i) => d.identifier)
-    .attr('class', 'popovered shape')
-            .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-    .attr('width', (d, i) => d.shapeWidth)
-    .attr('height', this.frame.margins.intervals.bar)
-            .style('fill', (d, i) => d.color)
-    .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
-    .on('mouseover', function(d,i) {
-            d3.select(this).classed('highlighted', true);
-        })
-            .on('mouseout', function(d,i) {
-                d3.select(this).classed('highlighted', false);
-            })
-            .on('mousemove', (d,i) => this.loadPopover(d))
-    .on('dblclick', (d,i) => {
-            let fragment = d.fragment;
-        let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
-        let domainOffset = this.frame.margins.intervals.gap / lambda;
-        fragment.domain = [d.startPlace - domainOffset, d.endPlace + domainOffset];
-        fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
-        d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
-        this.update();
+      .enter()
+      .append('polygon')
+      .attr('id', (d, i) => d.identifier)
+      .attr('class', (d, i) => 'popovered geneShape ' + d.type)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y)] + ')')
+      .attr('points', (d, i) => d.points)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke)
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('dblclick', (d,i) => {
+        console.log(d, i);
     });
 
     genes
-    .attr('id', (d, i) => d.identifier)
-    .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-    .attr('width', (d, i) => d.shapeWidth)
-    .style('fill', (d, i) => d.color)
-    .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+      .attr('id', (d, i) => d.identifier)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y)] + ')')
+      .attr('points', (d, i) => d.points)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke);
 
     genes
-    .exit()
+     .exit()
     .remove();
-    }
+  }
 
   renderInterconnections() {
 
