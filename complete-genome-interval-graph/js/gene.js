@@ -28,6 +28,11 @@ class Gene extends Interval {
   }
 
   // The title for the popover on the gene
+  get modalTitle() {
+    return this.popoverTitle + ' | ' + this.chromosome + ':' + d3.format(',')(this.startPoint) + ' - ' + d3.format(',')(this.endPoint);
+  }
+
+  // The title for the popover on the gene
   get popoverTitle() {
     return 'Gene #' + this.title;
   }
@@ -54,11 +59,14 @@ class Gene extends Interval {
           this.shapeWidth, + 0.5 * this.shapeHeight,
           0, + 0.5 * this.shapeHeight]
       } else if (this.strand === "-") {
-        return [this.shapeWidth - 5, 0,
-          0, - 0.5 * this.shapeHeight,
+        return [
           this.shapeWidth, - 0.5 * this.shapeHeight,
-          this.shapeWidth, + 0.5 * this.shapeHeight,
-        0, + 0.5 * this.shapeHeight]
+          0, - 0.5 * this.shapeHeight,
+          0, - this.margins.arrow,
+          0  - this.margins.arrow, 0,
+          0, + this.margins.arrow,
+          0, + 0.5 * this.shapeHeight,
+          this.shapeWidth, + 0.5 * this.shapeHeight]
       } 
     } else {
       return [0, - 0.5 * this.shapeHeight,

@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>Complete Genone Interval Graph</title>
 
-  <link rel='stylesheet prefetch' href='css/external/bootstrap.min.css'>
-  <link rel="stylesheet" href='css/external/bootstrap-select.min.css'>
-  <link rel="stylesheet" href='css/index.css'>
+  <link rel="stylesheet prefetch" href="css/external/bootstrap.min.css">
+  <link rel="stylesheet" href="css/external/bootstrap-select.min.css">
+  <link rel="stylesheet" href="css/index.css">
 
 </head>
 <body>
@@ -40,26 +40,47 @@
           <div class="popover-content"></div>
         </div>
       </div>
+      <div class="modal fade" id="gene-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="overflow: hidden;">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 id="gene-modal-title" class="modal-title"></h4>
+              </div>
+              <div id="gene-modal-body" class="modal-body" style="max-height: 1010px; overflow-y: auto;">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+          <!-- /.modal-dialog -->
+        </div>
     </div>
   </div>
 
-  <script src='./js/external/jquery.min.js'></script>
-  <script src='./js/external/bootstrap.min.js'></script>
-  <script src='./js/external/bootstrap-select.min.js'></script>
-  <script src='./js/external/d3.min.js'></script>
-  <script src='./js/external/d3-scale-chromatic.v0.3.min.js'></script>
-  <script src='./data.js'></script>
-  <script src='./js/index.js'></script>
-  <script src='./js/misc.js'></script>
-  <script src='./js/combinations.js'></script>
-  <script src='./js/base.js'></script>
-  <script src='./js/interval.js'></script>
-  <script src='./js/gene.js'></script>
-  <script src='./js/connection.js'></script>
-  <script src='./js/frame.js'></script>
-  <script src='./js/svg-filter.js'></script>
-  <script src='./js/chromo.js'></script>
-  <script src='./js/brush-container.js'></script>
-  <script src='./js/fragment.js'></script>
+  <script src="./js/external/jquery.min.js"></script>
+  <script src="./js/external/bootstrap.min.js"></script>
+  <script src="./js/external/bootstrap-select.min.js"></script>
+  <script src="./js/external/d3.min.js"></script>
+  <script src="./js/external/d3-scale-chromatic.v0.3.min.js"></script>
+  <script src="./js/external/d3-collection.v1.min.js"></script>
+  <script src="./js/external/d3-dispatch.v1.min.js"></script>
+  <script src="./js/external/d3-dsv.v1.min.js"></script>
+  <script src="./js/external/d3-request.v1.min.js"></script>
+  <script src="./js/external/d3-queue.v3.min.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/misc.js"></script>
+  <script src="./js/combinations.js"></script>
+  <script src="./js/base.js"></script>
+  <script src="./js/interval.js"></script>
+  <script src="./js/gene.js"></script>
+  <script src="./js/connection.js"></script>
+  <script src="./js/frame.js"></script>
+  <script src="./js/svg-filter.js"></script>
+  <script src="./js/chromo.js"></script>
+  <script src="./js/brush-container.js"></script>
+  <script src="./js/fragment.js"></script>
 </body>
 </html>

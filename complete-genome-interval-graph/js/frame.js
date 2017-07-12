@@ -5,6 +5,7 @@ class Frame extends Base {
     // Frame drawing variables
     this.margins = {
       top: 30, bottom: 70, left: 30, right: 30,
+      modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 160, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
@@ -35,7 +36,7 @@ class Frame extends Base {
   updateData() {
     if (this.dataInput === null) return;
     this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
-    this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width])//.nice();
+    this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width]);//.nice();
     this.axis = d3.axisTop(this.genomeScale).tickValues(this.genomeScale.ticks(10, 's').concat(this.genomeScale.domain())).ticks(10, 's');
     let boundary = 0
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
@@ -58,7 +59,7 @@ class Frame extends Base {
       return interval;
     });
     this.geneBins = {};
-      this.genes = this.dataInput.genes.map((d, i) => {
+      this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
       let gene = new Gene(d);
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
@@ -100,12 +101,31 @@ class Frame extends Base {
     
     this.renderLegend();
     this.renderBrushes();
+
+    this.renderGeneModal();
   }
  
   runDelete() {
     this.brushContainer.deleteBrush();
   }
- 
+
+  renderGeneModal() {
+    this.geneModalTitle = d3.select('#gene-modal-title');
+    this.geneBodyContainer = d3.select('#gene-modal-body').append('svg')
+      .attr('class', 'gene-plot')
+      .attr('width', this.margins.modal.width)
+      .attr('height', this.margins.modal.height);
+    this.genesPlot = this.geneBodyContainer.append('g')
+      .attr('class', 'genes-plot')
+      .attr('transform', 'translate(' + [this.margins.modal.left, this.margins.modal.top] + ')');
+    this.genesPlotWidth =  this.margins.modal.width - this.margins.modal.left - this.margins.modal.right;
+    this.genesPlotHeight = this.margins.modal.height - this.margins.top - this.margins.bottom;
+    this.genePlotScale = d3.scaleLinear().range([0, this.genesPlotWidth]);//.nice();
+    this.genesTypesPlot = this.genesPlot.append('g')
+      .attr('class', 'genes-types-plot')
+      .attr('transform', 'translate(' + [0, 0.5 * this.genesPlotHeight] + ')');
+  }
+
   renderLegend() {
     this.controlsContainer = this.svg.append('g')
       .attr('class', 'legend-container')
@@ -178,4 +198,14 @@ class Frame extends Base {
     this.brushContainer.render();
   }
 
+  showGeneModal() {
+    $(this.geneModalSelector).modal('show');
+  }
+
+  clearPopovers() {
+    d3.select(this.popoverSelector)
+      .transition()
+      .duration(5)
+      .style('opacity', 0);
+  }
 }
