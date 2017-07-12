@@ -209,7 +209,7 @@ class BrushContainer {
         interval.fragment = d;
         d.visibleIntervals.push(interval);
       });
-      // filter the intervals
+      // filter the Genes
       d.visibleGenes = [];
       this.frame.genes
       .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
@@ -615,9 +615,29 @@ class BrushContainer {
         d3.select(this).classed('highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('dblclick', (d,i) => {
-        console.log(d, i);
-    });
+      .on('click', (d,i) => {
+        // filter the Genes
+        this.frame.genePlotScale.domain([d.startPoint, d.endPoint]);//.nice();
+        let modalGenes = [];
+        this.frame.dataInput.genes
+        .filter((e, j) => ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) || ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint))
+          || (((d.endPoint <= e.endPoint) && (d.endPoint >= e.startPoint)) || ((d.startPoint <= e.endPoint) && (d.startPoint >= e.startPoint))))
+        .forEach((e, j) => {
+          let gene = new Gene(e);
+          gene.color = this.frame.chromoBins[gene.chromosome].color;
+          gene.identifier = Misc.guid;
+          gene.startPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
+          gene.endPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
+          gene.range = [d3.max([0, this.frame.genePlotScale(gene.startPoint)]), this.frame.genePlotScale(gene.endPoint)];
+          gene.shapeWidth = gene.range[1] - gene.range[0];
+          gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
+          gene.fragment = d;
+          modalGenes.push(gene);
+        });
+        this.renderGeneModalPlot(d, modalGenes);
+        this.frame.clearPopovers();
+        this.frame.showGeneModal();
+      });
 
     genes
       .attr('id', (d, i) => d.identifier)
@@ -711,6 +731,44 @@ class BrushContainer {
       return (e.chromo.chromosome + ':' + Math.floor(e.scale.domain()[0]) + '-' + Math.floor(e.scale.domain()[1]));
     }).join(' ')).join(' | ');
     d3.select('#fragmentsNote').text(note);
+  }
+
+  renderGeneModalPlot(gene, modalGenes) {
+    // Add the title
+    this.frame.geneModalTitle.text(gene.modalTitle);
+    // add the actual genes as rectangles
+    let genes = this.frame.genesTypesPlot.selectAll('polygon.geneShape')
+      .data(modalGenes, (d, i) =>  d.identifier);
+
+    genes
+      .enter()
+      .append('polygon')
+      .attr('id', (d, i) => d.identifier)
+      .attr('class', (d, i) => 'popovered geneShape ' + d.type)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('points', (d, i) => d.points)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke)
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('dblclick', (d,i) => {
+      });
+
+    genes
+      .attr('id', (d, i) => d.identifier)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('points', (d, i) => d.points)
+      .style('fill', (d, i) => d.fill)
+      .style('stroke', (d, i) => d.stroke);
+
+    genes
+     .exit()
+    .remove();
   }
 
   loadPopover(d) {

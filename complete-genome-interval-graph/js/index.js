@@ -9,6 +9,8 @@ $(function() {
 
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
+  frame.geneModalSelector = '#gene-modal';
+  frame.popoverSelector = '.popover';
 
   // Act upon json reload
   $('#' + dataSelector).on('rendered.bs.select', event => {
@@ -18,11 +20,14 @@ $(function() {
     });
   });
 
-  // Load the data from the data.js file, if present
-  if (dataInput) {
-    frame.dataInput = dataInput;
-    frame.render();
-  }
+  d3.queue()
+    .defer(d3.json, './full.json')
+    //.defer(d3.json, "./genes.json")
+    .awaitAll((error, results) => {
+      if (error) throw error;
+      frame.dataInput = results[0];
+      frame.render();
+  });
 
   // Act upon window resize
   d3.select(window).on('resize', () => {
@@ -45,16 +50,13 @@ $(function() {
   // Remove any other open popovers
   $(document).on('mousemove', (event) => {
     if (!$(event.target).is('.popovered')) {
-      d3.select('.popover')
-        .transition()
-        .duration(5)
-        .style('opacity', 0);
+      frame.clearPopovers();
     }
   });
 
   $('#fragmentsNote').tooltip({trigger: 'manual'});
   
-  $(document).on('click', (event) => {
+  $('#fragmentsNote').on('click', (event) => {
     event.preventDefault();
     var textArea = document.createElement("textarea");
 
@@ -88,7 +90,6 @@ $(function() {
     try {
       var successful = document.execCommand('copy');
       var msg = successful ? 'successful' : 'unsuccessful';
-      console.log('Copying text command was ' + msg);
       $('#fragmentsNote').tooltip('show');
       setTimeout(function() {
         $('#fragmentsNote').tooltip('hide');
