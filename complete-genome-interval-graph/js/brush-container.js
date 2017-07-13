@@ -617,21 +617,21 @@ class BrushContainer {
       .on('mousemove', (d,i) => this.loadPopover(d))
       .on('click', (d,i) => {
         // filter the Genes
-        this.frame.genePlotScale.domain([d.startPoint, d.endPoint]);//.nice();
+        var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
         let modalGenes = [];
         this.frame.dataInput.genes
-        .filter((e, j) => ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) || ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint))
-          || (((d.endPoint <= e.endPoint) && (d.endPoint >= e.startPoint)) || ((d.startPoint <= e.endPoint) && (d.startPoint >= e.startPoint))))
+        .filter((e, j) => ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) && ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint)))
         .forEach((e, j) => {
           let gene = new Gene(e);
           gene.color = this.frame.chromoBins[gene.chromosome].color;
           gene.identifier = Misc.guid;
           gene.startPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
           gene.endPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
-          gene.range = [d3.max([0, this.frame.genePlotScale(gene.startPoint)]), this.frame.genePlotScale(gene.endPoint)];
+          gene.range = [d3.max([0, geneScale(gene.startPoint)]), geneScale(gene.endPoint)];
           gene.shapeWidth = gene.range[1] - gene.range[0];
           gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
           gene.fragment = d;
+          gene.coefficient = 4;
           modalGenes.push(gene);
         });
         this.renderGeneModalPlot(d, modalGenes);

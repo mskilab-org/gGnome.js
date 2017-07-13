@@ -120,7 +120,6 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.modal.left, this.margins.modal.top] + ')');
     this.genesPlotWidth =  this.margins.modal.width - this.margins.modal.left - this.margins.modal.right;
     this.genesPlotHeight = this.margins.modal.height - this.margins.top - this.margins.bottom;
-    this.genePlotScale = d3.scaleLinear().range([0, this.genesPlotWidth]);//.nice();
     this.genesTypesPlot = this.genesPlot.append('g')
       .attr('class', 'genes-types-plot')
       .attr('transform', 'translate(' + [0, 0.5 * this.genesPlotHeight] + ')');

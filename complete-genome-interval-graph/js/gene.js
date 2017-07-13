@@ -3,6 +3,7 @@ class Gene extends Interval {
   constructor(gen) {
     super(gen);
     this.margins = {arrow: 5}
+    this.coefficient = 1;
   }
 
   get fill() {
@@ -51,28 +52,28 @@ class Gene extends Interval {
     if (this.type === 'gene') {
       if (this.strand === "+") {
         return [
-          0, - 0.5 * this.shapeHeight,
-          this.shapeWidth, - 0.5 * this.shapeHeight,
-          this.shapeWidth, - this.margins.arrow,
+          0, - 0.5 * this.shapeHeight * this.coefficient,
+          this.shapeWidth, - 0.5 * this.shapeHeight  * this.coefficient,
+          this.shapeWidth, - this.margins.arrow  * this.coefficient,
           this.shapeWidth + this.margins.arrow, 0,
-          this.shapeWidth, + this.margins.arrow,
-          this.shapeWidth, + 0.5 * this.shapeHeight,
+          this.shapeWidth, + this.margins.arrow  * this.coefficient,
+          this.shapeWidth, + 0.5 * this.shapeHeight  * this.coefficient,
           0, + 0.5 * this.shapeHeight]
       } else if (this.strand === "-") {
         return [
-          this.shapeWidth, - 0.5 * this.shapeHeight,
-          0, - 0.5 * this.shapeHeight,
-          0, - this.margins.arrow,
+          this.shapeWidth, - 0.5 * this.shapeHeight * this.coefficient,
+          0, - 0.5 * this.shapeHeight * this.coefficient,
+          0, - this.margins.arrow  * this.coefficient,
           0  - this.margins.arrow, 0,
-          0, + this.margins.arrow,
-          0, + 0.5 * this.shapeHeight,
-          this.shapeWidth, + 0.5 * this.shapeHeight]
+          0, + this.margins.arrow  * this.coefficient,
+          0, + 0.5 * this.shapeHeight  * this.coefficient,
+          this.shapeWidth, + 0.5 * this.shapeHeight  * this.coefficient]
       } 
     } else {
-      return [0, - 0.5 * this.shapeHeight,
-        this.shapeWidth, - 0.5 * this.shapeHeight,
-        this.shapeWidth, + 0.5 * this.shapeHeight,
-        0, + 0.5 * this.shapeHeight]
+      return [0, - 0.5 * this.shapeHeight * this.coefficient,
+        this.shapeWidth, - 0.5 * this.shapeHeight * this.coefficient,
+        this.shapeWidth, + 0.5 * this.shapeHeight * this.coefficient,
+        0, + 0.5 * this.shapeHeight * this.coefficient]
     }
   }
 
