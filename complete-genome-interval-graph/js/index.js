@@ -22,10 +22,12 @@ $(function() {
 
   d3.queue()
     .defer(d3.json, './full.json')
-    //.defer(d3.json, "./genes.json")
+    .defer(d3.json, "./genes.json")
     .awaitAll((error, results) => {
+      console.log(results)
       if (error) throw error;
       frame.dataInput = results[0];
+      frame.dataInput.genes = results[1].genes;
       frame.render();
   });
 
