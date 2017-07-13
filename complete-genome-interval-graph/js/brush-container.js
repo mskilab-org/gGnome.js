@@ -620,7 +620,7 @@ class BrushContainer {
         var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
         let modalGenes = [];
         this.frame.dataInput.genes
-        .filter((e, j) => ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) && ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint)))
+        .filter((e, j) => (e.chromosome === d.chromosome) && ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) && ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint)))
         .forEach((e, j) => {
           let gene = new Gene(e);
           gene.color = this.frame.chromoBins[gene.chromosome].color;
