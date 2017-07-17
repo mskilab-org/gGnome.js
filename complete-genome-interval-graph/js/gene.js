@@ -2,6 +2,7 @@ class Gene extends Interval {
 
   constructor(gen) {
     super(gen);
+    this.group_id = gen.group_id;
     this.margins = {arrow: 5}
     this.coefficient = 1;
   }

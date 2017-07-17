@@ -7,19 +7,26 @@ class Frame extends Base {
       top: 30, bottom: 70, left: 30, right: 30,
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 160, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
+      panels: {upperGap: 360, chromoGap: 155, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
+    this.geneModalSelector = '#' + plotContainerId + '-gene-modal';
+    this.popoverSelector = '.popover';
 
     // Frame DOM elements
     this.plotContainer = d3.select('#' + plotContainerId);
+    this.geneModalContainer = d3.select(this.geneModalSelector);
     this.svg = null;
     this.svgFilter = null;
 
     // Frame data variables
-    this.dataInput = null;
+    this.dataInput = {};
+    this.dataInput.metadata = [];
+    this.dataInput.intervals = [];
+    this.dataInput.connections = [];
+    this.dataInput.genes = [];
     this.genomeLength = null;
     this.genomeScale = null;
     this.chromoBins = null;
@@ -64,10 +71,11 @@ class Frame extends Base {
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
       gene.color = this.chromoBins[gene.chromosome].color;
-      gene.y = 0.5;
+      gene.y = Math.round(Math.random() * 10);
       this.geneBins[gene.iid] = gene;
       return gene;
-  });
+    });
+    this.yGeneScale = d3.scaleLinear().domain([0, 10]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
@@ -93,6 +101,9 @@ class Frame extends Base {
       .attr('width', this.totalWidth)
       .attr('height', this.totalHeight);
 
+    // Clear the modal svg
+    this.geneModalContainer.selectAll('svg').remove();
+
     this.svgFilter = new SvgFilter(this.svg);
     this.svgFilter.drawShadow();
     this.svgFilter.renderGradients(this.dataInput.metadata);
@@ -110,8 +121,8 @@ class Frame extends Base {
   }
 
   renderGeneModal() {
-    this.geneModalTitle = d3.select('#gene-modal-title');
-    this.geneBodyContainer = d3.select('#gene-modal-body').append('svg')
+    this.geneModalTitle = this.geneModalContainer.select('.modal-title');
+    this.geneBodyContainer = this.geneModalContainer.select('.modal-body').append('svg')
       .attr('class', 'gene-plot')
       .attr('width', this.margins.modal.width)
       .attr('height', this.margins.modal.height);
@@ -183,7 +194,11 @@ class Frame extends Base {
 
     this.panelsChromoAxisContainerTop = this.svg.append('g')
       .attr('class', 'panels-chromo-axis-container')
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+
+    this.genesContainer = this.svg.append('g')
+      .attr('class', 'genes-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
       .attr('class', 'shapes-container')
