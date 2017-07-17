@@ -69,6 +69,9 @@ path.connection.highlighted {
   stroke-width: 3 !important;;
   opacity: 1 !important;;
 }
+polygon.gene {
+  cursor: pointer;
+}
 /* Popover Styling */
 div.popover {
   max-width: 100%;

@@ -7,10 +7,21 @@ class SvgFilter {
       .append('rect')
       .attr('width', 0)
       .attr('height', 0);
+    this.genesClipPath = this.defs.append('clipPath')
+      .attr('id', 'genes-clip')
+      .append('rect')
+      .attr('width', 0)
+      .attr('height', 0);
   }
 
   renderClipPath(width, height) {
     this.clipPath
+      .attr('width', width)
+      .attr('height', height);
+  }
+
+  renderGenesClipPath(width, height) {
+    this.genesClipPath
       .attr('width', width)
       .attr('height', height);
   }

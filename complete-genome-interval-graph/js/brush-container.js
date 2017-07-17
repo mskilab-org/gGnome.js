@@ -128,6 +128,9 @@ class BrushContainer {
     // update clipPath
     this.renderClipPath();
 
+    // The Genes Clip Path
+    this.renderGenesClipPath();
+
     // draw the brushes
     this.renderBrushes();
 
@@ -172,6 +175,10 @@ class BrushContainer {
     // determine the new Panel Width
     this.panelWidth = (this.frame.width - (this.visibleFragments.length - 1) * this.frame.margins.panels.gap) / this.visibleFragments.length;
     this.panelHeight = this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top;
+
+    // determine the Genes Panel Dimensions
+    this.genesPanelWidth = (this.frame.width - (this.visibleFragments.length - 1) * this.frame.margins.panels.gap) / this.visibleFragments.length;
+    this.genesPanelHeight = this.frame.margins.panels.upperGap - this.frame.margins.panels.chromoGap;
 
     // now sort the visible self.fragments from smallest to highest
     this.visibleFragments = Object.assign([], this.visibleFragments.sort((x, y) => d3.ascending(x.selection[0], y.selection[0])));
@@ -344,6 +351,12 @@ class BrushContainer {
   renderClipPath() {
     if (this.visibleFragments.length > 0) {
       this.frame.svgFilter.renderClipPath(this.panelWidth + this.frame.margins.panels.widthOffset, this.panelHeight);
+    }
+  }
+
+  renderGenesClipPath() {
+    if (this.visibleFragments.length > 0) {
+      this.frame.svgFilter.renderGenesClipPath(this.panelWidth + this.frame.margins.panels.widthOffset, this.genesPanelHeight);
     }
   }
 
@@ -578,14 +591,14 @@ class BrushContainer {
 
   renderGenes() {
     // create the g elements containing the intervals
-    let genesPanels = this.frame.shapesContainer.selectAll('g.genes-panel')
+    let genesPanels = this.frame.genesContainer.selectAll('g.genes-panel')
       .data(this.visibleFragments, (d, i) => d.id);
 
     genesPanels
       .enter()
       .append('g')
       .attr('class', 'genes-panel')
-      .style('clip-path','url(#clip)')
+      .style('clip-path','url(#genes-clip)')
       .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
 
     genesPanels
@@ -604,7 +617,7 @@ class BrushContainer {
       .append('polygon')
       .attr('id', (d, i) => d.identifier)
       .attr('class', (d, i) => 'popovered geneShape ' + d.type)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y)] + ')')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
       .attr('points', (d, i) => d.points)
       .style('fill', (d, i) => d.fill)
       .style('stroke', (d, i) => d.stroke)
@@ -620,7 +633,7 @@ class BrushContainer {
         var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
         let modalGenes = [];
         this.frame.dataInput.genes
-        .filter((e, j) => (e.chromosome === d.chromosome) && ((e.startPoint <= d.endPoint) && (e.startPoint >= d.startPoint)) && ((e.endPoint <= d.endPoint) && (e.endPoint >= d.startPoint)))
+        .filter((e, j) => (e.group_id === d.group_id))
         .forEach((e, j) => {
           let gene = new Gene(e);
           gene.color = this.frame.chromoBins[gene.chromosome].color;
@@ -641,7 +654,7 @@ class BrushContainer {
 
     genes
       .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y)] + ')')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
       .attr('points', (d, i) => d.points)
       .style('fill', (d, i) => d.fill)
       .style('stroke', (d, i) => d.stroke);

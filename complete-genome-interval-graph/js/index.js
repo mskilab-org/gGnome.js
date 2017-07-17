@@ -9,8 +9,6 @@ $(function() {
 
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
-  frame.geneModalSelector = '#gene-modal';
-  frame.popoverSelector = '.popover';
 
   // Act upon json reload
   $('#' + dataSelector).on('rendered.bs.select', event => {
@@ -21,12 +19,21 @@ $(function() {
   });
 
   d3.queue()
-    .defer(d3.json, './full.json')
-    .defer(d3.json, "./genes.json")
+    .defer(d3.json, './data.json')
+    .defer(d3.json, './metadata.json')
     .awaitAll((error, results) => {
       if (error) throw error;
       frame.dataInput = results[0];
-      frame.dataInput.genes = results[1].genes;
+      frame.dataInput.metadata = results[1].metadata;
+      frame.dataInput.genes = [];
+      frame.render();
+  });
+
+  d3.queue()
+    .defer(d3.json, './genes.json')
+    .awaitAll((error, results) => {
+      if (error) throw error;
+      frame.dataInput.genes = results[0].genes;
       frame.render();
   });
 
