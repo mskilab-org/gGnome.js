@@ -123,7 +123,7 @@ class BrushContainer {
     this.updateFragments();
 
     // Draw the notes of the fragments
-    this.renderFragmentsNote();
+    this.renderFragmentsNote(this.panelDomainsText());
 
     // update clipPath
     this.renderClipPath();
@@ -346,6 +346,9 @@ class BrushContainer {
 
     // update the genes
     this.renderGenes();
+
+    // update the fragments note
+    this.renderFragmentsNote(this.panelDomainsText());
   }
 
   renderClipPath() {
@@ -426,6 +429,7 @@ class BrushContainer {
         this.activeId = d.id;
         this.frame.brushesContainer.selectAll('.brush').classed('highlighted', false);
         d3.select('#brush-' + d.id).classed('highlighted', true);
+        this.renderFragmentsNote(this.panelDomainsText());
       })
 
     panelRectangles
@@ -567,6 +571,9 @@ class BrushContainer {
         d3.select(this).classed('highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('click', (d,i) => {
+        this.renderFragmentsNote(d.location);
+      })
       .on('dblclick', (d,i) => {
         let fragment = d.fragment;
         let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
@@ -629,6 +636,8 @@ class BrushContainer {
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
       .on('click', (d,i) => {
+        // show the gene location on the fragment note
+        this.renderFragmentsNote(d.location);
         // filter the Genes
         var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
         let modalGenes = [];
@@ -694,6 +703,9 @@ class BrushContainer {
         d3.select(this).classed('highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('click', (d,i) => {
+        this.renderFragmentsNote(d.location);
+      })
       .on('dblclick', (d,i) => {
         if (d.kind === 'ANCHOR') {
           this.createBrush();
@@ -739,10 +751,13 @@ class BrushContainer {
       });
   }
 
-  renderFragmentsNote() {
-    let note = this.visibleFragments.map((d, i) => d.chromoAxis.map((e, j) => {
+  panelDomainsText() {
+    return this.visibleFragments.map((d, i) => d.chromoAxis.map((e, j) => {
       return (e.chromo.chromosome + ':' + Math.floor(e.scale.domain()[0]) + '-' + Math.floor(e.scale.domain()[1]));
     }).join(' ')).join(' | ');
+  }
+
+  renderFragmentsNote(note) {
     d3.select('#fragmentsNote').text(note);
   }
 
