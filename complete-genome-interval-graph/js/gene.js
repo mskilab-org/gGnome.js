@@ -49,6 +49,10 @@ class Gene extends Interval {
     return '<div class="row"><div class="col-lg-12"><table width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
   }
 
+  get location() {
+    return `${this.chromosome}: ${this.startPoint} - ${this.endPoint}`;
+  }
+
   get points() {
     if (this.type === 'gene') {
       if (this.strand === "+") {
