@@ -48,6 +48,11 @@ $(function() {
     }, 200);
   });
 
+  $('#gene-checkbox').on('click', (event) => {
+    frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 360 : 155;
+    frame.render();
+  });
+
   // Execute the delete operation
   $('html').keyup((e) => {
     if ((e.keyCode === 46) || (e.keyCode === 8)) {
