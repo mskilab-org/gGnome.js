@@ -7,7 +7,7 @@ class Frame extends Base {
       top: 30, bottom: 70, left: 30, right: 30,
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 360, chromoGap: 155, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
+      panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
