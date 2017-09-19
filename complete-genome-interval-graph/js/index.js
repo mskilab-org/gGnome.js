@@ -49,9 +49,21 @@ $(function() {
   });
 
   $('#gene-checkbox').on('click', (event) => {
-    frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 360 : 155;
-    frame.render();
+    frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
+      frame.margins.defaults.upperGapPanelWithGenes : 
+      frame.margins.defaults.upperGapPanel;
+    frame.toggleGenesPanel()
   });
+
+
+  // Start file download.
+  document.getElementById("download-button").addEventListener("click", function(){
+      // Generate download of file with the elements in the current panels
+    let text = document.getElementById("fragmentsDetails").innerHTML;
+    let filename = "export.txt";
+
+    download(filename, text);
+  }, false);
 
   // Execute the delete operation
   $('html').keyup((e) => {
@@ -113,5 +125,15 @@ $(function() {
 
     document.body.removeChild(textArea);
   });
+
+  function download(filename, text) {
+    let element = document.getElementById("downloadLink");
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+
+    element.click();
+  };
 });
 
