@@ -23,9 +23,13 @@
             </select>
          </div>
          <div class="form-group">
-           <div class="btn btn-group">
+           <div>
              <label class="checkbox-inline"><input id="gene-checkbox" type="checkbox" value="genes">Genes</label>
            </div>
+         </div>
+         <div class="form-group">
+           <input class="btn btn-default" type="button" id="download-button" value="Export"/>
+           <span id="fragmentsDetails" class="hidden"></span>
          </div>
       </form>
       <ul class="nav navbar-nav navbar-right">
@@ -63,6 +67,7 @@
           <!-- /.modal-dialog -->
         </div>
     </div>
+    <a href="data:text/plain;charset=utf-8" id="downloadLink" download="export.txt" style="display: none;"></a>
   </div>
 
   <script src="./js/external/jquery.min.js"></script>

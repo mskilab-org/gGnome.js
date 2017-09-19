@@ -9,7 +9,8 @@ class Frame extends Base {
       legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 16, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
-      intervals: {bar: 10, gap: 20, geneBar: 2}};
+      intervals: {bar: 10, gap: 20, geneBar: 2},
+      defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
     this.geneModalSelector = '#' + plotContainerId + '-gene-modal';
@@ -109,7 +110,7 @@ class Frame extends Base {
     this.svgFilter.renderGradients(this.dataInput.metadata);
     
     this.updateData();
-    
+
     this.renderLegend();
     this.renderBrushes();
 
@@ -118,6 +119,23 @@ class Frame extends Base {
  
   runDelete() {
     this.brushContainer.deleteBrush();
+  }
+
+  toggleGenesPanel() {
+    this.yGeneScale = d3.scaleLinear().domain([0, 10]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
+    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    this.panelsContainer
+      .call(this.yAxis);
+    let connection = null;
+    this.connections.forEach((d,i) => d.yScale = this.yScale);
+    this.panelsContainer
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+    this.shapesContainer
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+    this.connectionsContainer
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+    this.brushContainer.update();
   }
 
   renderGeneModal() {

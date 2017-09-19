@@ -125,6 +125,9 @@ class BrushContainer {
     // Draw the notes of the fragments
     this.renderFragmentsNote(this.panelDomainsText());
 
+    // Draw the full details of the fragments
+    this.renderFragmentsDetails(this.panelDomainsDetails());
+
     // update clipPath
     this.renderClipPath();
 
@@ -349,6 +352,9 @@ class BrushContainer {
 
     // update the fragments note
     this.renderFragmentsNote(this.panelDomainsText());
+
+    // update the fragments note
+    this.renderFragmentsDetails(this.panelDomainsDetails());
   }
 
   renderClipPath() {
@@ -757,8 +763,22 @@ class BrushContainer {
     }).join(' ')).join(' | ');
   }
 
+  panelDomainsDetails() {
+    return this.visibleFragments.map((d, i) => {
+    let text = 'Panel #' + (i + 1) + '\r\n';
+    text += d.chromoAxis.map((e, j) => {
+      return (e.chromo.chromosome + ':' + Math.floor(e.scale.domain()[0]) + '-' + Math.floor(e.scale.domain()[1]));
+    }).join(' ')
+    return text;
+    }).join('\r\n');
+  }
+
   renderFragmentsNote(note) {
     d3.select('#fragmentsNote').text(note);
+  }
+
+  renderFragmentsDetails(note) {
+    d3.select('#fragmentsDetails').text(note);
   }
 
   renderGeneModalPlot(gene, modalGenes) {
