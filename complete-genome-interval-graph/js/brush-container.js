@@ -297,7 +297,6 @@ class BrushContainer {
     let t = d3.event.transform;
     let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
     let domain = Object.assign([], zoomedDomain);
-    //console.log(t, t.rescaleX(this.frame.genomeScale).domain(), t.rescaleX(fragment.innerScale).domain())
 
     // Calculate the other domains and the domain bounds for the current brush
     let otherDomains = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== fragment.id)).map((d, i) => d.domain);
@@ -319,7 +318,7 @@ class BrushContainer {
     fragment.scale.domain(domain);
     let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
     d3.select('#brush-' + fragment.id).call(fragment.brush.move, selection);
-
+		
     // update the data
     this.updateFragments();
 
@@ -603,6 +602,7 @@ class BrushContainer {
   }
 
   renderGenes() {
+		var self = this;
     // create the g elements containing the intervals
     let genesPanels = this.frame.genesContainer.selectAll('g.genes-panel')
       .data(this.visibleFragments, (d, i) => d.id);
@@ -677,6 +677,34 @@ class BrushContainer {
     genes
      .exit()
     .remove();
+		
+	  // add the actual intervals as rectangles
+	  let genesLabels = genesPanels.selectAll('text.gene-label')
+	    .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+		
+    genesLabels
+      .enter()
+      .append('text')
+      .attr('id', (d, i) => d.identifier)
+      .attr('class', (d, i) => 'gene-label')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+			.style('opacity', function(d, i) {
+				let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+				return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+      .text((d, i) => d.title);
+		
+    genesLabels
+      .attr('id', (d, i) => d.identifier)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+			.style('opacity', function(d, i) {
+				let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+				return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+      .text((d, i) => d.title);
+
+    genesLabels
+     .exit()
+    .remove();
+		
   }
 
   renderInterconnections() {

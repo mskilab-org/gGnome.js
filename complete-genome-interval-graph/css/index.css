@@ -72,6 +72,12 @@ path.connection.highlighted {
 polygon.gene {
   cursor: pointer;
 }
+text.gene-label {
+  font: 11px sans-serif;
+  fill: steelblue;
+  pointer-events: none;
+  user-select: none;
+}
 /* Popover Styling */
 div.popover {
   max-width: 100%;
