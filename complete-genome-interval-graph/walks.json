@@ -1,4 +1,5 @@
-{"intervals": [
+{"gwalks":
+	{"intervals": [
 	{"iid":1,"chromosome":"1","startPoint":1,"endPoint":6525379,"title":"1 (1|896)","type":"interval","strand":"+"},
 	{"iid":2,"chromosome":"1","startPoint":6525380,"endPoint":6569292,"title":"2 (2|897)","type":"interval","strand":"+"},
 	{"iid":3,"chromosome":"1","startPoint":6569293,"endPoint":6570681,"title":"3 (3|898)","type":"interval","strand":"+"},
@@ -12542,4 +12543,6 @@
 		{ "cid" : 2622 ,"source": -892 ,"sink": 891 , "title" : "" , "type" : "REF" , "weight" :  5 },
 		{ "cid" : 2620 ,"source": -891 ,"sink": 890 , "title" : "" , "type" : "REF" , "weight" :  5 }
 	]}
-]}
+]
+	}
+}

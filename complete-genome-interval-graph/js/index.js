@@ -31,9 +31,11 @@ $(function() {
 
   d3.queue()
     .defer(d3.json, './genes.json')
+    .defer(d3.json, './walks.json')
     .awaitAll((error, results) => {
       if (error) throw error;
       frame.dataInput.genes = results[0].genes;
+      frame.dataInput.walks = results[1].gwalks;
       frame.render();
   });
 
@@ -49,10 +51,19 @@ $(function() {
   });
 
   $('#gene-checkbox').on('click', (event) => {
+    $('#walk-checkbox').removeAttr('checked'); 
     frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
-      frame.margins.defaults.upperGapPanelWithGenes : 
+      frame.margins.defaults.upperGapPanelWithGenes: 
       frame.margins.defaults.upperGapPanel;
-    frame.toggleGenesPanel()
+    frame.toggleGenesPanel();
+  });
+
+  $('#walk-checkbox').on('click', (event) => {
+    $('#gene-checkbox').removeAttr('checked'); 
+    frame.margins.panels.upperGap = $('#walk-checkbox').is(":checked") ? 
+      frame.margins.defaults.upperGapPanelWithGenes: 
+      frame.margins.defaults.upperGapPanel;
+    frame.toggleGenesPanel();
   });
 
 
