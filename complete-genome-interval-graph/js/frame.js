@@ -40,6 +40,7 @@ class Frame extends Base {
     this.totalHeight = totalHeight;
     this.width = this.totalWidth - this.margins.left - this.margins.right;
     this.height = this.totalHeight - this.margins.top - this.margins.bottom;
+    this.margins.defaults.upperGapPanelWithGenes = (this.height + this.margins.top - 2 * this.margins.intervals.bar + this.margins.panels.chromoGap + this.margins.panels.gap) / 2;
   }
 
   updateData() {
@@ -190,7 +191,6 @@ class Frame extends Base {
       .style('opacity', 0.66)
       .style('fill', (d, i) => d.color)
       .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
-
   }
 
   renderBrushes() {
@@ -217,6 +217,10 @@ class Frame extends Base {
 
     this.genesContainer = this.svg.append('g')
       .attr('class', 'genes-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+    
+    this.walksContainer = this.svg.append('g')
+      .attr('class', 'walks-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
