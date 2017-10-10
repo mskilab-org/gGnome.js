@@ -149,6 +149,9 @@ class BrushContainer {
     // Draw the genes
     this.renderGenes();
 
+    // Draw the walk intervals
+    this.renderWalkIntervals();
+		
     // Draw the interconnections
     this.renderInterconnections();
   }
@@ -158,14 +161,15 @@ class BrushContainer {
     this.visibleFragments = [];
     this.visibleIntervals = [];
     this.visibleGenes = [];
+		this.visibleWalks = [];
     this.connections = [];
 
     let frameConnections = Object.assign([], this.frame.connections);
 
-  // delete any brushes that have a zero selection size
+    // delete any brushes that have a zero selection size
     this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
 
-  // filter the brushes that are visible on the screen
+    // filter the brushes that are visible on the screen
     this.fragments.forEach((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
       fragment.selection = node && d3.brushSelection(node);
@@ -232,6 +236,21 @@ class BrushContainer {
         gene.fragment = d;
         d.visibleGenes.push(gene);
       });
+      // filter the Walks
+      d.visibleWalkIntervals = [];
+      this.frame.walks.forEach((walk, j) => {
+				walk.intervals
+	      .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
+	        || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
+	      .forEach((interval, j) => {
+	        interval.identifier = Misc.guid;
+	        interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
+	        interval.shapeWidth = interval.range[1] - interval.range[0];
+	        interval.fragment = d;
+					interval.walk = walk;					
+					d.visibleWalkIntervals.push(interval);
+	      });
+			});
       // filter the connections on same fragment
       frameConnections
         .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
@@ -349,6 +368,9 @@ class BrushContainer {
     // update the genes
     this.renderGenes();
 
+    // update the walk intervals
+    this.renderWalkIntervals();
+		
     // update the fragments note
     this.renderFragmentsNote(this.panelDomainsText());
 
@@ -707,6 +729,65 @@ class BrushContainer {
 		
   }
 
+  renderWalkIntervals() { console.log(this.visibleFragments)
+    // create the g elements containing the intervals
+    let shapesPanels = this.frame.walksContainer.selectAll('g.walks-panel')
+      .data(this.visibleFragments, (d, i) => d.id);
+
+    shapesPanels
+      .enter()
+      .append('g')
+      .attr('class', 'walks-panel')
+      .style('clip-path','url(#genes-clip)')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+      .exit()
+      .remove();
+
+    // add the actual intervals as rectangles
+    let shapes = shapesPanels.selectAll('rect.shape')
+      .data((d, i) => d.visibleWalkIntervals, (d, i) =>  d.identifier);
+
+    shapes
+      .enter()
+      .append('rect')
+      .attr('id', (d, i) => d.identifier)
+      .attr('class', 'popovered shape')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+      .attr('width', (d, i) => d.shapeWidth)
+      .attr('height', this.frame.margins.intervals.bar)
+      .style('fill', (d, i) => d.color)
+      .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('click', (d,i) => {
+        console.log(d)
+      })
+      .on('dblclick', (d,i) => {
+        
+      });
+
+    shapes
+      .attr('id', (d, i) => d.identifier)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+      .attr('width', (d, i) => d.shapeWidth)
+      .style('fill', (d, i) => d.color)
+      .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+
+    shapes
+      .exit()
+      .remove();
+  }
+	
   renderInterconnections() {
 
     let connections = this.frame.connectionsContainer.selectAll('path.connection')

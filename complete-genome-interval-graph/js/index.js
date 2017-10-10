@@ -35,7 +35,7 @@ $(function() {
     .awaitAll((error, results) => {
       if (error) throw error;
       frame.dataInput.genes = results[0].genes;
-      frame.dataInput.walks = results[1].gwalks;
+      frame.dataInput.gwalks = results[1].gwalks;
       frame.render();
   });
 
@@ -55,6 +55,8 @@ $(function() {
     frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
       frame.margins.defaults.upperGapPanelWithGenes: 
       frame.margins.defaults.upperGapPanel;
+		frame.showGenes = $('#gene-checkbox').is(":checked");
+		frame.showWalks = $('#walk-checkbox').is(":checked");
     frame.toggleGenesPanel();
   });
 
@@ -63,6 +65,8 @@ $(function() {
     frame.margins.panels.upperGap = $('#walk-checkbox').is(":checked") ? 
       frame.margins.defaults.upperGapPanelWithGenes: 
       frame.margins.defaults.upperGapPanel;
+		frame.showGenes = $('#gene-checkbox').is(":checked");
+		frame.showWalks = $('#walk-checkbox').is(":checked");
     frame.toggleGenesPanel();
   });
 

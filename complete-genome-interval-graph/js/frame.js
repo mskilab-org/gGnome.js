@@ -78,7 +78,20 @@ class Frame extends Base {
       this.geneBins[gene.iid] = gene;
       return gene;
     });
-    this.yGeneScale = d3.scaleLinear().domain([0, 10]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+		if (this.dataInput.gwalks) {
+			this.walks = this.dataInput.gwalks.walks.map((d, i) => {
+	      let walk = new Walk(d);
+				walk.intervals = walk.iids.map((d, i) => {
+	      	let interval = new Interval(d);
+	      	interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+	      	interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+	      	interval.color = this.chromoBins[interval.chromosome].color;
+	      	return interval;
+	    	});
+	      return walk;
+	    });
+	  }
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
     this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
@@ -124,7 +137,7 @@ class Frame extends Base {
   }
 
   toggleGenesPanel() {
-    this.yGeneScale = d3.scaleLinear().domain([0, 10]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
@@ -137,6 +150,10 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.connectionsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+			
+		this.genesContainer.classed('hidden', !this.showGenes);
+    this.walksContainer.classed('hidden', !this.showWalks);
+		
     this.brushContainer.update();
   }
 
@@ -216,11 +233,13 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.genesContainer = this.svg.append('g')
-      .attr('class', 'genes-container')
+			.classed('genes-container', true)
+			.classed('hidden', !this.showGenes)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
     
     this.walksContainer = this.svg.append('g')
-      .attr('class', 'walks-container')
+      .classed('walks-container', true)
+			.classed('hidden', !this.showWalks)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
