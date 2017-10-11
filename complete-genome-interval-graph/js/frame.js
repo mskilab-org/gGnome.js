@@ -95,16 +95,14 @@ class Frame extends Base {
     });
 		if (this.dataInput.gwalks) {
 			this.walkIntervals = [];
-	    this.walkIntervalBins = {};
 			this.walkConnections = [];
 			this.walks = this.dataInput.gwalks.walks.map((d, i) => {
 	      let walk = new Walk(d);
 				walk.intervals = walk.iids.map((d, i) => {
-	      	let interval = new Interval(d);
+	      	let interval = new WalkInterval(d, walk);
 	      	interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
 	      	interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
 	      	interval.color = this.chromoBins[interval.chromosome].color;
-					this.walkIntervalBins[interval.iid] = interval;
 					this.walkIntervals.push(interval);
 	      	return interval;
 	    	});
@@ -114,20 +112,21 @@ class Frame extends Base {
 	    this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
 			this.walks.forEach((walk, i) => {
 		    walk.connections = walk.cids.map((d, i) => {
-		      connection = new Connection(d);
-		      connection.pinpoint(this.walkIntervalBins);
+		      let connection = new WalkConnection(d, walk);
+		      connection.pinpoint();
 		      connection.yScale = this.yWalkScale;
 		      connection.arc = d3.arc()
 		        .innerRadius(0)
 		        .outerRadius(this.margins.intervals.bar / 2)
 		        .startAngle(0)
 		        .endAngle((e, j) => e * Math.PI);
-						this.walkConnections.push(connection);
+					this.walkConnections.push(connection);
 		      return connection;
 		    });
 			});
 
 	  }
+		window.pc = this;
   }
 
   render() {

@@ -21,21 +21,14 @@ $(function() {
   d3.queue()
     .defer(d3.json, './data.json')
     .defer(d3.json, './metadata.json')
-    .awaitAll((error, results) => {
-      if (error) throw error;
-      frame.dataInput = results[0];
-      frame.dataInput.metadata = results[1].metadata;
-      frame.dataInput.genes = [];
-      frame.render();
-  });
-
-  d3.queue()
     .defer(d3.json, './genes.json')
     .defer(d3.json, './walks.json')
     .awaitAll((error, results) => {
       if (error) throw error;
-      frame.dataInput.genes = results[0].genes;
-      frame.dataInput.gwalks = results[1].gwalks;
+      frame.dataInput = results[0];
+      frame.dataInput.metadata = results[1].metadata;
+      frame.dataInput.genes = results[2].genes;
+      frame.dataInput.gwalks = results[3].gwalks;
       frame.render();
   });
 
