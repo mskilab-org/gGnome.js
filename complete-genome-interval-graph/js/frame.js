@@ -11,6 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2},
 			genes: {textGap: 10, selectionSize: 15},
+			walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
@@ -103,11 +104,19 @@ class Frame extends Base {
 	      	interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
 	      	interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
 	      	interval.color = this.chromoBins[interval.chromosome].color;
+					interval.shapeHeight = this.margins.walks.bar;
 					this.walkIntervals.push(interval);
 	      	return interval;
 	    	});
 	      return walk;
 	    });
+			let grouped = Misc.groupBy(this.walkIntervals, interval => interval.coordinates);
+			grouped.forEach((value, key, map) => {
+				value.forEach((d, i) => {
+					d.y = i;
+				});
+			});
+			
 			this.yWalkExtent = d3.extent(this.walkIntervals.map((d, i) => d.y)).reverse();
 	    this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
 			this.walks.forEach((walk, i) => {

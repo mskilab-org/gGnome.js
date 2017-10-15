@@ -4,6 +4,8 @@ class WalkInterval extends Interval {
     super(hap);
 		this.walk = wlk; 
 		this.uid = wlk.pid + '#' + this.iid;
+		this.coordinates = `${this.chromosome}-${this.startPoint}-${this.endPoint}`;
+		this.margins = {arrow: 5};
   }
 
   // The title for the popover on the gene
@@ -22,4 +24,30 @@ class WalkInterval extends Interval {
   }
 
 
+  get points() {
+		if (this.shapeWidth > this.margins.arrow) {
+	    if (this.strand === "+") {
+	      return [
+	        0, 0,
+					d3.max([this.shapeWidth - this.margins.arrow, 0]), 0,
+					this.shapeWidth, 0.5 * this.shapeHeight,
+					d3.max([this.shapeWidth - this.margins.arrow, 0]), this.shapeHeight,
+	        0, this.shapeHeight];
+	    } else if (this.strand === "-") {
+	      return [
+	        d3.min([this.margins.arrow, this.shapeWidth]), 0,
+					this.shapeWidth, 0,
+					this.shapeWidth, this.shapeHeight,
+					d3.min([this.margins.arrow, this.shapeWidth]), this.shapeHeight,
+					0, 0.5 * this.shapeHeight];
+	    }
+		} else {
+      return [
+        0, 0,
+				this.shapeWidth, 0,
+				this.shapeWidth, this.shapeHeight,
+        0, this.shapeHeight];
+		} 
+  }
+	
 }

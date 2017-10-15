@@ -42,7 +42,7 @@ rect.panel {
   cursor: move;
   pointer-events: all;
 }
-rect.shape.highlighted {
+.shape.highlighted {
   fill: white !important;
 }
 path.connection {
