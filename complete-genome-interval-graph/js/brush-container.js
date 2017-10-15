@@ -128,12 +128,6 @@ class BrushContainer {
     // Draw the full details of the fragments
     this.renderFragmentsDetails(this.panelDomainsDetails());
 
-    // update clipPath
-    this.renderClipPath();
-
-    // The Genes Clip Path
-    this.renderGenesClipPath();
-
     // draw the brushes
     this.renderBrushes();
 
@@ -157,6 +151,12 @@ class BrushContainer {
 		
     // Draw the walk interconnections
     this.renderWalkInterconnections();
+		
+    // The Genes Clip Path
+    this.renderGenesClipPath();
+		
+    // update clipPath
+    this.renderClipPath();
   }
 
   updateFragments() {
@@ -812,18 +812,17 @@ class BrushContainer {
       .remove();
 
     // add the actual intervals as rectangles
-    let shapes = shapesPanels.selectAll('rect.shape')
+    let shapes = shapesPanels.selectAll('polygon.shape')
       .data((d, i) => d.visibleWalkIntervals, (d, i) =>  d.identifier);
 
     shapes
       .enter()
-      .append('rect')
+      .append('polygon')
       .attr('id', (d, i) => d.identifier)
       .attr('class', 'popovered shape')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-      .attr('width', (d, i) => d.shapeWidth)
-      .attr('height', this.frame.margins.intervals.bar)
-      .style('fill', (d, i) => d.color)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+      .attr('points', (d, i) => d.points)
+      .style('fill', (d, i) => 'url(#fill-tilted)')
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
@@ -841,9 +840,9 @@ class BrushContainer {
 
     shapes
       .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-      .attr('width', (d, i) => d.shapeWidth)
-      .style('fill', (d, i) => d.color)
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+      .attr('points', (d, i) => d.points)
+			.style('fill', (d, i) => 'url(#fill-tilted)')
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
 
     shapes

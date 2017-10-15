@@ -46,7 +46,7 @@ $(function() {
   $('#gene-checkbox').on('click', (event) => {
     $('#walk-checkbox').removeAttr('checked'); 
     frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
-      frame.margins.defaults.upperGapPanelWithGenes: 
+      0.8 * frame.height: 
       frame.margins.defaults.upperGapPanel;
 		frame.showGenes = $('#gene-checkbox').is(":checked");
 		frame.showWalks = $('#walk-checkbox').is(":checked");
@@ -56,7 +56,7 @@ $(function() {
   $('#walk-checkbox').on('click', (event) => {
     $('#gene-checkbox').removeAttr('checked'); 
     frame.margins.panels.upperGap = $('#walk-checkbox').is(":checked") ? 
-      frame.margins.defaults.upperGapPanelWithGenes: 
+      0.8 * frame.height: 
       frame.margins.defaults.upperGapPanel;
 		frame.showGenes = $('#gene-checkbox').is(":checked");
 		frame.showWalks = $('#walk-checkbox').is(":checked");
