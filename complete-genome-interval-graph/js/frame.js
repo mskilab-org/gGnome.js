@@ -10,8 +10,8 @@ class Frame extends Base {
       panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10},
       brushes: {upperGap: 20, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2},
-			genes: {textGap: 10, selectionSize: 15},
-			walks: {bar: 10},
+      genes: {textGap: 10, selectionSize: 15},
+      walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
@@ -94,48 +94,53 @@ class Frame extends Base {
         .endAngle((e, j) => e * Math.PI);
       return connection;
     });
-		if (this.dataInput.gwalks) {
-			this.walkIntervals = [];
-			this.walkConnections = [];
-			this.walks = this.dataInput.gwalks.walks.map((d, i) => {
-	      let walk = new Walk(d);
-				walk.intervals = walk.iids.map((d, i) => {
-	      	let interval = new WalkInterval(d, walk);
-	      	interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
-	      	interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-	      	interval.color = this.chromoBins[interval.chromosome].color;
-					interval.shapeHeight = this.margins.walks.bar;
-					this.walkIntervals.push(interval);
-	      	return interval;
-	    	});
-	      return walk;
-	    });
-			let grouped = Misc.groupBy(this.walkIntervals, interval => interval.coordinates);
-			grouped.forEach((value, key, map) => {
-				value.forEach((d, i) => {
-					d.y = i;
-				});
-			});
-			
-			this.yWalkExtent = d3.extent(this.walkIntervals.map((d, i) => d.y)).reverse();
-	    this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
-			this.walks.forEach((walk, i) => {
-		    walk.connections = walk.cids.map((d, i) => {
-		      let connection = new WalkConnection(d, walk);
-		      connection.pinpoint();
-		      connection.yScale = this.yWalkScale;
-		      connection.arc = d3.arc()
-		        .innerRadius(0)
-		        .outerRadius(this.margins.intervals.bar / 2)
-		        .startAngle(0)
-		        .endAngle((e, j) => e * Math.PI);
-					this.walkConnections.push(connection);
-		      return connection;
-		    });
-			});
+    if (this.dataInput.gwalks) {
+      this.walkIntervals = [];
+      this.walkConnections = [];
+      this.walks = this.dataInput.gwalks.walks.map((d, i) => {
+        let walk = new Walk(d);
+        walk.intervals = walk.iids.map((d, i) => {
+          let interval = new WalkInterval(d, walk);
+          interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+          interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+          interval.color = this.chromoBins[interval.chromosome].color;
+          interval.shapeHeight = this.margins.walks.bar;
+          this.walkIntervals.push(interval);
+          return interval;
+        });
+        return walk;
+      });
+      this.grouped = Misc.groupBy(this.walkIntervals, interval => interval.coordinates);
+      //let maxWalkIntervals = 
+      this.grouped.forEach((value, key, map) => {
+        value.forEach((d, i) => {
+          d.y = i;
+        });
+      });
+      this.yWalkExtent = d3.extent(this.walkIntervals.map((d, i) => d.y)).reverse();
+      this.grouped.forEach((value, key, map) => {
+        value.forEach((d, i) => {
+          d.y = i * Math.floor(this.yWalkExtent[0] / value.length);
+        });
+      });
+      this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+      this.walks.forEach((walk, i) => {
+        walk.connections = walk.cids.map((d, i) => {
+          let connection = new WalkConnection(d, walk);
+          connection.pinpoint();
+          connection.yScale = this.yWalkScale;
+          connection.arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(this.margins.intervals.bar / 2)
+            .startAngle(0)
+            .endAngle((e, j) => e * Math.PI);
+          this.walkConnections.push(connection);
+          return connection;
+        });
+      });
 
-	  }
-		window.pc = this;
+    }
+    window.pc = this;
   }
 
   render() {
@@ -169,23 +174,23 @@ class Frame extends Base {
   toggleGenesPanel() {
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
     this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
-		this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
+    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
       .call(this.yAxis);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
-		this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
+    this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     this.panelsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.shapesContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.connectionsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
-			
-		this.genesContainer.classed('hidden', !this.showGenes);
+      
+    this.genesContainer.classed('hidden', !this.showGenes);
     this.walksContainer.classed('hidden', !this.showWalks);
-		this.walkConnectionsContainer.classed('hidden', !this.showWalks);
+    this.walkConnectionsContainer.classed('hidden', !this.showWalks);
     this.brushContainer.update();
   }
 
@@ -265,13 +270,13 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.genesContainer = this.svg.append('g')
-			.classed('genes-container', true)
-			.classed('hidden', !this.showGenes)
+      .classed('genes-container', true)
+      .classed('hidden', !this.showGenes)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
     
     this.walksContainer = this.svg.append('g')
       .classed('walks-container', true)
-			.classed('hidden', !this.showWalks)
+      .classed('hidden', !this.showWalks)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
@@ -281,10 +286,10 @@ class Frame extends Base {
     this.connectionsContainer = this.svg.append('g')
       .attr('class', 'connections-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
-		
+    
     this.walkConnectionsContainer = this.svg.append('g')
-			.classed('walk-connections-container', true)
-			.classed('hidden', !this.showWalks)
+      .classed('walk-connections-container', true)
+      .classed('hidden', !this.showWalks)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.brushContainer = new BrushContainer(this);

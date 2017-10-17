@@ -6,9 +6,9 @@ class Walk extends Base {
     this.cn = walk.cn;
     this.type = walk.type;
     this.strand = walk.strand;
-		this.cids = walk.cids;
-		this.iids = walk.iids;
-		this.title = `${this.pid} | ${this.cn}`;
+    this.cids = walk.cids;
+    this.iids = walk.iids;
+    this.title = `${this.pid} | ${this.cn}`;
   }
 
   // The title for the popover on the intervals
