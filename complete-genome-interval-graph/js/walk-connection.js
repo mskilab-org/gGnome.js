@@ -2,7 +2,7 @@ class WalkConnection extends Connection {
 
   constructor(con, wlk) {
     super(con);
-		this.walk = wlk;
+    this.walk = wlk;
   }
 
   pinpoint() {
@@ -26,7 +26,7 @@ class WalkConnection extends Connection {
     }
     this.distance = ((this.source) && (this.sink)) ? d3.format(',')(Math.abs(this.sink.place - this.source.place)) : '-';
   }
-	
+  
   // The title for the popover on the connections
   get popoverTitle() {
     return 'Connection #' + this.cid + ' - ' + this.type + ' of walk #' + this.walk.pid;

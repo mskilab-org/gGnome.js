@@ -12,7 +12,7 @@ class SvgFilter {
       .append('rect')
       .attr('width', 0)
       .attr('height', 0);
-		this.drawPattern();
+    this.drawPattern();
   }
 
   renderClipPath(width, height) {
@@ -28,19 +28,19 @@ class SvgFilter {
   }
 
 
-	drawPattern() {
-		this.defs.append('pattern')
-    	.attr('id', 'fill-tilted')
-    	.attr('patternUnits', 'userSpaceOnUse')
-    	.attr('width', 2)
-    	.attr('height', 10)
-    	.attr('patternTransform', 'rotate(45)')
-    	.append('rect')
-    	.attr('height', 10)
-    	.attr('width', 1)
-    	.style('fill', '#999999')
-    	.style('opacity', 0.5);
-	}
+  drawPattern() {
+    this.defs.append('pattern')
+      .attr('id', 'fill-tilted')
+      .attr('patternUnits', 'userSpaceOnUse')
+      .attr('width', 2)
+      .attr('height', 10)
+      .attr('patternTransform', 'rotate(45)')
+      .append('rect')
+      .attr('height', 10)
+      .attr('width', 1)
+      .style('fill', '#999999')
+      .style('opacity', 0.5);
+  }
 
   drawShadow(id = 'md-shadow', deviation = 2, offset = 2, slope = 0.25) {
     // create filter and assign provided id

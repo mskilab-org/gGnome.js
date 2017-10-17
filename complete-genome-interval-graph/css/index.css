@@ -34,6 +34,8 @@ svg.plot {
   font-weight: normal;
   fill: #FFF;
   stroke: #FFF;
+  pointer-events: none;
+  user-select: none;
 }
 rect.panel {
   stroke: steelblue;
@@ -44,6 +46,9 @@ rect.panel {
 }
 .shape.highlighted {
   fill: white !important;
+}
+.walk-highlighted {
+  fill: rgb(255, 127, 14) !important;
 }
 path.connection {
   fill: none;

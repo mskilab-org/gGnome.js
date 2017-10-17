@@ -145,16 +145,16 @@ class BrushContainer {
 
     // Draw the walk intervals
     this.renderWalkIntervals();
-		
+    
     // Draw the interconnections
     this.renderInterconnections();
-		
+    
     // Draw the walk interconnections
     this.renderWalkInterconnections();
-		
+    
     // The Genes Clip Path
     this.renderGenesClipPath();
-		
+    
     // update clipPath
     this.renderClipPath();
   }
@@ -164,12 +164,12 @@ class BrushContainer {
     this.visibleFragments = [];
     this.visibleIntervals = [];
     this.visibleGenes = [];
-		this.visibleWalks = [];
+    this.visibleWalks = [];
     this.connections = [];
-		this.walkConnections = [];
+    this.walkConnections = [];
 
     let frameConnections = Object.assign([], this.frame.connections);
-		let frameWalkConnections = Object.assign([], this.frame.walkConnections);
+    let frameWalkConnections = Object.assign([], this.frame.walkConnections);
 
     // delete any brushes that have a zero selection size
     this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
@@ -244,18 +244,18 @@ class BrushContainer {
       // filter the Walks
       d.visibleWalkIntervals = [];
       this.frame.walks.forEach((walk, j) => {
-				walk.intervals
-	      .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
-	        || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
-	      .forEach((interval, j) => {
-	        interval.identifier = Misc.guid;
-	        interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
-	        interval.shapeWidth = interval.range[1] - interval.range[0];
-	        interval.fragment = d;
-					interval.walk = walk;					
-					d.visibleWalkIntervals.push(interval);
-	      });
-			});
+        walk.intervals
+        .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
+          || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
+        .forEach((interval, j) => {
+          interval.identifier = Misc.guid;
+          interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
+          interval.shapeWidth = interval.range[1] - interval.range[0];
+          interval.fragment = d;
+          interval.walk = walk;          
+          d.visibleWalkIntervals.push(interval);
+        });
+      });
       // filter the connections on same fragment
       frameConnections
         .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
@@ -272,22 +272,22 @@ class BrushContainer {
           connection.identifier = Misc.guid;
           this.connections.push(connection);
         });
-		  // filter the walk connections on same fragment
-		  frameWalkConnections
-		    .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
-		    .forEach((connection, j) => {
-		      if (connection.source) {
-		        connection.source.scale = d.scale;
-		        connection.source.fragment = d;
-		      }
-		      if (connection.sink) {
-		        connection.sink.scale = d.scale;
-		        connection.sink.fragment = d;
-		      }
-		      connection.touchScale = d.scale;
-		      connection.identifier = Misc.guid;
-		      this.walkConnections.push(connection);
-		     });
+      // filter the walk connections on same fragment
+      frameWalkConnections
+        .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
+        .forEach((connection, j) => {
+          if (connection.source) {
+            connection.source.scale = d.scale;
+            connection.source.fragment = d;
+          }
+          if (connection.sink) {
+            connection.sink.scale = d.scale;
+            connection.sink.fragment = d;
+          }
+          connection.touchScale = d.scale;
+          connection.identifier = Misc.guid;
+          this.walkConnections.push(connection);
+         });
     });
     // filter the connections between the visible fragments
     k_combinations(this.visibleFragments, 2).forEach((pair, i) => {
@@ -339,7 +339,7 @@ class BrushContainer {
           this.walkConnections.push(connection);
         });
     });
-		// filter the anchor connections
+    // filter the anchor connections
     let visibleConnections = Object.assign([], this.connections).map((d, i) => d.cid);
     this.visibleFragments.forEach((fragment, i) => {
       frameConnections
@@ -352,7 +352,7 @@ class BrushContainer {
           this.connections.push(connection);
         });
     });
-		// filter the anchor walk connections
+    // filter the anchor walk connections
     let visibleWalkConnections = Object.assign([], this.walkConnections).map((d, i) => d.cid);
     this.visibleFragments.forEach((fragment, i) => {
       frameWalkConnections
@@ -397,7 +397,7 @@ class BrushContainer {
     fragment.scale.domain(domain);
     let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
     d3.select('#brush-' + fragment.id).call(fragment.brush.move, selection);
-		
+    
     // update the data
     this.updateFragments();
 
@@ -433,7 +433,7 @@ class BrushContainer {
 
     // update the walk intervals
     this.renderWalkIntervals();
-		
+    
     // update the fragments note
     this.renderFragmentsNote(this.panelDomainsText());
 
@@ -687,7 +687,7 @@ class BrushContainer {
   }
 
   renderGenes() {
-		var self = this;
+    var self = this;
     // create the g elements containing the intervals
     let genesPanels = this.frame.genesContainer.selectAll('g.genes-panel')
       .data(this.visibleFragments, (d, i) => d.id);
@@ -762,34 +762,34 @@ class BrushContainer {
     genes
      .exit()
     .remove();
-		
-	  // add the actual intervals as rectangles
-	  let genesLabels = genesPanels.selectAll('text.gene-label')
-	    .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
-		
+    
+    // add the actual intervals as rectangles
+    let genesLabels = genesPanels.selectAll('text.gene-label')
+      .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+    
     genesLabels
       .enter()
       .append('text')
       .attr('id', (d, i) => d.identifier)
       .attr('class', (d, i) => 'gene-label')
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-			.style('opacity', function(d, i) {
-				let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
-				return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+      .style('opacity', function(d, i) {
+        let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+        return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
       .text((d, i) => d.title);
-		
+    
     genesLabels
       .attr('id', (d, i) => d.identifier)
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-			.style('opacity', function(d, i) {
-				let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
-				return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+      .style('opacity', function(d, i) {
+        let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+        return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
       .text((d, i) => d.title);
 
     genesLabels
      .exit()
     .remove();
-		
+    
   }
 
   renderWalkIntervals() {
@@ -826,13 +826,15 @@ class BrushContainer {
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
+        shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
       })
       .on('mouseout', function(d,i) {
         d3.select(this).classed('highlighted', false);
+        shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => {
-        console.log(d)
+      .on('click', function(d,i) {
+        console.log(d);
       })
       .on('dblclick', (d,i) => {
         
@@ -842,14 +844,14 @@ class BrushContainer {
       .attr('id', (d, i) => d.identifier)
       .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
       .attr('points', (d, i) => d.points)
-			.style('fill', (d, i) => 'url(#fill-tilted)')
+      .style('fill', (d, i) => 'url(#fill-tilted)')
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
 
     shapes
       .exit()
       .remove();
   }
-	
+  
   renderInterconnections() {
 
     let connections = this.frame.connectionsContainer.selectAll('path.connection')
