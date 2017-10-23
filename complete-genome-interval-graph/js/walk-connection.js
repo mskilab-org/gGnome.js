@@ -26,7 +26,57 @@ class WalkConnection extends Connection {
     }
     this.distance = ((this.source) && (this.sink)) ? d3.format(',')(Math.abs(this.sink.place - this.source.place)) : '-';
   }
-  
+
+  // Calculate the points for inter-chromosome connections
+  get interConnectorEndpoints() {
+    var points = [];
+
+    var origin = d3.min([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+    var target = d3.max([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+    var originSign = (origin === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
+    var targetSign = (target === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
+    var originY = (origin === this.source.scale(this.source.place)) ? (this.source.y) : (this.sink.y);
+    var targetY = (target === this.source.scale(this.source.place)) ? (this.source.y) : (this.sink.y);
+    var originYScale = (origin === this.source.scale(this.source.place)) ? (this.source.fragment.yWalkScale) : (this.sink.fragment.yWalkScale);
+    var targetYScale = (target === this.source.scale(this.source.place)) ? (this.source.fragment.yWalkScale) : (this.sink.fragment.yWalkScale);
+    var midPointX = 0.5 * origin + 0.5 * target;
+    var midPointY = 0.5 * originY + 0.5 * targetY;
+
+    if (this.type === 'ALT') {
+      if (Math.abs(this.source.y) === Math.abs(this.sink.y)) {
+        points = [
+                [origin, originYScale(originY)],
+                [d3.min([origin + Math.sign(originSign) * 5,  midPointX - 5]), originYScale(originY)],
+                [d3.min([origin + Math.sign(originSign) * 25, midPointX - 5]), originYScale(midPointY) - (5)],
+                [midPointX, originYScale(midPointY) - (10)],
+                [d3.max([target + Math.sign(targetSign) * 25, midPointX + 5]), targetYScale(midPointY) - (5)],
+                [d3.max([target + Math.sign(targetSign) * 5,  midPointX + 5]), targetYScale(targetY)],
+                [target, targetYScale(targetY)]];
+      } else {
+        points = [
+                [origin, originYScale(originY)],
+                [origin + Math.sign(originSign) * 5, originYScale(originY)],
+                [origin + Math.sign(originSign) * 25, originYScale(originY) + Math.sign(targetY - originY) * (0.25)],
+                [target + Math.sign(targetSign) * 25, targetYScale(targetY) - Math.sign(targetY - originY) * (0.25)],
+                [target + Math.sign(targetSign) * 5, targetYScale(targetY)],
+                [target, targetYScale(targetY)]];
+      }
+    } else {
+      points = [
+              [origin, this.yScale(originY)],
+              [target, this.yScale(targetY)]];
+    }
+    return points;
+  }
+
+  // The array of points forming the loose connections with one endpoint missing
+  get looseConnectorEndpoints() {
+    return [
+      [this.touchScale(this.touchPlaceX), this.yScale(this.touchPlaceY)],
+      [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 15, this.yScale(this.touchPlaceY) - 5],
+      [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 5,  this.yScale(this.touchPlaceY) - 15]];
+  }
+	
   // The title for the popover on the connections
   get popoverTitle() {
     return 'Connection #' + this.cid + ' - ' + this.type + ' of walk #' + this.walk.pid;
