@@ -35,23 +35,6 @@ class Connection extends Base {
     this.distance = ((this.source) && (this.sink)) ? d3.format(',')(Math.abs(this.sink.place - this.source.place)) : '-';
   }
 
-  locateInSameFragment(fragment) {
-    if (this.source) {
-      this.source.scale = fragment.scale;
-    }
-    if (this.sink) {
-      this.sink.scale = fragment.scale;
-    }
-    this.touchScale = fragment.scale;
-    this.identifier = Misc.guid;
-  }
-
-  locateInTwoFragments(fragment1, fragment2) {
-    this.source.scale = ((this.source.place <= fragment1.domain[1]) && (this.source.place >= fragment1.domain[0])) ? fragment1.scale : fragment2.scale;
-    this.sink.scale = ((this.sink.place <= fragment1.domain[1]) && (this.sink.place >= fragment1.domain[0])) ? fragment1.scale : fragment2.scale;
-    this.identifier = Misc.guid;
-  }
-
   locateAnchor(fragment) {
     this.kind = 'ANCHOR';
     this.styleClass = `popovered connection anchor`;

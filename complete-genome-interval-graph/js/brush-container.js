@@ -256,6 +256,8 @@ class BrushContainer {
           d.visibleWalkIntervals.push(interval);
         });
       });
+			d.yWalks = d3.map(d.visibleWalkIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
+      d.yWalkScale = d3.scalePoint().domain(d.yWalks).padding([1]).rangeRound([this.frame.margins.panels.gap, this.frame.margins.panels.upperGap - this.frame.margins.panels.chromoGap - this.frame.margins.panels.gap]);		
       // filter the connections on same fragment
       frameConnections
         .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
@@ -268,7 +270,7 @@ class BrushContainer {
             connection.sink.scale = d.scale;
             connection.sink.fragment = d;
           }
-          connection.touchScale = d.scale;
+          connection.touchScale = d.scale;					
           connection.identifier = Misc.guid;
           this.connections.push(connection);
         });
@@ -285,6 +287,7 @@ class BrushContainer {
             connection.sink.fragment = d;
           }
           connection.touchScale = d.scale;
+					connection.yScale = d.yWalkScale;
           connection.identifier = Misc.guid;
           this.walkConnections.push(connection);
          });
@@ -362,6 +365,7 @@ class BrushContainer {
         .forEach((con, j) => {
           let connection = Object.assign(new Connection(con), con);
           connection.locateAnchor(fragment);
+					connection.yScale = fragment.yWalkScale;
           this.walkConnections.push(connection);
         });
     });
@@ -820,7 +824,7 @@ class BrushContainer {
       .append('polygon')
       .attr('id', (d, i) => d.identifier)
       .attr('class', 'popovered shape')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
       .attr('points', (d, i) => d.points)
       .style('fill', (d, i) => 'url(#fill-tilted)')
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
@@ -842,7 +846,7 @@ class BrushContainer {
 
     shapes
       .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
       .attr('points', (d, i) => d.points)
       .style('fill', (d, i) => 'url(#fill-tilted)')
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
