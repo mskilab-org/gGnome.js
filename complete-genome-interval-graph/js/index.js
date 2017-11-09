@@ -63,6 +63,9 @@ $(function() {
     frame.toggleGenesPanel();
   });
 
+  $('#locate-submit').on('click', (event) => {
+    frame.runLocate($('#locate-input').val());
+  });
 
   // Start file download.
   document.getElementById("download-button").addEventListener("click", function(){

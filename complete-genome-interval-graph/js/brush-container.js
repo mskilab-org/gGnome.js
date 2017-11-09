@@ -25,6 +25,22 @@ class BrushContainer {
     this.update();
   }
 
+  createDefaults(domain) {
+    this.createBrush();
+    let fragment = this.fragments[this.fragments.length - 1];
+    this.update();
+    fragment = d3.select('#brush-' + fragment.id).datum();
+    fragment.domain = domain;
+    fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+    d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+    this.update();
+    this.createBrush();
+    this.update();
+    this.activeId = fragment.id;
+    this.frame.brushesContainer.selectAll('.brush').classed('highlighted', false);
+    d3.select('#brush-' + fragment.id).classed('highlighted', true);
+  }
+  
   deleteBrush() {
     this.fragments = this.fragments.filter(fragment => fragment.id !== this.activeId);
     this.update();
@@ -256,8 +272,8 @@ class BrushContainer {
           d.visibleWalkIntervals.push(interval);
         });
       });
-			d.yWalks = d3.map(d.visibleWalkIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
-      d.yWalkScale = d3.scalePoint().domain(d.yWalks).padding([1]).rangeRound([this.frame.margins.panels.gap, this.frame.margins.panels.upperGap - this.frame.margins.panels.chromoGap - this.frame.margins.panels.gap]);		
+      d.yWalks = d3.map(d.visibleWalkIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
+      d.yWalkScale = d3.scalePoint().domain(d.yWalks).padding([1]).rangeRound([this.frame.margins.panels.gap, this.frame.margins.panels.upperGap - this.frame.margins.panels.chromoGap - this.frame.margins.panels.gap]);    
       // filter the connections on same fragment
       frameConnections
         .filter((e, j) => (!e.source || ((e.source.place <= d.domain[1]) && (e.source.place >= d.domain[0]))) && (!e.sink || ((e.sink.place <= d.domain[1]) && (e.sink.place >= d.domain[0]))))
@@ -270,7 +286,7 @@ class BrushContainer {
             connection.sink.scale = d.scale;
             connection.sink.fragment = d;
           }
-          connection.touchScale = d.scale;					
+          connection.touchScale = d.scale;          
           connection.identifier = Misc.guid;
           this.connections.push(connection);
         });
@@ -287,7 +303,7 @@ class BrushContainer {
             connection.sink.fragment = d;
           }
           connection.touchScale = d.scale;
-					connection.yScale = d.yWalkScale;
+          connection.yScale = d.yWalkScale;
           connection.identifier = Misc.guid;
           this.walkConnections.push(connection);
          });
@@ -365,7 +381,7 @@ class BrushContainer {
         .forEach((con, j) => {
           let connection = Object.assign(new Connection(con), con);
           connection.locateAnchor(fragment);
-					connection.yScale = fragment.yWalkScale;
+          connection.yScale = fragment.yWalkScale;
           this.walkConnections.push(connection);
         });
     });

@@ -110,22 +110,7 @@ class Frame extends Base {
         });
         return walk;
       });
-			/*
-      this.grouped = Misc.groupBy(this.walkIntervals, interval => interval.coordinates);
-      this.grouped.forEach((value, key, map) => {
-        value.forEach((d, i) => {
-          d.y = i;
-        });
-      });
-			*/
       this.yWalkExtent = d3.extent(this.walkIntervals.map((d, i) => d.y)).reverse();
-			/*
-      this.grouped.forEach((value, key, map) => {
-        value.forEach((d, i) => {
-          d.y = i * Math.floor(this.yWalkExtent[0] / value.length);
-        });
-      });
-			*/
       this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
       this.walks.forEach((walk, i) => {
         walk.connections = walk.cids.map((d, i) => {
@@ -172,6 +157,13 @@ class Frame extends Base {
  
   runDelete() {
     this.brushContainer.deleteBrush();
+  }
+
+  runLocate(domainString) {
+    let chromosome = domainString.split(":")[0];
+    let range = domainString.split(':')[1].split('-');
+    let chromo = this.chromoBins[chromosome];
+    this.brushContainer.createDefaults([chromo.scaleToGenome(parseFloat(range[0])), chromo.scaleToGenome(parseFloat(range[1]))]);
   }
 
   toggleGenesPanel() {
