@@ -36,6 +36,9 @@
            <input class="btn btn-default" type="button" id="download-button" value="Export"/>
            <span id="fragmentsDetails" class="hidden"></span>
          </div>
+         <div class="form-group">
+           <input class="btn btn-default" type="button" id="locate-button" data-toggle="modal" data-target="#locate-modal" value="Locate"/>
+         </div>
       </form>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -71,6 +74,28 @@
           </div>
           <!-- /.modal-dialog -->
         </div>
+        <div class="modal fade" id="locate-modal" tabindex="-1" role="dialog" aria-labelledby="locate-modal" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-lg">
+              <form id="locate-form" role="form">  
+                <div class="modal-content" style="overflow: hidden;">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 id="locate-modal-title" class="modal-title">Loci of interest</h4>
+                  </div>            
+                  <div id="locate-modal-body" class="modal-body">
+                    <div class="form-group">
+                      <input type="text" class="form-control" id="locate-input" placeholder="e.g. 22:12492333-27035862">
+                    </div>                   
+                  </div>
+                  <div class="modal-footer">
+                    <button type="submit" id="locate-submit" class="btn btn-info btn-block" data-dismiss="modal">Locate</button>
+                  </div>                
+                </div>
+              </form>
+              <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+          </div>
     </div>
     <a href="data:text/plain;charset=utf-8" id="downloadLink" download="export.txt" style="display: none;"></a>
   </div>

@@ -123,3 +123,7 @@ div.popover .table-value {
   text-align: left;
   vertical-align: middle;
 }
+/* Locate Modal window styling */
+#locate-modal-body {
+  padding: 20px 20px 5px;
+}

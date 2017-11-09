@@ -76,7 +76,7 @@ class WalkConnection extends Connection {
       [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 15, this.yScale(this.touchPlaceY) - 5],
       [this.touchScale(this.touchPlaceX) + this.touchPlaceSign * 5,  this.yScale(this.touchPlaceY) - 15]];
   }
-	
+  
   // The title for the popover on the connections
   get popoverTitle() {
     return 'Connection #' + this.cid + ' - ' + this.type + ' of walk #' + this.walk.pid;
