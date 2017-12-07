@@ -6,6 +6,7 @@ class WalkInterval extends Interval {
     this.uid = wlk.pid + '#' + this.iid;
     this.coordinates = `${this.chromosome}-${this.startPoint}-${this.endPoint}`;
     this.margins = {arrow: 5};
+    this.y = this.y + ((this.strand === '+') ? 0.001 : 0);
   }
 
   // The title for the popover on the gene
