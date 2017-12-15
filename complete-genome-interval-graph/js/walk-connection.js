@@ -62,9 +62,19 @@ class WalkConnection extends Connection {
                 [target, targetYScale(targetY)]];
       }
     } else {
-      points = [
-              [origin, this.yScale(originY)],
-              [target, this.yScale(targetY)]];
+      if (Math.abs(this.source.y) === Math.abs(this.sink.y)) {
+        points = [
+                [origin, this.yScale(originY)],
+                [target, this.yScale(targetY)]];
+      } else {
+        points = [
+                [origin, this.yScale(originY)],
+                [origin + Math.sign(originSign) * 3, originYScale(originY)],
+                [origin + Math.sign(originSign) * 15, originYScale(originY) + Math.sign(targetY - originY) * (0.25)],
+                [target + Math.sign(targetSign) * 15, targetYScale(targetY) - Math.sign(targetY - originY) * (0.25)],
+                [target + Math.sign(targetSign) * 3, targetYScale(targetY)],
+                [target, this.yScale(targetY)]];
+      }
     }
     return points;
   }
