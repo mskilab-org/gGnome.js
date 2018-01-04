@@ -1,5 +1,44 @@
 class Misc {
 
+  static get server() {
+    return 'http://localhost:8000'
+  }
+
+  static get metadata() {
+    var input = (function () {
+        var json = null;
+        $.ajax({
+            'async': false,
+            'global': false,
+            'url': Misc.server + '/metadata',
+            'dataType': 'json',
+            'success': (data) => {
+                json = data;
+            }
+        });
+        return json;
+    })();
+    return input;
+  }
+
+  static intervals(startPlace, endPlace) {
+    var input = (function () {
+        var json = null;
+        $.ajax({
+            'async': false,
+            'global': false,
+            'url': Misc.server + '/intervals',
+            'data': {"startPlace": startPlace, "endPlace": endPlace},
+            'dataType': 'json',
+            'success': (data) => {
+                json = data;
+            }
+        });
+        return json;
+    })();
+    return input.map((d,i) => { return new Interval(d)});
+  }
+
   static get guid() {
 
     function S4() {
@@ -22,4 +61,5 @@ class Misc {
       });
       return map;
   }
+
 }

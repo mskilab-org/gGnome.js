@@ -32,6 +32,8 @@ $(function() {
       frame.render();
   });
 
+//console.log(Misc.intervals(1010796, 120928600))
+
   // Act upon window resize
   d3.select(window).on('resize', () => {
     window.clearTimeout(throttleTimer);
