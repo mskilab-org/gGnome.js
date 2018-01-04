@@ -286,7 +286,7 @@ class BrushContainer {
             connection.sink.scale = d.scale;
             connection.sink.fragment = d;
           }
-          connection.touchScale = d.scale;          
+          connection.touchScale = d.scale;
           connection.identifier = Misc.guid;
           this.connections.push(connection);
         });
@@ -545,6 +545,7 @@ class BrushContainer {
     panelRectangles
       .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
       .attr('width', (d, i) => d.panelWidth + this.frame.margins.panels.widthOffset)
+      .attr('height', (d, i) => d.panelHeight + correctionOffset)
       .each(function(d,i) {
         d3.select(this).call(d.zoom)
          .call(d.zoom.transform, d3.zoomIdentity
@@ -726,90 +727,95 @@ class BrushContainer {
       .exit()
       .remove();
 
-    // add the actual intervals as rectangles
-    let genes = genesPanels.selectAll('polygon.geneShape')
-      .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+    if (this.frame.showGenes) {
+      // add the actual intervals as rectangles
+      let genes = genesPanels.selectAll('polygon.geneShape')
+        .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
 
-    genes
-      .enter()
-      .append('polygon')
-      .attr('id', (d, i) => d.identifier)
-      .attr('class', (d, i) => 'popovered geneShape ' + d.type)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
-      .on('mouseover', function(d,i) {
-        d3.select(this).classed('highlighted', true);
-      })
-      .on('mouseout', function(d,i) {
-        d3.select(this).classed('highlighted', false);
-      })
-      .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => {
-        // show the gene location on the fragment note
-        this.renderFragmentsNote(d.location);
-        // filter the Genes
-        var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
-        let modalGenes = [];
-        this.frame.dataInput.genes
-        .filter((e, j) => (e.group_id === d.group_id))
-        .forEach((e, j) => {
-          let gene = new Gene(e);
-          gene.color = this.frame.chromoBins[gene.chromosome].color;
-          gene.identifier = Misc.guid;
-          gene.startPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
-          gene.endPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
-          gene.range = [d3.max([0, geneScale(gene.startPoint)]), geneScale(gene.endPoint)];
-          gene.shapeWidth = gene.range[1] - gene.range[0];
-          gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
-          gene.fragment = d;
-          gene.coefficient = 4;
-          modalGenes.push(gene);
+      genes
+        .enter()
+        .append('polygon')
+        .attr('id', (d, i) => d.identifier)
+        .attr('class', (d, i) => 'popovered geneShape ' + d.type)
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke)
+        .on('mouseover', function(d,i) {
+          d3.select(this).classed('highlighted', true);
+        })
+        .on('mouseout', function(d,i) {
+          d3.select(this).classed('highlighted', false);
+        })
+        .on('mousemove', (d,i) => this.loadPopover(d))
+        .on('click', (d,i) => {
+          // show the gene location on the fragment note
+          this.renderFragmentsNote(d.location);
+          // filter the Genes
+          var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
+          let modalGenes = [];
+          this.frame.dataInput.genes
+          .filter((e, j) => (e.group_id === d.group_id))
+          .forEach((e, j) => {
+            let gene = new Gene(e);
+            gene.color = this.frame.chromoBins[gene.chromosome].color;
+            gene.identifier = Misc.guid;
+            gene.startPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
+            gene.endPlace = Math.floor(this.frame.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
+            gene.range = [d3.max([0, geneScale(gene.startPoint)]), geneScale(gene.endPoint)];
+            gene.shapeWidth = gene.range[1] - gene.range[0];
+            gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
+            gene.fragment = d;
+            gene.coefficient = 4;
+            modalGenes.push(gene);
+          });
+          this.renderGeneModalPlot(d, modalGenes);
+          this.frame.clearPopovers();
+          this.frame.showGeneModal();
         });
-        this.renderGeneModalPlot(d, modalGenes);
-        this.frame.clearPopovers();
-        this.frame.showGeneModal();
-      });
 
-    genes
-      .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke);
+      genes
+        .attr('id', (d, i) => d.identifier)
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke);
 
-    genes
-     .exit()
-    .remove();
+      genes
+       .exit()
+       .remove();
     
-    // add the actual intervals as rectangles
-    let genesLabels = genesPanels.selectAll('text.gene-label')
-      .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+      // add the actual intervals as rectangles
+      let genesLabels = genesPanels.selectAll('text.gene-label')
+        .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
     
-    genesLabels
-      .enter()
-      .append('text')
-      .attr('id', (d, i) => d.identifier)
-      .attr('class', (d, i) => 'gene-label')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-      .style('opacity', function(d, i) {
-        let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
-        return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
-      .text((d, i) => d.title);
+      genesLabels
+        .enter()
+        .append('text')
+        .attr('id', (d, i) => d.identifier)
+        .attr('class', (d, i) => 'gene-label')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .style('opacity', function(d, i) {
+          let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+          return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+        .text((d, i) => d.title);
     
-    genesLabels
-      .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-      .style('opacity', function(d, i) {
-        let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
-        return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
-      .text((d, i) => d.title);
+      genesLabels
+        .attr('id', (d, i) => d.identifier)
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .style('opacity', function(d, i) {
+          let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+          return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
+        .text((d, i) => d.title);
 
-    genesLabels
-     .exit()
-    .remove();
-    
+      genesLabels
+       .exit()
+      .remove();
+    } else {
+      genesPanels.selectAll('polygon.geneShape').remove();
+      genesPanels.selectAll('text.gene-label').remove();
+    }
+
   }
 
   renderWalkIntervals() {
@@ -831,45 +837,49 @@ class BrushContainer {
       .exit()
       .remove();
 
-    // add the actual intervals as rectangles
-    let shapes = shapesPanels.selectAll('polygon.shape')
-      .data((d, i) => d.visibleWalkIntervals, (d, i) =>  d.identifier);
+    if (this.frame.showWalks) {
+      // add the actual intervals as rectangles
+      let shapes = shapesPanels.selectAll('polygon.shape')
+        .data((d, i) => d.visibleWalkIntervals, (d, i) =>  d.identifier);
 
-    shapes
-      .enter()
-      .append('polygon')
-      .attr('id', (d, i) => d.identifier)
-      .attr('class', 'popovered shape')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => 'url(#fill-tilted)')
-      .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
-      .on('mouseover', function(d,i) {
-        d3.select(this).classed('highlighted', true);
-        shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
-      })
-      .on('mouseout', function(d,i) {
-        d3.select(this).classed('highlighted', false);
-        shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
-      })
-      .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', function(d,i) {
-        console.log(d);
-      })
-      .on('dblclick', (d,i) => {
+      shapes
+        .enter()
+        .append('polygon')
+        .attr('id', (d, i) => d.identifier)
+        .attr('class', 'popovered shape')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => 'url(#fill-tilted)')
+        .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
+        .on('mouseover', function(d,i) {
+          d3.select(this).classed('highlighted', true);
+          shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
+        })
+        .on('mouseout', function(d,i) {
+          d3.select(this).classed('highlighted', false);
+          shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
+        })
+        .on('mousemove', (d,i) => this.loadPopover(d))
+        .on('click', function(d,i) {
+          console.log(d);
+        })
+        .on('dblclick', (d,i) => {
         
-      });
+        });
 
-    shapes
-      .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => 'url(#fill-tilted)')
-      .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+      shapes
+        .attr('id', (d, i) => d.identifier)
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => 'url(#fill-tilted)')
+        .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
 
-    shapes
-      .exit()
-      .remove();
+      shapes
+        .exit()
+        .remove();
+    } else {
+      shapesPanels.selectAll('polygon.shape').remove();
+    }
   }
   
   renderInterconnections() {
@@ -952,80 +962,84 @@ class BrushContainer {
 
   renderWalkInterconnections() {
 
-    let connections = this.frame.walkConnectionsContainer.selectAll('path.connection')
-      .data(this.walkConnections, (d,i) => d.identifier);
+    if (this.frame.showWalks) {
+      let connections = this.frame.walkConnectionsContainer.selectAll('path.connection')
+        .data(this.walkConnections, (d,i) => d.identifier);
 
-    connections.exit().remove();
+      connections.exit().remove();
 
-    connections
-      .attr('class', (d,i) => d.styleClass)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
-      .attr('transform', (d,i) => d.transform)
-      .attr('d', (d,i) => d.render);
+      connections
+        .attr('class', (d,i) => d.styleClass)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke)
+        .attr('transform', (d,i) => d.transform)
+        .attr('d', (d,i) => d.render);
 
-    connections
-      .enter()
-      .append('path')
-      .attr('id', (d,i) => d.identifier)
-      .attr('class', (d,i) => d.styleClass)
-      .attr('transform', (d,i) => d.transform)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
-      .attr('d', (d,i) =>  d.render)
-      .on('mouseover', function(d,i) {
-        d3.select(this).classed('highlighted', true);
-      })
-      .on('mouseout', function(d,i) {
-        d3.select(this).classed('highlighted', false);
-      })
-      .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => {
-        console.log(d);
-      })
-      .on('dblclick', (d,i) => {
-        if (d.kind === 'ANCHOR') {
-          this.createBrush();
-          let fragment = this.fragments[this.fragments.length - 1];
-          fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
-          fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
-          this.update();
-          fragment = d3.select('#brush-' + fragment.id).datum();
-          let lambda = (this.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.otherEnd.interval.endPlace - d.otherEnd.interval.startPlace);
-          let domainOffset = this.frame.margins.intervals.gap / lambda;
-          fragment.domain = [d.otherEnd.interval.startPlace - domainOffset, d.otherEnd.interval.endPlace + domainOffset];
-          fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
-          d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
-          this.update();
-        } else {
-          if (d.source.fragment.id === d.sink.fragment.id) {
-            let fragment = d.source.fragment;
-            let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / Math.abs(d.source.place - d.sink.place);
+      connections
+        .enter()
+        .append('path')
+        .attr('id', (d,i) => d.identifier)
+        .attr('class', (d,i) => d.styleClass)
+        .attr('transform', (d,i) => d.transform)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke)
+        .attr('d', (d,i) =>  d.render)
+        .on('mouseover', function(d,i) {
+          d3.select(this).classed('highlighted', true);
+        })
+        .on('mouseout', function(d,i) {
+          d3.select(this).classed('highlighted', false);
+        })
+        .on('mousemove', (d,i) => this.loadPopover(d))
+        .on('click', (d,i) => {
+          console.log(d);
+        })
+        .on('dblclick', (d,i) => {
+          if (d.kind === 'ANCHOR') {
+            this.createBrush();
+            let fragment = this.fragments[this.fragments.length - 1];
+            fragment.domain = [0.99 * d.otherEnd.interval.startPlace, 1.01 * d.otherEnd.interval.endPlace];
+            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+            this.update();
+            fragment = d3.select('#brush-' + fragment.id).datum();
+            let lambda = (this.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.otherEnd.interval.endPlace - d.otherEnd.interval.startPlace);
             let domainOffset = this.frame.margins.intervals.gap / lambda;
-            fragment.domain = [d3.min([d.source.place, d.sink.place]) - domainOffset, d3.max([d.source.place, d.sink.place]) + domainOffset];
+            fragment.domain = [d.otherEnd.interval.startPlace - domainOffset, d.otherEnd.interval.endPlace + domainOffset];
             fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
             d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
             this.update();
           } else {
-            // first align the source interval
-            let fragment = d.source.fragment;
-            let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.source.interval.endPlace - d.source.interval.startPlace);
-            let domainOffset = this.frame.margins.intervals.gap / lambda;
-            fragment.domain = [d.source.interval.startPlace - domainOffset, d.source.interval.endPlace + domainOffset];
-            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
-            d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
-            this.update();
-            // second align the sink interval
-            fragment = d.sink.fragment;
-            lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.sink.interval.endPlace - d.sink.interval.startPlace);
-            domainOffset = this.frame.margins.intervals.gap / lambda;
-            fragment.domain = [d.sink.interval.startPlace - domainOffset, d.sink.interval.endPlace + domainOffset];
-            fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
-            d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
-            this.update();
+            if (d.source.fragment.id === d.sink.fragment.id) {
+              let fragment = d.source.fragment;
+              let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / Math.abs(d.source.place - d.sink.place);
+              let domainOffset = this.frame.margins.intervals.gap / lambda;
+              fragment.domain = [d3.min([d.source.place, d.sink.place]) - domainOffset, d3.max([d.source.place, d.sink.place]) + domainOffset];
+              fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+              d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+              this.update();
+            } else {
+              // first align the source interval
+              let fragment = d.source.fragment;
+              let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.source.interval.endPlace - d.source.interval.startPlace);
+              let domainOffset = this.frame.margins.intervals.gap / lambda;
+              fragment.domain = [d.source.interval.startPlace - domainOffset, d.source.interval.endPlace + domainOffset];
+              fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+              d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+              this.update();
+              // second align the sink interval
+              fragment = d.sink.fragment;
+              lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.sink.interval.endPlace - d.sink.interval.startPlace);
+              domainOffset = this.frame.margins.intervals.gap / lambda;
+              fragment.domain = [d.sink.interval.startPlace - domainOffset, d.sink.interval.endPlace + domainOffset];
+              fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+              d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+              this.update();
+            }
           }
-        }
-      });
+        });
+    } else {
+      this.frame.walkConnectionsContainer.selectAll('path.connection').remove();
+    }
   }
 
   panelDomainsText() {

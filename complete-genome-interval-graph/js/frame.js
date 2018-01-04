@@ -128,7 +128,7 @@ class Frame extends Base {
       });
 
     }
-    window.pc = this;
+
   }
 
   render() {

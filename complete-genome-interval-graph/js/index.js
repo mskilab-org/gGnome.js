@@ -18,6 +18,8 @@ $(function() {
     });
   });
 
+  frame.dataInput.metadata = Object.assign({}, Misc.metadata);
+
   d3.queue()
     .defer(d3.json, './data.json')
     .defer(d3.json, './metadata.json')
@@ -26,13 +28,15 @@ $(function() {
     .awaitAll((error, results) => {
       if (error) throw error;
       frame.dataInput = results[0];
+      //frame.dataInput.metadata = Object.assign({}, Misc.metadata);
+      //console.log(Misc.metadata, results[1].metadata)
       frame.dataInput.metadata = results[1].metadata;
       frame.dataInput.genes = results[2].genes;
       frame.dataInput.gwalks = results[3].gwalks;
       frame.render();
   });
 
-//console.log(Misc.intervals(1010796, 120928600))
+  //console.log(Misc.intervals(1010796, 120928600))
 
   // Act upon window resize
   d3.select(window).on('resize', () => {
