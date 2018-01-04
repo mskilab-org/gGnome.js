@@ -18,7 +18,7 @@ class Misc {
         });
         return json;
     })();
-    return input;
+    return input.metadata;
   }
 
   static intervals(startPlace, endPlace) {
