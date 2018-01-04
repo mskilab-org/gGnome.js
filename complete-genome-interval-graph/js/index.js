@@ -18,7 +18,7 @@ $(function() {
     });
   });
 
-  frame.dataInput.metadata = Object.assign({}, Misc.metadata);
+  //frame.dataInput.metadata = Object.assign({}, Misc.metadata);
 
   d3.queue()
     .defer(d3.json, './data.json')

@@ -1,3 +1,10 @@
+#navbar {
+  margin-bottom: 0px;
+}
+
+.fragments-note-container {
+  min-height: 40px
+}
 /* Main SVG styling */
 svg.plot {
   border: 1px solid black;
@@ -92,7 +99,7 @@ div.popover {
 }
 div.popover .table-label {
   color: #404041;
-  line-height:16px;
+  line-height: 16px;
   padding: 5px 0px 3px 0px;
 }
 div.popover .table-value {

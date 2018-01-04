@@ -991,9 +991,6 @@ class BrushContainer {
           d3.select(this).classed('highlighted', false);
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
-        .on('click', (d,i) => {
-          console.log(d);
-        })
         .on('dblclick', (d,i) => {
           if (d.kind === 'ANCHOR') {
             this.createBrush();
@@ -1111,7 +1108,7 @@ class BrushContainer {
     popover.select('.popover-content span').style('color', d.color)
     popover
       .style('left', (d3.event.pageX - 1.0 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-      .style('top', (d3.event.pageY - 1.31 * popover.node().getBoundingClientRect().height - 3) + 'px')
+      .style('top', (d3.event.pageY - 1.41 * popover.node().getBoundingClientRect().height - 3) + 'px')
       .classed('hidden', false)
       .style('display', 'block')
       .transition()
