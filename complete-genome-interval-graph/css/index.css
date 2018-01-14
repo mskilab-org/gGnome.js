@@ -44,6 +44,10 @@ svg.plot {
   pointer-events: none;
   user-select: none;
 }
+.chromo-legend .label-separator {
+  pointer-events: none;
+  user-select: none;
+}
 rect.panel {
   stroke: steelblue;
   stroke-width: 2.5;
@@ -87,6 +91,12 @@ polygon.gene {
 text.gene-label {
   font: 11px sans-serif;
   fill: steelblue;
+  pointer-events: none;
+  user-select: none;
+}
+text.chromo-text {
+  fill: #FFF;
+  font: 11px sans-serif;
   pointer-events: none;
   user-select: none;
 }

@@ -6,9 +6,9 @@ class Frame extends Base {
     this.margins = {
       top: 30, bottom: 70, left: 30, right: 30,
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
-      legend: {bar: 30, upperGap: 30, lowerGap: 20, axisTop: 10},
+      legend: {bar: 30, upperGap: 0, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10},
-      brushes: {upperGap: 20, height: 50},
+      brushes: {upperGap: -10, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 10, selectionSize: 15},
       walks: {bar: 10},
@@ -34,6 +34,7 @@ class Frame extends Base {
     this.genomeScale = null;
     this.chromoBins = null;
     this.axis = null;
+    window.pc = this;
   }
 
   updateDimensions(totalWidth, totalHeight) {
@@ -47,9 +48,8 @@ class Frame extends Base {
   updateData() {
     if (this.dataInput === null) return;
     this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
-    this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width]);//.nice();
-    this.axis = d3.axisTop(this.genomeScale).tickValues(this.genomeScale.ticks(10, 's').concat(this.genomeScale.domain())).ticks(10, 's');
-    let boundary = 0
+    let boundary = 0;
+    this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width]);
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
       let chromo = new Chromo(element);
       chromo.scaleToGenome = d3.scaleLinear().domain([0, chromo.endPoint]).range([boundary, boundary + chromo.length - 1]);
@@ -151,6 +151,7 @@ class Frame extends Base {
 
     this.renderLegend();
     this.renderBrushes();
+    this.brushContainer.createDefaults(this.chromoBins['1'].chromoGenome);
 
     this.renderGeneModal();
   }
@@ -219,12 +220,6 @@ class Frame extends Base {
       .style('fill', 'steelblue')
       .style('stroke', 'black');
 
-    let frameAxisContainer = this.controlsContainer
-      .append('g')
-      .attr('class', 'frame-axis axis axis--x')
-      .attr('transform', 'translate(' + [0, this.margins.legend.axisTop] + ')')
-      .call(this.axis); 
-
     let chromoLegendContainer = this.controlsContainer.selectAll('g.chromo-legend-container')
       .data(Object.values(this.chromoBins), (d, i) => d.chromosome)
       .enter()
@@ -239,7 +234,15 @@ class Frame extends Base {
       .attr('height', this.margins.legend.bar)
       .style('opacity', 0.66)
       .style('fill', (d, i) => d.color)
-      .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
+      .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+
+    chromoLegendContainer
+      .append('text')
+      .attr('class', 'chromo-text')
+      .attr('dx', (d, i) => d.chromoWidth / 2)
+      .attr('dy', (d, i) => 0.62 * this.margins.legend.bar)
+      .attr('text-anchor', 'middle')
+      .text((d, i) => d.chromosome);
   }
 
   renderBrushes() {
