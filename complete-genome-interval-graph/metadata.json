@@ -22,6 +22,6 @@
     { "chromosome": "21", "startPoint": 1, "endPoint": 48129895, "color": "#e7ba52"},
     { "chromosome": "22", "startPoint": 1, "endPoint": 51304566, "color": "#e7cb94"},
     { "chromosome": "X", "startPoint": 1, "endPoint": 155270560, "color": "#843c39"},
-    { "chromosome": "Y", "startPoint": 1, "endPoint": 59373566, "color": "#ad494a"},
-    { "chromosome": "M", "startPoint": 1, "endPoint": 16571, "color": "#d6616b"}
+    { "chromosome": "M", "startPoint": 1, "endPoint": 16571, "color": "#d6616b"},
+    { "chromosome": "Y", "startPoint": 1, "endPoint": 59373566, "color": "#ad494a"}
 ]}

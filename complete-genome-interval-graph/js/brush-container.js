@@ -230,7 +230,7 @@ class BrushContainer {
           let axisBottom = d3.axisBottom(scale).ticks(d3.max([d3.min([Math.round(rangeWidth / 25), 10]),1]), 's');
           return {identifier: Misc.guid, transform: 'translate(' + [d.innerScale(chromo.scaleToGenome(domainStart)), 0] + ')',
             labelTopTranslate: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart))), - this.frame.margins.panels.label] + ')',
-            chromo: chromo, scale: scale, rangeWidth: rangeWidth, axisBottom: axisBottom};
+            chromo: chromo, scale: scale, rangeWidth: rangeWidth, separatorHeight: (this.genesPanelHeight + d.panelHeight), axisBottom: axisBottom};
       });
       // filter the intervals
       d.visibleIntervals = [];
@@ -392,9 +392,34 @@ class BrushContainer {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
     // set this brush as active
 
-    // Get the generated domain upon zoom
+    // get the mouse position in the current panel
+    let position = d3.mouse(d3.select('#panel-' + fragment.id).node());
+    // get the genome value for the specific mouse position
+    let genomePosition = fragment.innerScale.invert(position[0]);
+
+    if (isNaN(fragment.previousZoom)) {
+      fragment.previousZoom = {k: 1, x: 0, y: 0};
+    }
+
+    // Get the current zoom transform
     let t = d3.event.transform;
+
+    // Get the generated domain upon zoom
     let zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
+    // assign the zoomed domain to the existing panel width
+    fragment.innerScale.domain(zoomedDomain);
+    // find the new genome value for the specific mouse position
+    let zoomedGenomePosition = fragment.innerScale.invert(position[0]);
+    // calculate the offset between the original and the zoomed genome position
+    let domainOffset = genomePosition - zoomedGenomePosition;
+
+    // shift the zoom tranform by the domain offset
+    if (!isNaN(domainOffset) && (Math.abs(fragment.previousZoom.k - t.k) > 1e-3)) {
+      t.x = d3.max([d3.min([t.x - t.k * this.frame.genomeScale(domainOffset), 0]), this.frame.width * (1 - t.k)]);
+    }
+
+    fragment.previousZoom = Object.assign([], t);
+    zoomedDomain = t.rescaleX(this.frame.genomeScale).domain();
     let domain = Object.assign([], zoomedDomain);
 
     // Calculate the other domains and the domain bounds for the current brush
@@ -413,11 +438,13 @@ class BrushContainer {
       domain[1] = d3.max([domain[1], lowerBound + 1]);
     }
 
+
     // update the current brush
     fragment.scale.domain(domain);
+    fragment.innerScale.domain(domain);
     let selection = [this.frame.genomeScale(domain[0]), this.frame.genomeScale(domain[1])];
     d3.select('#brush-' + fragment.id).call(fragment.brush.move, selection);
-    
+
     // update the data
     this.updateFragments();
 
@@ -525,6 +552,7 @@ class BrushContainer {
       .enter()
       .append('rect')
       .attr('class', 'panel')
+      .attr('id', (d, i) => 'panel-' + d.id)
       .style('clip-path','url(#clip)')
       .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
       .attr('width', (d, i) => d.panelWidth + this.frame.margins.panels.widthOffset)
@@ -589,6 +617,7 @@ class BrushContainer {
       .each(function(d,i) {
         d3.select(this).append('rect').attr('width', (e, j) => d.rangeWidth).attr('y', -self.frame.margins.panels.legend).attr('height', self.frame.margins.panels.legend).style('fill', (e, j) => "url('#gradient" + d.chromo.chromosome +"')");
         d3.select(this).append('text').attr('class', 'label-chromosome').attr('transform', (e, j) => d.labelTopTranslate).text((e, j) => d.chromo.chromosome);
+        d3.select(this).append('line').attr('class', 'label-separator').attr('transform', 'translate(0.5,0)').attr('y2', (e, j) => d.separatorHeight).style('stroke', (e, j) => d.chromo.color);
       })
 
     chromoAxis
@@ -596,6 +625,7 @@ class BrushContainer {
       .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
         d3.select(this).select('text.label-chromosome').attr('transform', (e, j) => d.labelTopTranslate);
+        d3.select(this).append('line').attr('class', 'label-separator').attr('y2', (e, j) => d.separatorHeight);
       });
 
     chromoAxis
@@ -1108,7 +1138,7 @@ class BrushContainer {
     popover.select('.popover-content span').style('color', d.color)
     popover
       .style('left', (d3.event.pageX - 1.0 *  popover.node().getBoundingClientRect().width / 2) + 'px')
-      .style('top', (d3.event.pageY - 1.41 * popover.node().getBoundingClientRect().height - 3) + 'px')
+      .style('top', (d3.event.pageY - 1.51 * popover.node().getBoundingClientRect().height - 3) + 'px')
       .classed('hidden', false)
       .style('display', 'block')
       .transition()
