@@ -48,6 +48,11 @@ class Misc {
     return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
   }
 
+  static magnitude(n) {
+    let order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
+    return Math.pow(10, order);
+  }
+
   static groupBy(list, keyGetter) {
       const map = new Map();
       list.forEach((item) => {

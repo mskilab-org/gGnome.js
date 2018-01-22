@@ -228,9 +228,17 @@ class BrushContainer {
           let rangeWidth = d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart));
           let scale = d3.scaleLinear().domain([domainStart, domainEnd]).range([0, rangeWidth]);
           let axisBottom = d3.axisBottom(scale).ticks(d3.max([d3.min([Math.round(rangeWidth / 25), 10]),1]), 's');
+          let magnitude = Misc.magnitude(domainEnd - domainStart);
+          let magnitudeDistance = Misc.magnitude(domainEnd - domainStart) * rangeWidth / (domainEnd - domainStart);
+          let magnitudeLegendPoints = [0, -5, 0, 0, magnitudeDistance, 0, magnitudeDistance, -5];
           return {identifier: Misc.guid, transform: 'translate(' + [d.innerScale(chromo.scaleToGenome(domainStart)), 0] + ')',
             labelTopTranslate: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart))), - this.frame.margins.panels.label] + ')',
-            chromo: chromo, scale: scale, rangeWidth: rangeWidth, separatorHeight: (this.genesPanelHeight + d.panelHeight), axisBottom: axisBottom};
+            chromo: chromo, scale: scale, rangeWidth: rangeWidth, separatorHeight: (this.genesPanelHeight + d.panelHeight), axisBottom: axisBottom,
+            labelMagnitudeTranslate: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart))), - 5 * this.frame.margins.panels.label] + ')',
+            magnitude: magnitude, magnitudeDistance: magnitudeDistance,
+            magnitudeLegendTransform: 'translate(' + [0.5 * (d.innerScale(chromo.scaleToGenome(domainEnd)) - d.innerScale(chromo.scaleToGenome(domainStart)) - magnitudeDistance), - 4.5 * this.frame.margins.panels.label] + ')',
+            magnitudeLegendPoints: magnitudeLegendPoints
+        };
       });
       // filter the intervals
       d.visibleIntervals = [];
@@ -618,6 +626,8 @@ class BrushContainer {
         d3.select(this).append('rect').attr('width', (e, j) => d.rangeWidth).attr('y', -self.frame.margins.panels.legend).attr('height', self.frame.margins.panels.legend).style('fill', (e, j) => "url('#gradient" + d.chromo.chromosome +"')");
         d3.select(this).append('text').attr('class', 'label-chromosome').attr('transform', (e, j) => d.labelTopTranslate).text((e, j) => d.chromo.chromosome);
         d3.select(this).append('line').attr('class', 'label-separator').attr('transform', 'translate(0.5,0)').attr('y2', (e, j) => d.separatorHeight).style('stroke', (e, j) => d.chromo.color);
+        d3.select(this).append('text').attr('class', 'label-magnitude').attr('text-anchor', 'middle').attr('transform', (e, j) => d.labelMagnitudeTranslate).text((e, j) => d3.format(".1s")(d.magnitude));
+        d3.select(this).append('polyline').attr('class', 'line-magnitude').attr('transform', (e, j) => d.magnitudeLegendTransform).attr('points', (e, j) => e.magnitudeLegendPoints);
       })
 
     chromoAxis
@@ -625,7 +635,9 @@ class BrushContainer {
       .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
         d3.select(this).select('text.label-chromosome').attr('transform', (e, j) => d.labelTopTranslate);
-        d3.select(this).append('line').attr('class', 'label-separator').attr('y2', (e, j) => d.separatorHeight);
+        d3.select(this).select('line.label-separator').attr('y2', (e, j) => d.separatorHeight);
+        d3.select(this).select('text.label-magnitude').attr('transform', (e, j) => d.labelMagnitudeTranslate).text((e, j) => d3.format(".2s")(d.magnitude));
+        d3.select(this).select('polyline.line-magnitude').attr('transform', (e, j) => d.magnitudeLegendTransform).attr('points', (e, j) => e.magnitudeLegendPoints);
       });
 
     chromoAxis

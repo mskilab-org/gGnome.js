@@ -48,6 +48,14 @@ svg.plot {
   pointer-events: none;
   user-select: none;
 }
+.chromo-legend .label-magnitude {
+  font-size: 10px;
+}
+.chromo-legend  polyline.line-magnitude {
+  fill: transparent;
+  stroke: #000;
+  stroke-width: 1px;
+}
 rect.panel {
   stroke: steelblue;
   stroke-width: 2.5;
