@@ -1,4 +1,4 @@
-# PROJECT gGnome
+# Project gGnome
 
 ## Requirements
 
@@ -48,9 +48,9 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
     $ git clone git@github.com:mskilab/gGnome.js.git
     $ npm install -g simple-autoreload-server
 
-### Start application
+## Start application
 
-Copy `config.sample.json` to `config.json` then edit it with the url where you have setup:
+In the project folder, you may initiate the application via the terminal
 
     $ cd gGnome.js/complete-genome-interval-graph/
     $ autoreload-server -w "**/**.{html,css,js,json}" -r "**/**.{html,css,js,json}" ./ 8080
