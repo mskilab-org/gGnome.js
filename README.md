@@ -52,20 +52,21 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 
 In the project folder, you may initiate the application via the terminal
 
-    $ cd gGnome.js/complete-genome-interval-graph/
-    $ autoreload-server -w "**/**.{html,css,js,json}" -r "**/**.{html,css,js,json}" ./ 8080
+    $ cd gGnome.js/
+    $ ./start.sh
 
-Open your preferred browser and navigate to the url
+In case it doesn't start automatically, open your preferred browser and navigate to the url
 
     http://localhost:8080/index.html
 
 ---
 
-### Configuration
+## Configuration
 
 The application is reading 
 
-- the intervals and their connections from the json file in gGnome.js/complete-genome-interval-graph/data.json
-- the genes from the json file in gGnome.js/complete-genome-interval-graph/genes.json
-- the walks and their connections from the json file in gGnome.js/complete-genome-interval-graph/walks.json
-- the chromosome metadata from the json file in gGnome.js/complete-genome-interval-graph/metadata.json
+- the intervals, the walks, and their connections from the json file in gGnome.js/json/data.json
+- the genes from the json file in gGnome.js/json/genes.json
+- the chromosome metadata from the json file in gGnome.js/json/metadata.json
+
+In order to test your own data, simply replace the file gGnome.js/json/data.json with your own, on condition you maintain the same structure
