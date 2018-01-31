@@ -1,0 +1,526 @@
+// The configuration parameters
+// The Golden Ratio
+var phi = 1.618;
+var deviation = 2;
+var offset = 2;
+var slope = 0.25;
+var throttleTimer; //used for redrawing upon resize
+var totalWidth, totalHeight, width, height, plotsHeight;
+var margins = {top: 20, bottom: 50, left: 30, right: 30, gap: 20, bar: 10, legendFontSize: 14, legendHeight: 150, chromosomeContainerHeight: 30, chromobuttonsHeight: 30, chromoAxis: 38, legendGap: 10};
+var colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
+// define the line
+var line = d3.line().curve(d3.curveBasis).x(function(d) { return d[0]; }).y(function(d) { return d[1]; });
+var arc = d3.arc().innerRadius(0).outerRadius(margins.bar/2).startAngle(0).endAngle(function(d, i) { return d.touchpointSign * Math.PI; });
+
+var metadata = getMetadata(data);
+var intervalBins = getIntervalBins(data);
+var connectionBins = getConnectionBins(data, intervalBins);
+var yMax = d3.max(data.intervals.map(function(d,i) { return d.y; }));
+var interChromosomeConnectionBins;
+var anchorInterChromosomeConnectionBins;
+
+// The actual drawing
+draw();
+
+d3.select(window).on('resize', throttle);
+
+function draw() {
+  // Clear any existing svg
+  d3.select('#plot-container svg').remove();
+
+  totalWidth = $('#plot-container').width();
+  totalHeight = $(window).height();
+  width = totalWidth - margins.left - margins.right;
+  height = totalHeight - margins.top - margins.bottom;
+  plotsHeight = height - margins.legendHeight - margins.gap;
+  
+  // The SVG hosting the visualisation
+  var svg = d3.select('#plot-container').append('svg').attr('class', 'plot').attr('width', totalWidth).attr('height', totalHeight);
+
+  var yScale = d3.scaleLinear().domain([0, 10, yMax]).range([plotsHeight, 0.4 * plotsHeight, 20]).nice();
+
+  var panels = data.metadata.slice(0,3).map(function(d,i) { 
+    var elem = Object.assign({}, d); 
+    elem.column = i; 
+    elem.yScale = yScale;
+    elem.lineRenderer = line;
+    elem.arcRenderer = arc;
+    return elem;
+  });
+
+  var panelContainerWidth = (width - (panels.length - 1) * margins.gap) / panels.length;
+
+  drawFilters();
+
+ 
+  var yAxis = d3.axisLeft(yScale).tickSize(-width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(yMax / 10) + 1, 10)));
+  anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
+
+  // Controls container
+  drawControls();
+
+  // Add the panels
+  var panelsContainer = svg.append('g')
+    .attr('class', 'panels-container')
+    .attr('transform', 'translate(' + [margins.left, height - plotsHeight] + ')');
+  
+  panelsContainer.append('g')
+    .attr('class', 'axis axis--y')
+    .attr('transform', 'translate(' + [0, 0] + ')')
+    .call(yAxis);
+
+  panelsContainer.select('.axis.axis--y .domain').remove();
+
+  var interChromosomeConnectionsContainer = svg.append('g')
+    .attr('class', 'inter-chromosome-connections-container')
+    .attr('transform', 'translate(' + [margins.left, height - plotsHeight] + ')');
+
+  updatePanels(panels);
+
+  // Add the legend
+  var legendContainer = svg.append('g')
+    .attr('class', 'legend-container')
+    .attr('transform', 'translate(' + [margins.left, margins.top] + ')');
+
+  updateLegend(panels);
+
+  function drawFilters() {
+    var defs = svg.append('defs');
+
+    defs.append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('width', panelContainerWidth)
+      .attr('height', plotsHeight);
+
+    defs.append('clipPath')
+      .attr('id', 'clipWidth')
+      .append('rect')
+      .attr('width', width)
+      .attr('height', plotsHeight);
+
+    // create filter and assign provided id
+    var filter = defs.append('filter')
+      .attr('height', '125%') // adjust this if shadow is clipped
+      .attr('id', 'md-shadow');
+
+    // ambient shadow into ambientBlur
+    //   may be able to offset and reuse this for cast, unless modified
+    filter.append('feGaussianBlur')
+      .attr('in', 'SourceAlpha')
+      .attr('stdDeviation', deviation)
+      .attr('result', 'ambientBlur');
+
+    // cast shadow into castBlur
+    filter.append('feGaussianBlur')
+      .attr('in', 'SourceAlpha')
+      .attr('stdDeviation', deviation)
+      .attr('result', 'castBlur');
+
+    // offsetting cast shadow into offsetBlur
+    filter.append('feOffset')
+      .attr('in', 'castBlur')
+      .attr('dx', offset - 1)
+      .attr('dy', offset)
+      .attr('result', 'offsetBlur');
+
+    // combining ambient and cast shadows
+    filter.append('feComposite')
+      .attr('in', 'ambientBlur')
+      .attr('in2', 'offsetBlur')
+      .attr('result', 'compositeShadow');
+
+    // applying alpha and transferring shadow
+    filter.append('feComponentTransfer')
+      .append('feFuncA')
+      .attr('type', 'linear')
+      .attr('slope', slope);
+
+    // merging and outputting results
+    var feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode')
+    feMerge.append('feMergeNode')
+      .attr('in', 'SourceGraphic');
+  }
+
+  function drawControls() {
+
+    var controlsContainer = svg.append('g')
+      .attr('class', 'controls-container')
+      .attr('transform', 'translate(' + [margins.left, margins.top] + ')');
+
+    var chromoControls = controlsContainer.selectAll('g.control-container')
+      .data(d3.range(panels.length).map(function(d,i) { return {column: i}}), function(d,i) { return d.column })
+      .enter()
+      .append('g')
+      .attr('class', function(d,i) { return 'control-container column-' + i })
+      .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
+
+    var chromoButtonContainer = chromoControls
+      .append('g')
+      .attr('class', 'chromo-buttons-group')
+      .selectAll('g.chromo-button-container')
+      .data(function(d,i) { return data.metadata.map(function(e,j) {return {chromoObject: e, column: d.column}})}, function(d,i) { return 'column-' + d.column + 'chromo-' + d.chromoObject.chromosome})
+      .enter()
+      .append('g')
+      .attr('class', 'chromo-button-container')
+      .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth -  margins.chromobuttonsHeight)/ (data.metadata.length - 1), ((i + 1) % 2) * margins.chromobuttonsHeight] + ')' });
+
+    chromoButtonContainer.append('circle')
+      .attr('class', function(d,i) { return 'chromo-circle control-' + d.column + '-' + d.chromoObject.chromosome })
+      .classed('selected', function(d,i) { return  panels[d.column].chromosome === d.chromoObject.chromosome; })
+      .attr('cx', 0.5 * margins.chromobuttonsHeight)
+      .attr('cy', 0.5 * margins.chromobuttonsHeight)
+      .attr('r', 0.5 * margins.chromobuttonsHeight)
+      .attr('fill', function(d,i) { return d.chromoObject.color})
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlight', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlight', false);
+      }).on('click', function(d,i) { refreshPanel(d.column, d.chromoObject.chromosome); });
+
+    chromoButtonContainer.append('text')
+      .attr('class', 'button-text')
+      .attr('transform', 'translate(' + [0.5 * margins.chromobuttonsHeight, 0.5 * margins.chromobuttonsHeight] + ')')
+      .attr('text-anchor', 'middle')
+      .attr('dy', 0.33 * margins.legendFontSize)
+      .text(function(d,i) { return d.chromoObject.chromosome; });
+  }
+
+  function updatePanels(newPanels) {
+
+    // force the redrawing of the panels
+    panelsContainer.selectAll('g.panel-container').remove();
+
+    var panelContainer = panelsContainer.selectAll('g.panel-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome });
+
+    panelContainer.exit().remove();
+
+    var container = panelContainer
+      .enter()
+      .append('g')
+      .attr('class', function(d,i) { return 'panel-container column-' + d.column + ' chromo-' + d.chromosome })
+      .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
+
+    container.append('g')
+      .attr('class', 'background-container')
+      .attr('transform', 'translate(' + [0, 0] + ')')
+      .append('rect')
+      .attr('class', 'background')
+      .attr('width', panelContainerWidth)
+      .attr('height', plotsHeight)
+      .style('fill', function(d,i) { return metadata[d.chromosome]; });
+
+    container
+      .each(function(d,i) {
+        d.scale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
+        d.panelScale = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([d.column * (panelContainerWidth + margins.gap), (d.column + 1) * panelContainerWidth + d.column * margins.gap]);
+        d.axis = d3.axisBottom(d.scale).ticks(10, 's');
+        d.zoom = d3.zoom().scaleExtent([1, Infinity]).translateExtent([[0, 0], [panelContainerWidth, plotsHeight]]).extent([[0, 0], [panelContainerWidth, plotsHeight]]).on('zoom', function() { return zoomed(d)});
+        d3.select(this).append('g')
+          .attr('class', 'axis axis--x')
+          .attr('transform', 'translate(' + [0, plotsHeight] + ')')
+          .call(d.axis)
+        .selectAll('text')
+          .attr('transform', 'rotate(45)')
+        .style('text-anchor', 'start');
+      });
+
+    container.append('rect')
+      .attr('class', 'zoom')
+      .attr('width', panelContainerWidth)
+      .attr('height', plotsHeight)
+      .attr('transform','translate(0.5,0)')
+      .each(function(d,i) {
+        d3.select(this).call(d.zoom);
+      });
+
+    container.append('g').attr('class', 'shapes-container').style('clip-path','url(#clip)');
+
+    container.append('g').attr('class', 'local-inter-connections-container').style('clip-path','url(#clip)');
+
+  }
+
+  function updateLegend(newPanels) {
+
+    // force the redrawing of the legends
+    legendContainer.selectAll('g.chromosome-container').remove();
+
+    var chromosomeContainer = legendContainer.selectAll('g.chromosome-container').data(newPanels, function(d,i) { return 'column-' + d.column + ' chromo-' + d.chromosome});
+
+    chromosomeContainer.exit().remove();
+
+    var container = chromosomeContainer
+      .enter()
+      .each(function(d,i) {
+        d.scale2 = d3.scaleLinear().domain([metadata[d.chromosome].startPoint, metadata[d.chromosome].endPoint]).range([0, panelContainerWidth]).nice();
+        d.axis2 = d3.axisBottom(d.scale2).ticks(10, 's');
+      })
+      .append('g')
+      .attr('class', function(d,i) { return 'chromosome-container column-' + d.column + ' chromosome-' + d.chromosome })
+      .attr('transform', function(d,i) { return 'translate(' + [i * (panelContainerWidth + margins.gap), 0] + ')'; })
+
+    container
+      .append('g')
+      .attr('class', 'axis axis--x')
+      .attr('transform', 'translate(' + [0, margins.legendHeight - margins.chromoAxis - 2] + ')')
+      .each(function(d,i) { d3.select(this).call(d.axis2).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start'); })
+
+    container
+      .append('g')
+      .attr('transform', 'translate(' + [0, margins.legendHeight - margins.chromoAxis - margins.chromosomeContainerHeight - margins.legendGap] + ')')
+      .append('rect')
+      .attr('class', 'chromosome')
+      .attr('width', panelContainerWidth)
+      .attr('height', margins.chromosomeContainerHeight)
+      .style('opacity', function(d,i) { return 0.8; })
+      .style('fill', function(d,i) { return d.color; })
+      .style('stroke', function(d,i) { return d3.rgb(d.color).darker(1); });
+  
+    container
+      .append('g')
+      .attr('transform', 'translate(' + [0, margins.legendHeight - margins.chromoAxis - margins.chromosomeContainerHeight - margins.legendGap] + ')')
+      .attr('class', function(d,i) { return 'brush brush-' + d.column; })
+      .each(function(d,i) {
+        d.brush = d3.brushX().extent([[0, 0], [panelContainerWidth, margins.chromosomeContainerHeight]]).on('brush end', brushed);
+        d3.select(this).call(d.brush).call(d.brush.move, d.scale2.range());
+      });
+  }
+
+  function drawIntervals(panel, scale, dataArray) {
+
+    var shapes = panel.selectAll('rect.shape').data(dataArray, function(d,i) {return d.iid});
+
+    shapes.enter().append('rect')
+      .attr('class', 'popovered shape')
+      .attr('id', function(d,i) { return 'shape' + d.iid; })
+      .each(function(d,i) {
+        d.startX = scale(d.startPoint);
+        d.startY = yScale(d.y);
+        d.endX = scale(d.endPoint);
+        d.endY = yScale(d.y);
+        d.intervalLength = d.endPoint - d.startPoint;
+        d.popoverTitle = popoverIntervalTitle(d,i);
+        d.popoverContent = popoverIntervalContent(d,i);
+      })
+      .style('fill', function(d,i) { return metadata[d.chromosome].color; })
+      .style('stroke', function(d,i) { return d3.rgb(metadata[d.chromosome].color).darker(1); })
+      .attr('x', function(d,i) { return scale(d.startPoint); })
+      .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
+      .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
+      .attr('height', margins.bar);
+
+    shapes
+      .attr('x', function(d,i) { return scale(d.startPoint); })
+      .attr('y', function(d,i) { return yScale(d.y) - 0.5 * margins.bar; })
+      .attr('width', function(d,i) { return scale(d.endPoint) - scale(d.startPoint); })
+      .attr('height', margins.bar)
+      .style('fill', function(d,i) { return metadata[d.chromosome].color; })
+      .style('stroke', function(d,i) { return d3.rgb(metadata[d.chromosome].color).darker(1); })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) { return loadPopover(d);})
+      .on('dblclick', function(d,i) {
+        var brushData = d3.select(this.parentNode).datum();
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.startPoint), brushData.scale2(d.endPoint)].sort(d3.ascending));
+        var startPoint = d3.select(this.parentNode).datum().scale.invert(-0.1 * panelContainerWidth);
+        var endPoint = d3.select(this.parentNode).datum().scale.invert(1.1 * panelContainerWidth);
+        d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
+      });
+
+    shapes.exit().remove();
+  }
+
+  function drawInterChromosomeConnections(container) {
+
+    var connections = container.selectAll('path.connection').data(function(d,i) { return (interChromosomeConnectionBins || []); }, function(d,i) { return d.identifier});
+ 
+    connections.exit().remove();
+
+    connections
+      //.attr('id', function(d,i) { return d.identifier; })
+      .attr('class', function(d,i) { return d.styleClass; })
+      .style('clip-path', function(d,i) { return d.clipPath; })
+      .attr('transform', function(d,i) { return d.transform; })
+      .attr('d', function(d,i) { return d.render; });
+
+    connections
+      .enter()
+      .append('path')
+      .attr('id', function(d,i) { return d.identifier; })
+      .attr('class', function(d,i) { return d.styleClass; })
+      .style('clip-path', function(d,i) { return d.clipPath; })
+      .attr('d', function(d,i) { return d.render; })
+      .attr('transform', function(d,i) { return d.transform; })
+      .on('mouseover', function(d,i) {
+        var connector = connectionBins[d.cid];
+        d3.select(this).classed('highlighted', true);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source && connector.source.iid, connector.sink && connector.sink.iid].includes(e.iid); }).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        var connector = connectionBins[d.cid];
+        d3.select(this).classed('highlighted', false);
+        d3.selectAll('rect.shape').filter(function(e,j) { return [connector.source && connector.source.iid, connector.sink && connector.sink.iid].includes(e.iid); }).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) { return loadPopover(d);})
+      .on('dblclick', function(d,i) {
+        if (d.type === 'LOOSE') return;
+        if (d.sourcePanel.column === d.sinkPanel.column) {
+          var brushData = Object.assign({}, d.sourcePanel);
+          d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(d.sourcePoint), brushData.scale2(d.sinkPoint)].sort(d3.ascending));
+          var startPoint = d3.select('.brush-' + brushData.column).datum().scale.invert(-0.1 * panelContainerWidth);
+          var endPoint = d3.select('.brush-' + brushData.column).datum().scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData.column).call(brushData.brush.move, [brushData.scale2(startPoint), brushData.scale2(endPoint)]);
+        } else {
+          var bin = connectionBins[d.cid];
+          var brushData1 = Object.assign({}, d.sourcePanel);
+          d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(bin.source.startPoint), brushData1.scale2(bin.source.endPoint)].sort(d3.ascending));
+          brushData1 = d3.select('.brush-' + brushData1.column).datum();
+          var startPoint1 = brushData1.scale.invert(-0.1 * panelContainerWidth);
+          var endPoint1 = brushData1.scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData1.column).call(brushData1.brush.move, [brushData1.scale2(startPoint1), brushData1.scale2(endPoint1)]);
+          var brushData2 = Object.assign({}, d.sinkPanel);
+          d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(bin.sink.startPoint), brushData2.scale2(bin.sink.endPoint)].sort(d3.ascending));
+          brushData2 = d3.select('.brush-' + brushData2.column).datum();
+          var startPoint2 = brushData2.scale.invert(-0.1 * panelContainerWidth);
+          var endPoint2 = brushData2.scale.invert(1.1 * panelContainerWidth);
+          d3.select('.brush-' + brushData2.column).call(brushData2.brush.move, [brushData2.scale2(startPoint2), brushData2.scale2(endPoint2)]);
+        }
+      });
+  }
+
+  function drawAnchorInterConnections(container) {
+
+    var connections = container.selectAll('path.arc').data(function(d,i) { return (anchorInterChromosomeConnectionBins[d.chromosome] || []); }, function(d,i) { return d.cid});
+
+    connections.exit().remove();
+
+    connections.attr('transform', function(d,i) { return 'translate(' + [calculateAnchorInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')'})
+    .attr('d', arc)
+
+    connections
+      .enter()
+      .append('path')
+      .attr('class', function(d,i) { return 'popovered arc'; })
+      .attr('transform', function(d,i) { return 'translate(' + [calculateAnchorInterConnectorEndpoints(yScale, d, connectionBins[d.cid], d3.select(this.parentNode).datum())] + ')';})
+      .attr('d', arc)
+      .each(function(d,i) {
+        d.popoverTitle = popoverConnectionTitle(d,i);
+        d.popoverContent = popoverConnectionContent(d,i);
+        var chromosomeObject = d3.select(this.parentNode).datum();
+        d.outerChromosome = (connectionBins[d.cid].source.chromosome === chromosomeObject.chromosome) ? connectionBins[d.cid].sink.chromosome : connectionBins[d.cid].source.chromosome;
+      })
+      .style('fill', function(d,i) { return d3.rgb(metadata[d.outerChromosome].color).darker(1); })
+      .style('stroke', function(d,i) { return '#000' })
+      .on('click', function(d,i) {
+        var clickedColumn = d3.select(this.parentNode).datum().column;
+        var panelSelections = panels.map(function(e,j) { return e.chromosome; });
+        alteredColumn = (clickedColumn > 0) ? clickedColumn - 1 : clickedColumn + 1;
+        panelSelections[alteredColumn] = d.outerChromosome;
+        panelSelections.forEach(function(chromosome, column) {
+          refreshPanel(column, chromosome);
+        });
+      })
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', function(d,i) {
+        var popover = d3.select('.popover');
+        popover.select('.popover-title').html(d.popoverTitle);
+        popover.select('.popover-content').html(d.popoverContent);
+        popover.select('.popover-content span').style('color', d.color)
+        popover
+          .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+          .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+          .classed('hidden', false)
+          .style('display', 'block')
+          .transition()
+          .duration(5)
+          .style('opacity', 1);
+      });
+  }
+
+  // Callback when brushing is finished
+  function brushed() {
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
+    var s = d3.event.selection || [0, panelContainerWidth];
+    var brushData = d3.select(this).datum();
+    var domain = s.map(brushData.scale2.invert, brushData.scale2);
+    brushData.scale.domain(domain);
+    brushData.panelScale.domain(domain);
+    var panel = d3.selectAll('.panel-container').filter(function(d,i) { return d.column === brushData.column && d.chromosome === brushData.chromosome });
+    panel.select('.axis--x').call(brushData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
+    panel.select('.zoom').call(brushData.zoom.transform, d3.zoomIdentity.scale(panelContainerWidth / (s[1] - s[0])).translate(-s[0], 0));
+    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === brushData.chromosome);});
+    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+    drawIntervals(panel.select('g.shapes-container'), brushData.scale, intervals);
+    drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
+    drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
+  }
+
+  // Callback when the panel is zoomed
+  function zoomed(panelData) {
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
+    var t = d3.event.transform;
+    var panel = d3.selectAll('.panel-container').filter(function(d,i) { return d.column === panelData.column && d.chromosome === panelData.chromosome });
+    var chromo = d3.selectAll('.chromosome-container').filter(function(d,i) { return d.column === panelData.column && d.chromosome === panelData.chromosome });
+    var domain = t.rescaleX(panelData.scale2).domain();
+    panelData.scale.domain(domain);
+    panelData.panelScale.domain(domain);
+    panel.select('.axis--x').call(panelData.axis).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
+    chromo.select('.brush').call(panelData.brush.move, panelData.scale.range().map(t.invertX, t));
+    var intervals = data.intervals.filter(function(d,i) { return (d.chromosome === panelData.chromosome); });
+    interChromosomeConnectionBins = getInterChromosomeConnectionBins(data, panels, connectionBins);
+    drawIntervals(panel.select('g.shapes-container'), panelData.scale, intervals);
+    drawAnchorInterConnections(panel.select('g.local-inter-connections-container'));
+    drawInterChromosomeConnections(svg.select('g.inter-chromosome-connections-container'));
+  }
+
+  function refreshPanel(theColumn, theChromosome) {
+    d3.select('.control-container.column-' + theColumn).selectAll('circle').classed('selected', function(d,i) { return d.chromoObject.chromosome === theChromosome });
+    panels[theColumn] = Object.assign({}, metadata[theChromosome], {column: theColumn, yScale: yScale, lineRenderer: line, arcRenderer: arc });
+    anchorInterChromosomeConnectionBins = getAnchorInterChromosomeConnectionBins(data, panels, connectionBins);
+    updatePanels(panels);
+    updateLegend(panels);
+  }
+
+  function loadPopover(d) {
+    var popover = d3.select('.popover');
+    popover.select('.popover-title').html(d.popoverTitle);
+    popover.select('.popover-content').html(d.popoverContent);
+    popover.select('.popover-content span').style('color', d.color)
+    popover
+      .style('left', (d3.event.pageX - 0.91 *  popover.node().getBoundingClientRect().width / 2) + 'px')
+      .style('top', (d3.event.pageY - popover.node().getBoundingClientRect().height - 3) + 'px')
+      .classed('hidden', false)
+      .style('display', 'block')
+      .transition()
+      .duration(5)
+      .style('opacity', 1);
+  }
+}
+
+// Act upon window resize
+function throttle() {
+  window.clearTimeout(throttleTimer);
+  throttleTimer = window.setTimeout(function() {
+    draw();
+  }, 200);
+}
+
+// Remove any other open popovers
+$(document).on('mousemove', function(event) {
+  if (!$(event.target).is('.popovered')) {
+    d3.select('.popover').transition().duration(5)
+      .style('opacity', 0);
+  }
+});
+
