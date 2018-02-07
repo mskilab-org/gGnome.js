@@ -33,8 +33,11 @@ class Frame extends Base {
     this.genomeLength = null;
     this.genomeScale = null;
     this.chromoBins = null;
+    this.intervals = [];
+    this.genes = [];
+    this.walks = [];
+    this.yWalkExtent = [];
     this.axis = null;
-    window.pc = this;
   }
 
   updateDimensions(totalWidth, totalHeight) {
@@ -168,22 +171,23 @@ class Frame extends Base {
   }
 
   toggleGenesPanel() {
+    if (this.dataInput.walks) {
+      this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+      this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
+    }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
-    this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
       .call(this.yAxis);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
-    this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     this.panelsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.shapesContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.connectionsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
-      
     this.genesContainer.classed('hidden', !this.showGenes);
     this.walksContainer.classed('hidden', !this.showWalks);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
