@@ -1,5 +1,23 @@
 class Misc {
 
+  static isString(obj) {
+    return (Object.prototype.toString.call(obj) === '[object String]');
+  }
+
+  static get chromosomeLabels() {
+    return new Array(22).fill(0, 0, 22).map((x,i) => `${(i + 1)}`).concat(['X','Y','M']);
+  }
+
+  static get connectionLabels() {
+    return ['LOOSE', 'REF', 'ALT'];
+  }
+
+  static unique(array) {
+    return Object.assign([],array).filter((value, index, self) => { 
+      return self.indexOf(value) === index;
+    });
+  }
+
   static get server() {
     return 'http://localhost:8000'
   }

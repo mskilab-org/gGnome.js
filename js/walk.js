@@ -9,6 +9,30 @@ class Walk extends Base {
     this.cids = walk.cids;
     this.iids = walk.iids;
     this.title = `${this.pid} | ${this.cn}`;
+    this.errors = [];
+  }
+
+  valid() {
+    this.errors = [];
+    if (!Number.isInteger(this.pid) || (this.pid < 1)) {
+      this.errors.push(`The pid ${this.pid} is not an non-negative integer!`);
+    }
+    if (!Number.isInteger(this.cn) || (this.cn < 1)) {
+      this.errors.push(`The cn ${this.cn} is not an non-negative integer!`);
+    }
+    if (!Misc.isString(this.type)) {
+      this.errors.push(`The type ${this.type} is not a string!`);
+    }
+    if (!Misc.isString(this.strand)) {
+      this.errors.push(`The strand ${this.stand} is not a string!`);
+    }
+    if (!Array.isArray(this.cids)) {
+      this.errors.push(`The cids ${this.cids} Array object is missing!`);
+    }
+    if (!Array.isArray(this.iids)) {
+      this.errors.push(`The iids ${this.iids} Array object is missing!`);
+    }
+    return this.errors.length < 1;
   }
 
   // The title for the popover on the intervals
