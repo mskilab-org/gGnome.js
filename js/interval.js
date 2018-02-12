@@ -3,14 +3,50 @@ class Interval extends Base {
   constructor(inter) {
     super();
     this.iid = inter.iid;
-    this.chromosome = inter.chromosome
-    this.startPoint = inter.startPoint
-    this.endPoint = inter.endPoint
+    this.chromosome = inter.chromosome;
+    this.startPoint = inter.startPoint;
+    this.endPoint = inter.endPoint;
     this.intervalLength = this.endPoint - this.startPoint;
-    this.y = inter.y
-    this.title = inter.title
-    this.type = inter.type
-    this.strand = inter.strand
+    this.y = inter.y;
+    this.title = inter.title;
+    this.type = inter.type;
+    this.strand = inter.strand;
+    this.errors = [];
+  }
+
+  valid() {
+    this.errors = [];
+    if (!Number.isInteger(this.iid) || (this.iid < 1)) {
+      this.errors.push(`The iid ${this.iid} is not an non-negative integer!`);
+    }
+    if (!Number.isInteger(this.startPoint) || (this.startPoint < 1)) {
+      this.errors.push(`The startPoint ${this.startPoint} is not an non-negative integer!`);
+    }
+    if (!Number.isInteger(this.endPoint) || (this.endPoint < 1)) {
+      this.errors.push(`The endPoint ${this.endPoint} is not an non-negative integer!`);
+    }
+    if ((this.endPoint <= this.startPoint)) {
+      this.errors.push(`The endPoint ${this.endPoint} is not greater than the startPoint ${this.startPoint}!`);
+    }
+    if (!Misc.isString(this.chromosome)) {
+      this.errors.push(`The chromosome ${this.chromosome} is not a string!`);
+    }
+    if (!Misc.chromosomeLabels.includes(this.chromosome)) {
+      this.errors.push(`The chromosome ${this.chromosome} is not a valid type! It should be one of ${Misc.chromosomeLabels}`);
+    }
+    if (!Number.isInteger(this.y) || (this.y < 1)) {
+      this.errors.push(`The y ${this.y} is not an non-negative integer!`);
+    }
+    if (!Misc.isString(this.title)) {
+      this.errors.push(`The title ${this.title} is not a string!`);
+    }
+    if (!Misc.isString(this.type)) {
+      this.errors.push(`The type ${this.type} is not a string!`);
+    }
+    if (!Misc.isString(this.strand)) {
+      this.errors.push(`The strand ${this.strand} is not a string!`);
+    }
+    return this.errors.length < 1;
   }
 
   // The title for the popover on the intervals
