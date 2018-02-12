@@ -11,8 +11,38 @@ class Connection extends Base {
     this.styleClass = `popovered connection local ${con.type}`;
     this.clipPath = 'url("#clip")';
     this.line = d3.line().curve(d3.curveBasis).x((d) => d[0]).y((d) => d[1]);
+    this.errors = [];
   }
 
+  valid() {
+    this.errors = [];
+    if (!Number.isInteger(this.cid) || (this.cid < 1)) {
+      this.errors.push(`The cid ${this.cid} is not an non-negative integer!`);
+    }
+    if (!Misc.connectionLabels.includes(this.type)) {
+      this.errors.push(`The type ${this.type} is not a valid type! It should be one of ${Misc.connectionLabels}`);
+    }
+    if ((this.type !== 'LOOSE') && (this.source === null)) {
+      this.errors.push(`The type ${this.type} is not LOOSE and the source is not an integer!`);
+    }
+    if ((this.type !== 'LOOSE') && (this.sink === null)) {
+      this.errors.push(`The type ${this.type} is not LOOSE and the sink is not an integer!`);
+    }
+    if ((this.type === 'LOOSE') && (this.sink === null) && (this.source === null)) {
+      this.errors.push(`The type is LOOSE and both the source AND the sink are not defined!`);
+    }
+    if ((this.type === 'LOOSE') && (this.sink !== null) && (this.source !== null)) {
+      this.errors.push(`The type is LOOSE and both the source AND the sink are defined!`);
+    }
+    if (!Number.isInteger(this.weight) || (this.weight < 1)) {
+      this.errors.push(`The weight ${this.weight} is not an non-negative integer!`);
+    }
+    if (!Misc.isString(this.title)) {
+      this.errors.push(`The title ${this.title} is not a string!`);
+    }
+    return this.errors.length < 1;
+  }
+  
   pinpoint(intervalBins) {
     if (this.source) {
       this.source.interval = intervalBins[this.source.intervalId];
