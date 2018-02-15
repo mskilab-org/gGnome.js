@@ -15,16 +15,16 @@ class Walk extends Base {
   valid() {
     this.errors = [];
     if (!Number.isInteger(this.pid) || (this.pid < 1)) {
-      this.errors.push(`The pid ${this.pid} is not an non-negative integer!`);
+      this.errors.push(`The pid ${this.pid} must be a positive integer!`);
     }
-    if (!Number.isInteger(this.cn) || (this.cn < 1)) {
-      this.errors.push(`The cn ${this.cn} is not an non-negative integer!`);
+    if (!Number.isInteger(this.cn) || (this.cn < 0)) {
+      this.errors.push(`The cn ${this.cn} must be a non-negative integer!`);
     }
     if (!Misc.isString(this.type)) {
-      this.errors.push(`The type ${this.type} is not a string!`);
+      this.errors.push(`The type ${this.type} must be a string!`);
     }
     if (!Misc.isString(this.strand)) {
-      this.errors.push(`The strand ${this.stand} is not a string!`);
+      this.errors.push(`The strand ${this.stand} must be a string!`);
     }
     if (!Array.isArray(this.cids)) {
       this.errors.push(`The cids ${this.cids} Array object is missing!`);
