@@ -17,10 +17,10 @@ class Connection extends Base {
   valid() {
     this.errors = [];
     if (!Number.isInteger(this.cid) || (this.cid < 1)) {
-      this.errors.push(`The cid ${this.cid} is not an non-negative integer!`);
+      this.errors.push(`The cid ${this.cid} must be a positive integer!`);
     }
     if (!Misc.connectionLabels.includes(this.type)) {
-      this.errors.push(`The type ${this.type} is not a valid type! It should be one of ${Misc.connectionLabels}`);
+      this.errors.push(`The type ${this.type} is not a valid type! It must be one of ${Misc.connectionLabels}`);
     }
     if ((this.type !== 'LOOSE') && (this.source === null)) {
       this.errors.push(`The type ${this.type} is not LOOSE and the source is not an integer!`);
@@ -34,11 +34,11 @@ class Connection extends Base {
     if ((this.type === 'LOOSE') && (this.sink !== null) && (this.source !== null)) {
       this.errors.push(`The type is LOOSE and both the source AND the sink are defined!`);
     }
-    if (!Number.isInteger(this.weight) || (this.weight < 1)) {
-      this.errors.push(`The weight ${this.weight} is not an non-negative integer!`);
+    if (!Number.isInteger(this.weight) || (this.weight < 0)) {
+      this.errors.push(`The weight ${this.weight} must be a non-negative integer!`);
     }
     if (!Misc.isString(this.title)) {
-      this.errors.push(`The title ${this.title} is not a string!`);
+      this.errors.push(`The title ${this.title} must be a string!`);
     }
     return this.errors.length < 1;
   }
