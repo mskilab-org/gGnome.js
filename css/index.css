@@ -1,7 +1,9 @@
 #navbar {
   margin-bottom: 0px;
 }
-
+.faded {
+  opacity: 0.2 !important;
+}
 .fragments-note-container {
   min-height: 40px
 }

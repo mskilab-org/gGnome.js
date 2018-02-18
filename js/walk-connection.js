@@ -2,6 +2,7 @@ class WalkConnection extends Connection {
 
   constructor(con, wlk) {
     super(con);
+    this.styleClass = `popovered walk-connection connection local ${con.type}`;
     this.walk = wlk;
   }
 

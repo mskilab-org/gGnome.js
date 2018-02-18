@@ -10,6 +10,32 @@ $(function() {
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
 
+  $('#' + dataSelector).selectpicker('hide');
+
+  d3.json('/datafiles', results => {
+    console.log(results)
+    $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
+    $('#' + dataSelector).selectpicker('refresh');
+    $('#' + dataSelector).selectpicker('show');
+    $('#' + dataSelector).selectpicker('render');
+  });
+
+  // Act upon json reload
+  $('#' + dataSelector).on('rendered.bs.select', event => {
+    d3.queue()
+      .defer(d3.json, $('#' + dataSelector).val())
+      .defer(d3.json, './json/metadata.json')
+      .defer(d3.json, './json/genes.json')
+      .awaitAll((error, results) => {
+        if (error) throw error;
+        frame.dataInput = results[0];
+        frame.dataInput.metadata = results[1].metadata;
+        frame.dataInput.genes = results[2].genes;
+        frame.render();
+    });
+  });
+
+/*  
   // Act upon json reload
   $('#' + dataSelector).on('rendered.bs.select', event => {
     d3.json($('#' + dataSelector).val(), dataInput => {
@@ -18,18 +44,8 @@ $(function() {
     });
   });
 
-  d3.queue()
-    .defer(d3.json, './json/data.json')
-    .defer(d3.json, './json/metadata.json')
-    .defer(d3.json, './json/genes.json')
-    .awaitAll((error, results) => {
-      if (error) throw error;
-      frame.dataInput = results[0];
-      frame.dataInput.metadata = results[1].metadata;
-      frame.dataInput.genes = results[2].genes;
-      frame.render();
-  });
 
+*/
   // Act upon window resize
   d3.select(window).on('resize', () => {
     window.clearTimeout(throttleTimer);
