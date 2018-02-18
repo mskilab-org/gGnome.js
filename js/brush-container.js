@@ -276,7 +276,7 @@ class BrushContainer {
           interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
           interval.shapeWidth = interval.range[1] - interval.range[0];
           interval.fragment = d;
-          interval.walk = walk;          
+          interval.walk = walk;
           d.visibleWalkIntervals.push(interval);
         });
       });
@@ -861,6 +861,8 @@ class BrushContainer {
   }
 
   renderWalkIntervals() {
+    let self = this;
+
     // create the g elements containing the intervals
     let shapesPanels = this.frame.walksContainer.selectAll('g.walks-panel')
       .data(this.visibleFragments, (d, i) => d.id);
@@ -894,12 +896,14 @@ class BrushContainer {
         .style('fill', (d, i) => 'url(#fill-tilted)')
         .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
         .on('mouseover', function(d,i) {
-          d3.select(this).classed('highlighted', true);
-          shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', true);
+          self.frame.walkConnectionsContainer.selectAll('path.connection').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', true);
         })
         .on('mouseout', function(d,i) {
-          d3.select(this).classed('highlighted', false);
-          shapesPanels.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
+          self.frame.walkConnectionsContainer.selectAll('path.connection').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
         .on('click', function(d,i) {
