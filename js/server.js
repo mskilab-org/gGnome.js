@@ -6,7 +6,15 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 
+app.use(express.static('./'))
 app.use(cors())
+
+app.get('/datafiles', (req, res) => {
+  let files = fs.readdirSync('./datafiles/');
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(`{"files": [${files.map((d, i) => `{"file": "./datafiles/${d}", "name": "${d}"}`).join(',')}]}`);
+  res.end();
+});
 
 app.get('/metadata', (req, res) => {
   fs.readFile('metadata.json', (err, data) => {
