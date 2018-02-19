@@ -1,0 +1,50 @@
+{
+  "intervals": [
+    {
+      "iid": 1,
+      "chromosome": "1",
+      "startPoint": 1,
+      "endPoint": 6525379,
+      "y": 1,
+      "title": "1 (1|829)",
+      "type": "interval",
+      "strand": "*"
+    },
+    {
+      "iid": 2,
+      "chromosome": "1a",
+      "startPoint": 6525380,
+      "endPoint": 6569292,
+      "y": 1,
+      "title": "2 (2|830)",
+      "type": "interval",
+      "strand": "*"
+    }
+  ],
+  "connections": [
+    {
+      "cid": 1,
+      "source": 1,
+      "sink": -128,
+      "title": "",
+      "type": "ALT",
+      "weight": 2
+    },
+    {
+      "cid": 2,
+      "source": 1,
+      "sink": -2,
+      "title": "",
+      "type": "REF",
+      "weight": 2
+    },
+    {
+      "cid": 3,
+      "source": 1,
+      "sink": -2,
+      "title": "",
+      "type": "LOOSE",
+      "weight": 2
+    }
+  ]
+}

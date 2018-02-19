@@ -92,8 +92,8 @@ path.connection.LOOSE {
   opacity: 0.75;
 }
 path.connection.highlighted {
-  stroke-width: 3 !important;;
-  opacity: 1 !important;;
+  stroke-width: 3 !important;
+  opacity: 1;
 }
 polygon.gene {
   cursor: pointer;
@@ -107,6 +107,10 @@ text.gene-label {
 text.chromo-text {
   fill: #FFF;
   font: 11px sans-serif;
+  pointer-events: none;
+  user-select: none;
+}
+text.label-magnitude {
   pointer-events: none;
   user-select: none;
 }
