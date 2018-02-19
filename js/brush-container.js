@@ -905,13 +905,7 @@ class BrushContainer {
           d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
           self.frame.walkConnectionsContainer.selectAll('path.connection').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
         })
-        .on('mousemove', (d,i) => this.loadPopover(d))
-        .on('click', function(d,i) {
-          console.log(d);
-        })
-        .on('dblclick', (d,i) => {
-        
-        });
+        .on('mousemove', (d,i) => this.loadPopover(d));
 
       shapes
         .attr('id', (d, i) => d.identifier)
@@ -1007,6 +1001,7 @@ class BrushContainer {
   }
 
   renderWalkInterconnections() {
+    var self = this;
 
     if (this.frame.showWalks) {
       let connections = this.frame.walkConnectionsContainer.selectAll('path.connection')
@@ -1032,9 +1027,15 @@ class BrushContainer {
         .attr('d', (d,i) =>  d.render)
         .on('mouseover', function(d,i) {
           d3.select(this).classed('highlighted', true);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', true);
+          self.frame.walkConnectionsContainer.selectAll('path.connection').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', true);
         })
         .on('mouseout', function(d,i) {
           d3.select(this).classed('highlighted', false);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', false);
+          d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
+          self.frame.walkConnectionsContainer.selectAll('path.connection').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', false);
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
         .on('dblclick', (d,i) => {

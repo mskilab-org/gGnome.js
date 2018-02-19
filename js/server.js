@@ -10,22 +10,10 @@ app.use(express.static('./'))
 app.use(cors())
 
 app.get('/datafiles', (req, res) => {
-  let files = fs.readdirSync('./datafiles/');
+  let files = fs.readdirSync('./json/');
   res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(`{"files": [${files.map((d, i) => `{"file": "./datafiles/${d}", "name": "${d}"}`).join(',')}]}`);
+  res.write(`{"files": [${files.map((d, i) => `{"file": "./json/${d}", "name": "${d}"}`).join(',')}]}`);
   res.end();
-});
-
-app.get('/metadata', (req, res) => {
-  fs.readFile('metadata.json', (err, data) => {
-    if (err) {
-      res.writeHead(404, {'Content-Type': 'text/html'});
-      return res.end("404 Not Found");
-    } 
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(data);
-    res.end();
-  });
 });
 
 app.get('/intervals', (req, res) => {
@@ -88,4 +76,4 @@ app.get('/intervals', (req, res) => {
   });
 });
 
-app.listen(8000, () => console.log('Example app listening on port 8000!'))
+app.listen(8080, () => console.log('App listening on port 8080!'))
