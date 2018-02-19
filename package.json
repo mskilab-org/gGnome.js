@@ -1,11 +1,11 @@
 {
-  "name": "complete-genome-interval-graph",
+  "name": "gGnome",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "gGnome project",
+  "main": "js/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node js/server.js"
   },
   "author": "",
   "license": "ISC",
