@@ -3,6 +3,7 @@ class BrushContainer {
   constructor(frame) {
     this.frame = frame;
     this.reset();
+    window.pc = this;
   }
 
   reset() {
@@ -244,9 +245,10 @@ class BrushContainer {
       d.visibleIntervals = [];
       this.frame.intervals
       .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
-        || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
-      .forEach((interval, j) => {
-        interval.identifier = Misc.guid;
+        || ((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace)))
+      .forEach((inter, j) => {
+        let interval = Object.assign(new Interval({}), inter); 
+        interval.identifier = Misc.guid + '|' + d.id;
         interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
         interval.shapeWidth = interval.range[1] - interval.range[0];
         interval.fragment = d;
@@ -724,7 +726,7 @@ class BrushContainer {
         d3.select(this).classed('highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => {
+      .on('click', (d,i) => { console.log(d)
         this.renderFragmentsNote(d.location);
       })
       .on('dblclick', (d,i) => {
