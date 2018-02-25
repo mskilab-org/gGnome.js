@@ -24,7 +24,7 @@ svg.plot {
 }
 
 .axis text {
-  font: 11px sans-serif;
+  font: 12px sans-serif;
   fill: steelblue;
   pointer-events: none;
   user-select: none;
@@ -51,7 +51,7 @@ svg.plot {
   user-select: none;
 }
 .chromo-legend .label-magnitude {
-  font-size: 10px;
+  font-size: 12px;
 }
 .chromo-legend  polyline.line-magnitude {
   fill: transparent;
@@ -99,14 +99,14 @@ polygon.gene {
   cursor: pointer;
 }
 text.gene-label {
-  font: 11px sans-serif;
+  font: 12px sans-serif;
   fill: steelblue;
   pointer-events: none;
   user-select: none;
 }
 text.chromo-text {
   fill: #FFF;
-  font: 11px sans-serif;
+  font: 12px sans-serif;
   pointer-events: none;
   user-select: none;
 }

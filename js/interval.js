@@ -6,7 +6,7 @@ class Interval extends Base {
     this.chromosome = inter.chromosome;
     this.startPoint = inter.startPoint;
     this.endPoint = inter.endPoint;
-    this.intervalLength = this.endPoint - this.startPoint;
+    this.intervalLength = this.endPoint - this.startPoint + 1;
     this.y = inter.y;
     this.title = inter.title;
     this.type = inter.type;
@@ -25,8 +25,8 @@ class Interval extends Base {
     if (!Number.isInteger(this.endPoint) || (this.endPoint < 1)) {
       this.errors.push(`The endPoint ${this.endPoint} must be a positive integer!`);
     }
-    if ((this.endPoint <= this.startPoint)) {
-      this.errors.push(`The endPoint ${this.endPoint} must be greater than the startPoint ${this.startPoint}!`);
+    if ((this.endPoint < this.startPoint)) {
+      this.errors.push(`The endPoint ${this.endPoint} must be greater or equal than the startPoint ${this.startPoint}!`);
     }
     if (!Misc.isString(this.chromosome)) {
       this.errors.push(`The chromosome ${this.chromosome} must be a string!`);
