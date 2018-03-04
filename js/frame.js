@@ -50,6 +50,7 @@ class Frame extends Base {
 
   updateData() {
     if (this.dataInput === null) return;
+    this.settings = this.dataInput.settings;
     this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
     let boundary = 0;
     this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width]);
@@ -83,7 +84,7 @@ class Frame extends Base {
       return gene;
     });
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
-    this.yMax = d3.max(this.dataInput.intervals.map((d, i) => d.y));
+    this.yMax = d3.min([d3.max(this.dataInput.intervals.map((d, i) => d.y)), 500]);
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.connections = this.dataInput.connections.map((d, i) => {
@@ -260,6 +261,7 @@ class Frame extends Base {
 
     this.panelsContainer.append('g')
       .attr('class', 'axis axis--y')
+      .classed('hidden', this.settings && this.settings.y_axis && !this.settings.y_axis.visible)
       .attr('transform', 'translate(' + [0, 0] + ')')
       .call(this.yAxis);
 
