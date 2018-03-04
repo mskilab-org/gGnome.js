@@ -726,7 +726,7 @@ class BrushContainer {
         d3.select(this).classed('highlighted', false);
       })
       .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => { console.log(d)
+      .on('click', (d,i) => {
         this.renderFragmentsNote(d.location);
       })
       .on('dblclick', (d,i) => {

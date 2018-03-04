@@ -1,4 +1,4 @@
-{
+{  "settings": {"y_axis": {"visible": false}},
    "intervals":[
       {
          "iid":1,
