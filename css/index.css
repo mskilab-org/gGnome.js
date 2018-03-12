@@ -23,6 +23,11 @@ svg.plot {
   stroke-width: 2;
 }
 
+.dragged {
+  stroke: orange !important;
+  fill: white !important;
+}
+
 .axis text {
   font: 12px sans-serif;
   fill: steelblue;
