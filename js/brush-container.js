@@ -687,6 +687,8 @@ class BrushContainer {
   }
 
   renderIntervals() {
+    let self = this;
+
     // create the g elements containing the intervals
     let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
       .data(this.visibleFragments, (d, i) => d.id);
@@ -719,17 +721,17 @@ class BrushContainer {
       .attr('height', this.frame.margins.intervals.bar)
       .style('fill', (d, i) => d.color)
       .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
-      .on('mouseover', function(d,i) {
+      .on('mouseover', function(d, i) {
         d3.select(this).classed('highlighted', true);
       })
-      .on('mouseout', function(d,i) {
+      .on('mouseout', function(d, i) {
         d3.select(this).classed('highlighted', false);
       })
-      .on('mousemove', (d,i) => this.loadPopover(d))
-      .on('click', (d,i) => {
+      .on('mousemove', (d, i) => this.loadPopover(d))
+      .on('click', (d, i) => {
         this.renderFragmentsNote(d.location);
       })
-      .on('dblclick', (d,i) => {
+      .on('dblclick', (d, i) => {
         let fragment = d.fragment;
         let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
         let domainOffset = this.frame.margins.intervals.gap / lambda;
@@ -737,7 +739,33 @@ class BrushContainer {
         fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
         d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
         this.update();
-      });
+      })
+      .call(d3.drag()
+        .subject((d, i) =>  {return {x: d.range[0], y: (this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar)}})
+        .on('start', function(d,i) {
+          d3.select(this).raise()
+            .classed('highlighted', false)
+            .classed('dragged', true)
+            .attr('cursor', 'move');
+          self.frame.clearPopovers();
+        })
+        .on('drag', function(d,i) {
+          d3.select(this).raise().classed('highlighted', false);
+          let ypos = (self.frame.yScale.invert(d3.event.y));
+          ypos = d3.max([ypos, d3.min(self.frame.yScale.domain())]);
+          ypos = d3.min([ypos, d3.max(self.frame.yScale.domain())]);
+          d3.select(this).attr('transform', 'translate(' + [d.range[0], self.frame.yScale(ypos) - 0.5 * self.frame.margins.intervals.bar] + ')');
+          d.y = ypos;
+          self.frame.intervals.find((e,j) => e.iid === d.iid).y = ypos;
+          self.frame.intervalBins[d.iid] = d;
+          self.frame.connectionsContainer.selectAll('path.connection')
+            .filter((e,j) => (e.source && (e.source.intervalId === d.iid)) || (e.sink && (e.sink.intervalId === d.iid)))
+            .each((e,j) => e.pinpoint(self.frame.intervalBins))
+            .attr('d', (e,j) => e.render);
+        })
+        .on('end', function(d,i) {
+          d3.select(this).classed('dragged', false).attr('cursor', 'default');
+        }));
 
     shapes
       .attr('id', (d, i) => d.identifier)
