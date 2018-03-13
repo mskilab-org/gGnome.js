@@ -63,9 +63,23 @@ class Frame extends Base {
       boundary += chromo.length;
       return hash; 
     }, {});
-    let interval = null, gene = null, connection = null;
+    let lengthExtent = d3.nest()
+      .key((d,i) => d.chromosome)
+      .rollup((v) => d3.extent(v, (d) => (d.endPoint - d.startPoint)))
+      .object(this.dataInput.intervals);
+    let interval = null, gene = null, connection = null, intervalLength, extentSize;
     this.intervalBins = {};
     this.intervals = this.dataInput.intervals.map((d, i) => {
+      if (this.settings && this.settings.y_axis && !this.settings.y_axis.visible) {
+        intervalLength = d.endPoint - d.startPoint;
+        if (intervalLength > (0.1 * lengthExtent[d.chromosome][1])) {
+          extentSize = lengthExtent[d.chromosome][0] - lengthExtent[d.chromosome][1];
+          d.y = Math.round(1 + (9 / extentSize) * (intervalLength - lengthExtent[d.chromosome][1]));
+        } else {
+          extentSize = lengthExtent[d.chromosome][0] - 0.1 * lengthExtent[d.chromosome][1];
+          d.y = Math.round(10 + (54 / extentSize) * (intervalLength - 0.1 * lengthExtent[d.chromosome][1]));
+        }
+      }
       let interval = new Interval(d);
       interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
       interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));

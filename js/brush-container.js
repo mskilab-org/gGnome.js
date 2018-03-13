@@ -743,28 +743,40 @@ class BrushContainer {
       .call(d3.drag()
         .subject((d, i) =>  {return {x: d.range[0], y: (this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar)}})
         .on('start', function(d,i) {
-          d3.select(this).raise()
-            .classed('highlighted', false)
-            .classed('dragged', true)
-            .attr('cursor', 'move');
-          self.frame.clearPopovers();
+          if (self.frame.settings && self.frame.settings.y_axis && !self.frame.settings.y_axis.visible) {
+            d3.select(this).raise()
+              .classed('highlighted', false)
+              .classed('dragged', true)
+              .attr('cursor', 'move');
+            self.frame.clearPopovers();
+          } else {
+            return;
+          }
         })
         .on('drag', function(d,i) {
-          d3.select(this).raise().classed('highlighted', false);
-          let ypos = (self.frame.yScale.invert(d3.event.y));
-          ypos = d3.max([ypos, d3.min(self.frame.yScale.domain())]);
-          ypos = d3.min([ypos, d3.max(self.frame.yScale.domain())]);
-          d3.select(this).attr('transform', 'translate(' + [d.range[0], self.frame.yScale(ypos) - 0.5 * self.frame.margins.intervals.bar] + ')');
-          d.y = ypos;
-          self.frame.intervals.find((e,j) => e.iid === d.iid).y = ypos;
-          self.frame.intervalBins[d.iid] = d;
-          self.frame.connectionsContainer.selectAll('path.connection')
-            .filter((e,j) => (e.source && (e.source.intervalId === d.iid)) || (e.sink && (e.sink.intervalId === d.iid)))
-            .each((e,j) => e.pinpoint(self.frame.intervalBins))
-            .attr('d', (e,j) => e.render);
+          if (self.frame.settings && self.frame.settings.y_axis && !self.frame.settings.y_axis.visible) {
+            d3.select(this).raise().classed('highlighted', false);
+            let ypos = (self.frame.yScale.invert(d3.event.y));
+            ypos = d3.max([ypos, d3.min(self.frame.yScale.domain())]);
+            ypos = d3.min([ypos, d3.max(self.frame.yScale.domain())]);
+            d3.select(this).attr('transform', 'translate(' + [d.range[0], self.frame.yScale(ypos) - 0.5 * self.frame.margins.intervals.bar] + ')');
+            d.y = ypos;
+            self.frame.intervals.find((e,j) => e.iid === d.iid).y = ypos;
+            self.frame.intervalBins[d.iid] = d;
+            self.frame.connectionsContainer.selectAll('path.connection')
+              .filter((e,j) => (e.source && (e.source.intervalId === d.iid)) || (e.sink && (e.sink.intervalId === d.iid)))
+              .each((e,j) => e.pinpoint(self.frame.intervalBins))
+              .attr('d', (e,j) => e.render);
+          } else {
+            return;
+          }
         })
         .on('end', function(d,i) {
-          d3.select(this).classed('dragged', false).attr('cursor', 'default');
+          if (self.frame.settings && self.frame.settings.y_axis && !self.frame.settings.y_axis.visible) {
+            d3.select(this).classed('dragged', false).attr('cursor', 'default');
+          } else {
+            return;
+          }
         }));
 
     shapes
