@@ -22,6 +22,10 @@ class Misc {
     return 'http://localhost:8000'
   }
 
+  static alerting(text, type) {
+    return $('#detail').append(`<div class="alert alert-${type}" role="alert">${text}</div>`);
+  }
+
   static get metadata() {
     var input = (function () {
         var json = null;

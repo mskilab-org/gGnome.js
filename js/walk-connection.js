@@ -6,6 +6,35 @@ class WalkConnection extends Connection {
     this.walk = wlk;
   }
 
+  valid() {
+    this.errors = [];
+    if (!Number.isInteger(this.cid) || (this.cid < 1)) {
+      this.errors.push(`The cid ${this.cid} must be a positive integer!`);
+    }
+    if (!Misc.connectionLabels.includes(this.type)) {
+      this.errors.push(`The type ${this.type} is not a valid type! It must be one of ${Misc.connectionLabels}`);
+    }
+    if ((this.type !== 'LOOSE') && (this.source === null)) {
+      this.errors.push(`The type ${this.type} is not LOOSE and the source is not an integer!`);
+    }
+    if ((this.type !== 'LOOSE') && (this.sink === null)) {
+      this.errors.push(`The type ${this.type} is not LOOSE and the sink is not an integer!`);
+    }
+    if ((this.type === 'LOOSE') && (this.sink === null) && (this.source === null)) {
+      this.errors.push(`The type is LOOSE and both the source AND the sink are not defined!`);
+    }
+    if ((this.type === 'LOOSE') && (this.sink !== null) && (this.source !== null)) {
+      this.errors.push(`The type is LOOSE and both the source AND the sink are defined!`);
+    }
+    if (!Number.isInteger(this.weight) || (this.weight < 0)) {
+      this.errors.push(`The weight ${this.weight} must be a non-negative integer!`);
+    }
+    if (!Misc.isString(this.title)) {
+      this.errors.push(`The title ${this.title} must be a string!`);
+    }
+    return this.errors.length < 1;
+  }
+
   pinpoint() {
     if (this.source) {
       this.source.interval = this.walk.intervals.find((d,i) => this.source.intervalId === d.iid);
