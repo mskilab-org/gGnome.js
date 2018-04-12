@@ -9,6 +9,38 @@ class WalkInterval extends Interval {
     this.y = this.y + ((this.strand === '+') ? 0.001 : 0);
   }
 
+  valid() {
+    this.errors = [];
+    if (!Number.isInteger(this.iid) || (this.iid < 1)) {
+      this.errors.push(`The iid ${this.iid} must be a positive integer!`);
+    }
+    if (!Number.isInteger(this.startPoint) || (this.startPoint < 1)) {
+      this.errors.push(`The startPoint ${this.startPoint} must be a positive integer!`);
+    }
+    if (!Number.isInteger(this.endPoint) || (this.endPoint < 1)) {
+      this.errors.push(`The endPoint ${this.endPoint} must be a positive integer!`);
+    }
+    if ((this.endPoint < this.startPoint)) {
+      this.errors.push(`The endPoint ${this.endPoint} must be greater or equal than the startPoint ${this.startPoint}!`);
+    }
+    if (!Misc.isString(this.chromosome)) {
+      this.errors.push(`The chromosome ${this.chromosome} must be a string!`);
+    }
+    if (!Misc.chromosomeLabels.includes(this.chromosome)) {
+      this.errors.push(`The chromosome ${this.chromosome} is not a valid type! It must be one of ${Misc.chromosomeLabels}`);
+    }
+    if (!Misc.isString(this.title)) {
+      this.errors.push(`The title ${this.title} must be a string!`);
+    }
+    if (!Misc.isString(this.type)) {
+      this.errors.push(`The type ${this.type} must be a string!`);
+    }
+    if (!Misc.isString(this.strand)) {
+      this.errors.push(`The strand ${this.strand} must be a string!`);
+    }
+    return this.errors.length < 1;
+  }
+
   // The title for the popover on the gene
   get popoverTitle() {
     return 'Walk Interval #' + this.title + ' of walk #' + this.walk.pid;
