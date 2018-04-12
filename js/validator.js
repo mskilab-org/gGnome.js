@@ -146,7 +146,7 @@ $(function() {
               walk = new Walk(d);
               if (!walk.valid()) {
                 walk.errors.forEach((e, j) => {
-                  alerting(`Walk entry <strong>${i + 1}</strong> with pid ${d.pic} failed with error: ${e}`, 'danger');
+                  alerting(`Walk entry <strong>${i + 1}</strong> with pid ${d.pid} failed with error: ${e}`, 'danger');
                   valid = false;
                 });
               }
