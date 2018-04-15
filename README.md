@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/mskilab/gGnome.js.svg?branch=master)](https://travis-ci.org/mskilab/gGnome.js)
+[![codecov.io](https://img.shields.io/codecov/c/github/mskilab/gGnome.js.svg)](https://codecov.io/github/mskilab/gGnome.js?branch=master)
+
 # Project gGnome
 
 ## Requirements
