@@ -9,9 +9,9 @@ For execution, you will only need Node.js installed on your environment.
 
 ### Node
 
-[Node](http://nodejs.org/) is really easy to install & now include [NPM](https://npmjs.org/).
+[Node](http://nodejs.org/) is really easy to install and now includes [NPM](https://npmjs.org/).
 You should be able to run the following command after the installation procedure
-below.
+below:
 
     $ node --version
     v0.10.24
@@ -21,10 +21,7 @@ below.
 
 #### Node installation on OS X
 
-You will need to use a Terminal. On OS X, you can find the default terminal in
-`/Applications/Utilities/Terminal.app`.
-
-Please install [Homebrew](http://brew.sh/) if it's not already done with the following command.
+Please install [Homebrew](http://brew.sh/) if it's not already done with the following command:
 
     $ ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
 
@@ -53,7 +50,7 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 
 ## Start application
 
-In the project folder, you may initiate the application via the terminal
+In the project folder, you may initiate the application via the terminal:
 
     $ cd gGnome.js/
     $ ./start.sh
