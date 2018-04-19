@@ -54,7 +54,7 @@
  *   -> [[1], [2], [3]]
  * 
  *   k_combinations([1, 2, 3], 2)
- *   -> [[1,2], [1,3], [2, 3]
+ *   -> [[1,2], [1,3], [2, 3]]
  * 
  *   k_combinations([1, 2, 3], 3)
  *   -> [[1, 2, 3]]
@@ -129,6 +129,7 @@ function k_combinations(set, k) {
 }
 
 
+
 /**
  * Combinations
  * 
@@ -158,3 +159,10 @@ function combinations(set) {
   }
   return combs;
 }
+
+
+module.exports = {
+    k_combinations: k_combinations,
+    combinations: combinations
+}
+
