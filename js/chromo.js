@@ -28,3 +28,11 @@ class Chromo {
   }
 
 }
+
+
+
+
+module.exports = {
+  Chromo : Chromo
+}
+
