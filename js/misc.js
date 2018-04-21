@@ -74,20 +74,7 @@ class Misc {
     let order = Math.floor(Math.log(n) / Math.LN10 + 0.000000001); // because float math sucks like that
     return Math.pow(10, order);
   }
-
-  static groupBy(list, keyGetter) {
-      const map = new Map();
-      list.forEach((item) => {
-          const key = keyGetter(item);
-          const collection = map.get(key);
-          if (!collection) {
-              map.set(key, [item]);
-          } else {
-              collection.push(item);
-          }
-      });
-      return map;
-  }
+    
 
 }
 
