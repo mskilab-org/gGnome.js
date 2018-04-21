@@ -4,8 +4,7 @@
   "description": "gGnome project",
   "main": "js/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node js/server.js"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -16,9 +15,7 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
+    "istanbul": "^0.4.5",
     "mocha": "^5.1.1"
-  }, 
-  "scripts": {
-    "test": "mocha"
   }
 }
