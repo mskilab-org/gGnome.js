@@ -90,3 +90,9 @@ class Misc {
   }
 
 }
+
+
+module.exports = {
+  Misc : Misc
+}
+
