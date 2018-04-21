@@ -14,3 +14,8 @@ describe('testing Misc functions', function() {
     expect(misc.Misc.isString('foo')).to.be.true;
   });
 });
+
+
+console.log("darn");
+
+console.log(misc.Misc.chromosomeLabels);
