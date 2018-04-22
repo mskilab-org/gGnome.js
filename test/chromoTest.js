@@ -7,14 +7,26 @@ var expect = chai.expect;
 var chromo = require('../js/chromo.js');
 
 
-// var Chromo = new chromo.Chromo('chr2', 57000, 65000, 'blue');
+// note --- we canont override these, it appears
+//  this.scale = null;
+//  this.innerScale = null;
 
-var Chromo = new chromo.Chromo(chromosome = '2', startPoint = 57000, endPoint = 65000, color = 'blue', scale = 10000 );
+// constructor
 
+describe('testing chromo.js', function() {
+  it('Chromo constructor', function() {
+  	var Chromo = new chromo.Chromo({"chromosome":12, "startPoint":57000, "endPoint":65000, "color": "blue"});  
+    assert.equal(Chromo.chromosome, 12);    
+    assert.equal(Chromo.startPoint, 57000);  
+    assert.equal(Chromo.endPoint, 65000);  
+    assert.equal(Chromo.color, "blue");  
+    assert.equal(Chromo.scale, null);  
+    assert.equal(Chromo.innerScale, null);  
+  });
+});
 
-// console.log(Chromo.chromosome)
+//var Chromo = new chromo.Chromo({"chromosome":12, "startPoint":57000, "endPoint":65000, "color": "blue"}); 
 
-// console.log(Chromo.contains(100))
+// console.log(Chromo.contains(100));  // TypeError: Cannot read property 'range' of undefined
 
-// console.log(Chromo.chromoWidth())
-
+// Chromo.chromoGenome()  TypeError: Cannot read property 'domain' of null

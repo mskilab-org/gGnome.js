@@ -1,3 +1,11 @@
+
+const d3 = require('d3');
+
+const Base = require("./base.js");
+
+const Misc = require("./misc.js").Misc;
+
+
 class Walk extends Base {
 
   constructor(walk) {
@@ -110,11 +118,11 @@ class Walk extends Base {
         Misc.alerting(`Walk ${this.pid} contains <strong>no WalkConnections</strong>`, 'warning');
       }
     } else {
-      if (json.connection === undefined) {
+      if (JSON.connection === undefined) {
         this.errors.push('The WalkConnections Array object is missing!');
         valid = false;
       }
-      if (!Array.isArray(json.connections)) {
+      if (!Array.isArray(JSON.connections)) {
         this.errors.push('The WalkConnections object is not an Array!');
         valid = false;
       }
@@ -149,5 +157,12 @@ class Walk extends Base {
     strand: ${this.strand}
     `;
   }
+}
+
+
+
+module.exports = {
+  Walk : Walk, 
+  Base : Base
 }
 
