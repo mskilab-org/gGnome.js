@@ -6,10 +6,7 @@ var expect = chai.expect;
 
 const BrushContainer = require('../js/brush-container.js');
 
-
-console.log("try");
-
-var brushcontainer = new BrushContainer();
+// var brushcontainer = new BrushContainer();
 
 // console.log(brushcontainer);
 
