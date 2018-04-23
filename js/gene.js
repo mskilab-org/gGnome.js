@@ -1,3 +1,9 @@
+
+const d3 = require('d3');
+
+const Interval = require("./interval.js").Interval;
+
+
 class Gene extends Interval {
 
   constructor(gen) {
@@ -82,4 +88,9 @@ class Gene extends Interval {
     }
   }
 
+}
+
+module.exports = {
+  Gene : Gene, 
+  Interval : Interval
 }
