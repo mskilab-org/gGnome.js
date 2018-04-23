@@ -2,14 +2,16 @@ var chai = require('chai');
 var assert = chai.assert;
 var expect = chai.expect;
 
-const Base = require('../js/base.js').Base;
+const Base = require('../js/base.js');
 
 
 /// not sure how to test his properly
 // log() 
 
-describe('testing base.js', function() {
-  it('Base', function() {
-  	expect(Base).to.be.undefined;
+describe('testing fragment.js', function() {
+  it('Fragment constructor', function() {
+    var base = new Base();
+    expect(base).to.eql({});
   });
 });
+
