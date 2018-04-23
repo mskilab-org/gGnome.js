@@ -3,7 +3,6 @@ const d3 = require('d3');
 const Base = require("./base.js");
 
 
-
 class Frame extends Base {
 
   constructor(plotContainerId, totalWidth, totalHeight) {
@@ -330,4 +329,12 @@ class Frame extends Base {
       .duration(5)
       .style('opacity', 0);
   }
+}
+
+
+
+
+module.exports = {
+  Frame : Frame, 
+  Base : Base
 }

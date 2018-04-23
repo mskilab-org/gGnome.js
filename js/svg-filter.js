@@ -114,3 +114,7 @@ class SvgFilter {
   }
 
 }
+
+module.exports = SvgFilter; 
+
+

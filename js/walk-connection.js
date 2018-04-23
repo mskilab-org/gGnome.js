@@ -1,3 +1,11 @@
+
+const d3 = require('d3');
+
+const Misc = require("./misc.js").Misc;
+
+const Connection = require('./connection.js').Connection;
+
+
 class WalkConnection extends Connection {
 
   constructor(con, wlk) {
@@ -121,4 +129,11 @@ class WalkConnection extends Connection {
   get popoverTitle() {
     return 'Connection #' + this.cid + ' - ' + this.type + ' of walk #' + this.walk.pid;
   }
+}
+
+
+
+module.exports = {
+  WalkConnection : WalkConnection, 
+  Connection : Connection
 }
