@@ -1,7 +1,8 @@
 
 const d3 = require('d3');
+const Misc = require("./misc.js").Misc;
 
-const Interval = require("./interval.js");
+const Interval = require("./interval.js").Interval;
 
 
 class WalkInterval extends Interval {
@@ -89,4 +90,10 @@ class WalkInterval extends Interval {
     } 
   }
   
+}
+
+
+module.exports = {
+  WalkInterval : WalkInterval, 
+  Interval : Interval
 }
