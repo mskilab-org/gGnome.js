@@ -1,3 +1,7 @@
+
+const Base = require("./base.js");
+const Misc = require("./misc.js").Misc;
+
 class Fragment extends Base {
 
   constructor(brush) {
@@ -17,4 +21,10 @@ class Fragment extends Base {
       range: [${this.range && this.range.join(',')}]
       panelWidth: ${this.panelWidth}`;
   }
+}
+
+
+module.exports = {
+  Fragment : Fragment, 
+  Base : Base
 }

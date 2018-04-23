@@ -1,3 +1,9 @@
+
+const d3 = require('d3');
+
+const Interval = require("./interval.js");
+
+
 class WalkInterval extends Interval {
 
   constructor(hap, wlk) {

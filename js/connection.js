@@ -1,3 +1,9 @@
+
+const Base = require("./base.js");
+const d3 = require('d3');
+const Misc = require("./misc.js").Misc;
+
+
 class Connection extends Base {
 
   constructor(con) {
@@ -199,4 +205,10 @@ class Connection extends Base {
     weight: ${this.weight}
     `;
   }
+}
+
+
+module.exports = {
+  Connection : Connection, 
+  Base : Base
 }

@@ -1,3 +1,11 @@
+
+const d3 = require('d3');
+
+const Base = require("./base.js");
+const Misc = require("./misc.js").Misc;
+
+
+
 class Interval extends Base {
 
   constructor(inter) {
@@ -80,4 +88,10 @@ class Interval extends Base {
     strand: ${this.strand}
     `;
   }
+}
+
+
+module.exports = {
+  Interval : Interval, 
+  Base : Base
 }

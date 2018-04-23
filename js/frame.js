@@ -1,3 +1,9 @@
+
+const d3 = require('d3');
+const Base = require("./base.js");
+
+
+
 class Frame extends Base {
 
   constructor(plotContainerId, totalWidth, totalHeight) {
