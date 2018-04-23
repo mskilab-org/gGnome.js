@@ -1,3 +1,11 @@
+
+const d3 = require('d3');
+
+const Base = require("./base.js");
+const Misc = require("./misc.js").Misc;
+
+
+
 class BrushContainer {
 
   constructor(frame) {
@@ -1206,3 +1214,6 @@ class BrushContainer {
   }
 
 }
+
+
+module.exports = BrushContainer; 

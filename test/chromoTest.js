@@ -4,7 +4,7 @@ var assert = chai.assert;
 var expect = chai.expect;
 
 
-var chromo = require('../js/chromo.js');
+const Chromo = require("../js/chromo.js").Chromo;
 
 
 // note --- we canont override these, it appears
@@ -15,13 +15,13 @@ var chromo = require('../js/chromo.js');
 
 describe('testing chromo.js', function() {
   it('Chromo constructor', function() {
-  	var Chromo = new chromo.Chromo({"chromosome":12, "startPoint":57000, "endPoint":65000, "color": "blue"});  
-    assert.equal(Chromo.chromosome, 12);    
-    assert.equal(Chromo.startPoint, 57000);  
-    assert.equal(Chromo.endPoint, 65000);  
-    assert.equal(Chromo.color, "blue");  
-    assert.equal(Chromo.scale, null);  
-    assert.equal(Chromo.innerScale, null);  
+  	var chromo = new Chromo({"chromosome":12, "startPoint":57000, "endPoint":65000, "color": "blue"});  
+    assert.equal(chromo.chromosome, 12);    
+    assert.equal(chromo.startPoint, 57000);  
+    assert.equal(chromo.endPoint, 65000);  
+    assert.equal(chromo.color, "blue");  
+    assert.equal(chromo.scale, null);  
+    assert.equal(chromo.innerScale, null);  
   });
 });
 

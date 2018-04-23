@@ -7,17 +7,6 @@ const Base = require('../js/base.js').Base;
 const Interval = require('../js/interval.js').Interval;
 
 
-//  iid: 42,
-//  chromosome: undefined,
-//  startPoint: undefined,
-//  endPoint: undefined,
-//  intervalLength: NaN,
-//  y: undefined,
-//  title: undefined,
-//  type: undefined,
-//  strand: undefined,
-//  errors: [] }
-
 // constructor
 
 describe('testing interval.js', function() {
