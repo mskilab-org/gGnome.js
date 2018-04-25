@@ -1,3 +1,4 @@
+
 class Misc {
 
   static isString(obj) {

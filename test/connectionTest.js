@@ -1,3 +1,6 @@
+
+const d3 = require('d3');
+
 var chai = require('chai');
 var assert = chai.assert;
 var expect = chai.expect;
@@ -57,6 +60,8 @@ describe('testing connection.js', function() {
     expect(connection.pinpoint()).to.be.undefined;      
   });
 });
+
+
 
 // locateAnchor()
 // /Users/ebiederstedt/gGnome.js/js/connection.js:77

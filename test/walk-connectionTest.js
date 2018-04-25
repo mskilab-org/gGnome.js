@@ -3,6 +3,10 @@ var assert = chai.assert;
 var expect = chai.expect;
 
 
+const d3 = require('d3');
+
+
+
 const Base = require('../js/base.js').Base;
 const WalkConnection = require('../js/walk-connection.js').WalkConnection;
 
@@ -83,14 +87,26 @@ describe('testing walk-connection.js', function() {
   });
 });
 
+
 // console.log(walkconn.interConnectorEndpoints);
-// TypeError
+// /Users/ebiederstedt/gGnome.js/js/walk-connection.js:72
+//     var origin = d3.min([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+// 
+// TypeError: Cannot read property 'scale' of null
+
 
 // looseConnectorEndpoints()
 // TypeError: this.touchScale is not a function
 
+
 // popoverTitle()
-// TypeError: Cannot read property 'pid' of undefined
+describe('testing walk-connection.js', function() {
+  it('WalkConnection popoverTitle()', function() {
+    var walkconn = new WalkConnection({"cid":42, 'title':"foo", "type":"foobar"},
+      {"pid":12, "cn":2, "type":"something", "strand":"*", "cids":20, "iids":230});      
+    assert.equal(walkconn.popoverTitle, 'Connection #42 - foobar of walk #12');
+  });
+});
 
 
 

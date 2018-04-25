@@ -4,9 +4,7 @@ var assert = chai.assert;
 var expect = chai.expect;
 
 
-var misc = require('../js/misc.js');
-
-
+const misc = require('../js/misc.js');
 
 // isString()
 

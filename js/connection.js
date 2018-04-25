@@ -4,6 +4,7 @@ const d3 = require('d3');
 const Misc = require("./misc.js").Misc;
 
 
+
 class Connection extends Base {
 
   constructor(con) {
