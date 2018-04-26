@@ -1,4 +1,6 @@
 
+const $ = require('jquery');
+
 class Misc {
 
   static isString(obj) {
