@@ -3,7 +3,8 @@ class Gene extends Interval {
   constructor(gen) {
     super(gen);
     this.group_id = gen.group_id;
-    this.margins = {arrow: 5}
+    this.margins = {arrow: 0}
+    this.arrowLegth = 5;
     this.coefficient = 1;
   }
 
@@ -19,6 +20,11 @@ class Gene extends Interval {
     } else {
       return '#000';
     }
+  }
+
+  isOverlappingWith(gene) {
+    //return ((this.arrowLegth <= (gene.range[1]) - (this.range[0])) && (this.arrowLegth <= (this.range[1]) - (gene.range[0])));
+    return ((-2 <= (gene.range[1]) - (this.range[0])) && (-2 <= (this.range[1]) - (gene.range[0])));
   }
 
   get stroke() {
@@ -54,24 +60,25 @@ class Gene extends Interval {
   }
 
   get points() {
+    this.margins.arrow = (this.shapeWidth >= this.arrowLegth) ? this.arrowLegth : 0;
     if (this.type === 'gene') {
       if (this.strand === "+") {
         return [
           0, - 0.5 * this.shapeHeight * this.coefficient,
-          this.shapeWidth, - 0.5 * this.shapeHeight  * this.coefficient,
-          this.shapeWidth, - this.margins.arrow  * this.coefficient,
-          this.shapeWidth + this.margins.arrow, 0,
-          this.shapeWidth, + this.margins.arrow  * this.coefficient,
-          this.shapeWidth, + 0.5 * this.shapeHeight  * this.coefficient,
+          this.shapeWidth - this.margins.arrow, - 0.5 * this.shapeHeight  * this.coefficient,
+          this.shapeWidth - this.margins.arrow, - this.margins.arrow  * this.coefficient,
+          this.shapeWidth, 0,
+          this.shapeWidth - this.margins.arrow, + this.margins.arrow  * this.coefficient,
+          this.shapeWidth - this.margins.arrow, + 0.5 * this.shapeHeight  * this.coefficient,
           0, + 0.5 * this.shapeHeight]
       } else if (this.strand === "-") {
         return [
           this.shapeWidth, - 0.5 * this.shapeHeight * this.coefficient,
-          0, - 0.5 * this.shapeHeight * this.coefficient,
-          0, - this.margins.arrow  * this.coefficient,
-          0  - this.margins.arrow, 0,
-          0, + this.margins.arrow  * this.coefficient,
-          0, + 0.5 * this.shapeHeight  * this.coefficient,
+          this.margins.arrow, - 0.5 * this.shapeHeight * this.coefficient,
+          this.margins.arrow, - this.margins.arrow  * this.coefficient,
+          0, 0,
+          this.margins.arrow, + this.margins.arrow  * this.coefficient,
+          this.margins.arrow, + 0.5 * this.shapeHeight  * this.coefficient,
           this.shapeWidth, + 0.5 * this.shapeHeight  * this.coefficient]
       } 
     } else {
