@@ -93,11 +93,11 @@ class Frame extends Base {
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
       gene.color = this.chromoBins[gene.chromosome].color;
-      gene.y = Math.round(Math.random() * 10);
+      gene.y = 0; //Math.round(Math.random() * 10);
       this.geneBins[gene.iid] = gene;
       return gene;
     });
-    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yMax = d3.min([d3.max(this.dataInput.intervals.map((d, i) => d.y)), 500]);
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
@@ -190,7 +190,7 @@ class Frame extends Base {
       this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
-    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
