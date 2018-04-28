@@ -267,9 +267,11 @@ class BrushContainer {
         gene.shapeWidth = gene.range[1] - gene.range[0];
         gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
         gene.fragment = d;
-        let collisions = d.visibleGenes.filter((f,k) => (gene.identifier !== f.identifier) && gene.isOverlappingWith(f));
-        gene.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
-        d.visibleGenes.push(gene);
+        if (gene.shapeWidth > this.frame.margins.genes.selectionSize) {
+          let collisions = d.visibleGenes.filter((f,k) => (gene.identifier !== f.identifier) && gene.isOverlappingWith(f));
+          gene.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
+          d.visibleGenes.push(gene);
+        }
       });
       d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
       d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
@@ -899,9 +901,9 @@ class BrushContainer {
       genesPanels.selectAll('text.gene-label')
         .style('opacity', function(d, i) {
           let textLength = d3.select(this).node().getComputedTextLength();
-          let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)))).length;
-          let selectionWidth = d.fragment.selection[1] - d.fragment.selection[0];
-          return ((collisions < 1) && (selectionWidth < self.frame.margins.genes.selectionSize) ? 1 : 0)
+          let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)) && (e.opacity > 0))).length;
+          d.opacity = ((collisions < 1) ? 1 : 0);
+          return d.opacity;
         });
     } else {
       genesPanels.selectAll('polygon.geneShape').remove();
