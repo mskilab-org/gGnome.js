@@ -5,7 +5,7 @@ class Gene extends Interval {
     this.group_id = gen.group_id;
     this.margins = {arrow: 0}
     this.arrowLegth = 5;
-    this.coefficient = 1;
+    this.coefficient = 0.66;
   }
 
   get fill() {
@@ -23,8 +23,7 @@ class Gene extends Interval {
   }
 
   isOverlappingWith(gene) {
-    //return ((this.arrowLegth <= (gene.range[1]) - (this.range[0])) && (this.arrowLegth <= (this.range[1]) - (gene.range[0])));
-    return ((-2 <= (gene.range[1]) - (this.range[0])) && (-2 <= (this.range[1]) - (gene.range[0])));
+    return ((0 <= gene.range[1] - this.range[0] + this.arrowLegth) && (0 <= this.range[1] - gene.range[0] + this.arrowLegth));
   }
 
   get stroke() {
