@@ -95,6 +95,16 @@ describe('testing walk-connection.js', function() {
 // TypeError: Cannot read property 'scale' of null
 
 
+
+// this.touchScale used in in connection.js with locateAnchor()
+
+// The touchScale is in fact the scale of the fragment at the touch point of the loose connection. 
+// A loose connection has only one touchpoint (i.e. either the source or the sink)
+
+var walkconn = new WalkConnection({"cid":42, 'title':"foo", "type":"foobar"},
+      {"pid":12, "cn":2, "type":"something", "strand":"*", "cids":20, "iids":230});   
+
+
 // looseConnectorEndpoints()
 // TypeError: this.touchScale is not a function
 

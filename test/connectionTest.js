@@ -26,6 +26,13 @@ const Connection = require('../js/connection.js').Connection;
 
 // constructor
 
+// var connection1 = new Connection({"cid": 1, "type": "REF", "distance":1, errors:[], 
+//   "points":[Array(2), Array(2)], "sink":-1, "source":1, "weight":2 , title: "foo"});
+
+
+
+
+
 
 describe('testing connection.js', function() {
   it('Connection constructor', function() {
@@ -62,6 +69,9 @@ describe('testing connection.js', function() {
 });
 
 
+// var connection = new Connection({"cid":42, 'source': 50, 'sink':150, 'title':"foo", "type":"foobar"}); 
+
+// console.log(connection.locateAnchor());
 
 // locateAnchor()
 // /Users/ebiederstedt/gGnome.js/js/connection.js:77

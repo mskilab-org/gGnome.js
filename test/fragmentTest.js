@@ -31,3 +31,18 @@ describe('testing fragment.js', function() {
 // TypeError: Cannot read property 'join' of null
 
 
+//
+//Fragment {
+//  id: 'ce865505-2ace-4cb9-d48a-2287ed817f6b',
+//  brush: 
+//   { brush: 10,
+//     selection: 40,
+//     domain: 60,
+//     range: 100,
+//     panelWidth: 10 },
+//  selection: null,
+//  domain: null,
+//  range: null,
+//  panelWidth: null }
+//
+//
