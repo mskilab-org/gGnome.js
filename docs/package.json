@@ -1,0 +1,17 @@
+{
+  "name": "gGnome",
+  "version": "1.0.0",
+  "description": "gGnome project",
+  "main": "js/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node js/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "cors": "^2.8.4",
+    "d3": "^4.12.0"
+  }
+}

@@ -11,10 +11,10 @@ class Frame extends Base {
       top: 30, bottom: 70, left: 30, right: 30,
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 0, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10},
+      panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10, yAxisTitleGap: 20},
       brushes: {upperGap: -10, height: 50},
       intervals: {bar: 10, gap: 20, geneBar: 2},
-      genes: {textGap: 10, selectionSize: 15},
+      genes: {textGap: 5, selectionSize: 2},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -97,11 +97,11 @@ class Frame extends Base {
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
       gene.color = this.chromoBins[gene.chromosome].color;
-      gene.y = Math.round(Math.random() * 10);
+      gene.y = 0; //Math.round(Math.random() * 10);
       this.geneBins[gene.iid] = gene;
       return gene;
     });
-    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yMax = d3.min([d3.max(this.dataInput.intervals.map((d, i) => d.y)), 500]);
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
@@ -191,10 +191,10 @@ class Frame extends Base {
 
   toggleGenesPanel() {
     if (this.dataInput.walks) {
-      this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+      this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([0 * this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - 0 * this.margins.panels.gap]).nice();
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
-    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - this.margins.panels.gap]).nice();
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
@@ -207,6 +207,8 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
     this.connectionsContainer
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+    this.panelsContainer.select('g.y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap, 0.5 * (this.height - this.margins.panels.upperGap + this.margins.top)] + ')rotate(-90)');
     this.genesContainer.classed('hidden', !this.showGenes);
     this.walksContainer.classed('hidden', !this.showWalks);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
@@ -282,6 +284,14 @@ class Frame extends Base {
       .classed('hidden', this.settings && this.settings.y_axis && !this.settings.y_axis.visible)
       .attr('transform', 'translate(' + [0, 0] + ')')
       .call(this.yAxis);
+
+    this.panelsContainer.append('g')
+      .attr('class', 'y-axis-title')
+      .classed('hidden', this.settings && this.settings.y_axis && !this.settings.y_axis.visible)
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap, 0.5 * (this.height - this.margins.panels.upperGap + this.margins.top)] + ')rotate(-90)')
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .text(this.settings.y_axis.title);
 
     this.panelsChromoAxisContainerBottom = this.svg.append('g')
       .attr('class', 'panels-axis-container')

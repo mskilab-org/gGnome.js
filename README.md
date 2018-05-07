@@ -3,6 +3,10 @@
 
 # Project gGnome
 
+## Demo
+
+You may find the online version of the gGnome.js project at the following [location](https://xanthopoulakis.github.io/).
+
 ## Requirements
 
 For execution, you will only need Node.js installed on your environment.
@@ -46,7 +50,7 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 ## Install
 
     $ git clone git@github.com:mskilab/gGnome.js.git
-    $ npm install -g simple-autoreload-server
+    $ npm install
 
 ## Start application
 
@@ -59,6 +63,11 @@ In case it doesn't start automatically, open your preferred browser and navigate
 
     http://localhost:8080/index.html
 
+
+The validation of the data.json files is available at the respective Validator page
+
+    http://localhost:8080/validator.html
+    
 ---
 
 ## Configuration
