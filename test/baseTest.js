@@ -4,16 +4,21 @@ var expect = chai.expect;
 
 const Base = require('../js/base.js');
 
+var sinon = require("sinon");
+
 
 /// not sure how to test his properly
 // log() 
 
-describe('testing fragment.js', function() {
+describe('testing fragment.js', function() {	
   it('Fragment constructor', function() {
     var base = new Base();
-    expect(base).to.eql({});
+    expect(base.log()).to.undefined;  // makes sense as returning nothing
   });
 });
+
+
+
 
 
 
