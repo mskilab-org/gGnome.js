@@ -18,7 +18,8 @@ describe('testing fragment.js', function() {
 });
 
 
-
+// revise to use Sinon
+// expect(base.log()).to.undefined;  // makes sense as returning nothing
 
 
 
