@@ -67,6 +67,8 @@ describe('testing Misc functions', function() {
 // metadata()
 // 
 
+// console.log(Misc.metadata);
+
 // console.log(misc.Misc.metadata);
 
 // /Users/ebiederstedt/gGnome.js/js/misc.js:32
