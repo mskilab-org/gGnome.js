@@ -30,6 +30,10 @@ const Connection = require('../js/connection.js').Connection;
 //   "points":[Array(2), Array(2)], "sink":-1, "source":1, "weight":2 , title: "foo"});
 
 
+var connection_example = new Connection({"cid": 1, "type": "REF", "distance":1, errors:[], 
+  "points":[Array(2), Array(2)], 
+  "sink":{sign: "-1", intervalId: 2, y: 2, point: 6525380, sign:1, place:6525379}, 
+  "source":{sign: "1", intervalId: 1, y: 4, point: 6525379, sign:1, point: 6525378}, "weight":2 , title: ""});
 
 
 

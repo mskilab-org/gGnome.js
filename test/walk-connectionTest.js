@@ -84,8 +84,13 @@ describe('testing walk-connection.js', function() {
     var walkconn = new WalkConnection({"cid":42, 'title':"foo", "type":"foobar"},
       {"pid":12, "cn":2, "type":"something", "strand":"*", "cids":20, "iids":230});      
     expect(walkconn.pinpoint()).to.be.undefined;
+
   });
 });
+
+
+
+ 
 
 
 // console.log(walkconn.interConnectorEndpoints);
