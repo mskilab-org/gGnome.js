@@ -8,7 +8,7 @@
     "start": "node js/server.js"
   },
   "author": "",
-  "license": "MIT",
+  "license": "ISC",
   "dependencies": {
     "express": "^4.16.2",
     "cors": "^2.8.4",
