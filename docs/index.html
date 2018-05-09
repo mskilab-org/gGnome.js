@@ -12,11 +12,13 @@
   <nav id="navbar" class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="navbar-brand" href="#">Project gGnome</a>
+        <a class="navbar-brand" href="./index.html">Project gGnome</a>
       </div>
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
             <select id="data-selector" class="selectpicker" data-header="Select a data file" show-tick>
+              <option value="./json/data.json">data.json</option>
+              <option value="./json/data2.json">data2.json</option>
             </select>
          </div>
          <div class="form-group">
@@ -35,6 +37,9 @@
          </div>
          <div class="form-group">
            <input class="btn btn-default" type="button" id="locate-button" data-toggle="modal" data-target="#locate-modal" value="Locate"/>
+         </div>
+         <div class="form-group">
+           <a class="btn btn-default" href="./validator.html">Validate</a>
          </div>
       </form>
     </div><!-- .container-fluid -->
