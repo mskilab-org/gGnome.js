@@ -10,23 +10,17 @@ $(function() {
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
 
-  // Act upon selector load
-  $('#' + dataSelector).on('loaded.bs.select', event => {
-    d3.queue()
-      .defer(d3.json, $('#' + dataSelector).val())
-      .defer(d3.json, './public/metadata.json')
-      .defer(d3.json, './public/genes.json')
-      .awaitAll((error, results) => {
-        if (error) throw error;
-        frame.dataInput = results[0];
-        frame.dataInput.metadata = results[1].metadata;
-        frame.dataInput.genes = results[2].genes;
-        frame.render();
-    });
+  $('#' + dataSelector).selectpicker('hide');
+
+  d3.json('/datafiles', results => {
+    $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
+    $('#' + dataSelector).selectpicker('refresh');
+    $('#' + dataSelector).selectpicker('show');
+    $('#' + dataSelector).selectpicker('render');
   });
 
   // Act upon json reload
-  $('#' + dataSelector).on('changed.bs.select', event => {
+  $('#' + dataSelector).on('rendered.bs.select', event => {
     d3.queue()
       .defer(d3.json, $('#' + dataSelector).val())
       .defer(d3.json, './public/metadata.json')
