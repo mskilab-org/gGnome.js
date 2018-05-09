@@ -1,7 +1,8 @@
 {
   "settings": {
     "y_axis": {
-      "visible": false
+      "visible": false,
+      "title": ""
     }
   },
   "intervals": [
