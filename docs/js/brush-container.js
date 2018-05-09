@@ -3,6 +3,7 @@ class BrushContainer {
   constructor(frame) {
     this.frame = frame;
     this.reset();
+    window.pc = this;
   }
 
   reset() {
@@ -173,8 +174,6 @@ class BrushContainer {
     
     // update clipPath
     this.renderClipPath();
-
-    window.pc = this;
   }
 
   updateFragments() {
@@ -258,7 +257,6 @@ class BrushContainer {
       // filter the Genes
       d.visibleGenes = [];
       this.frame.genes
-      .map((e,j) => {e.y = 0; return e;})
       .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
         || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
       .forEach((gene, j) => {
@@ -267,14 +265,8 @@ class BrushContainer {
         gene.shapeWidth = gene.range[1] - gene.range[0];
         gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
         gene.fragment = d;
-        if (gene.shapeWidth > this.frame.margins.genes.selectionSize) {
-          let collisions = d.visibleGenes.filter((f,k) => (gene.identifier !== f.identifier) && gene.isOverlappingWith(f));
-          gene.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
-          d.visibleGenes.push(gene);
-        }
+        d.visibleGenes.push(gene);
       });
-      d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
-      d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       // filter the Walks
       d.visibleWalkIntervals = [];
       this.frame.walks.forEach((walk, j) => {
@@ -829,7 +821,7 @@ class BrushContainer {
         .append('polygon')
         .attr('id', (d, i) => d.identifier)
         .attr('class', (d, i) => 'popovered geneShape ' + d.type)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
         .attr('points', (d, i) => d.points)
         .style('fill', (d, i) => d.fill)
         .style('stroke', (d, i) => d.stroke)
@@ -868,7 +860,7 @@ class BrushContainer {
 
       genes
         .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y)] + ')')
         .attr('points', (d, i) => d.points)
         .style('fill', (d, i) => d.fill)
         .style('stroke', (d, i) => d.stroke);
@@ -886,25 +878,23 @@ class BrushContainer {
         .append('text')
         .attr('id', (d, i) => d.identifier)
         .attr('class', (d, i) => 'gene-label')
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .style('opacity', function(d, i) {
+          let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+          return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
         .text((d, i) => d.title);
     
       genesLabels
         .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .style('opacity', function(d, i) {
+          let breadth = d3.select(this.parentNode).datum().selection[1] - d3.select(this.parentNode).datum().selection[0];
+          return (breadth < self.frame.margins.genes.selectionSize ? 1 : 0)})
         .text((d, i) => d.title);
 
       genesLabels
-        .exit()
-        .remove();
-
-      genesPanels.selectAll('text.gene-label')
-        .style('opacity', function(d, i) {
-          let textLength = d3.select(this).node().getComputedTextLength();
-          let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)) && (e.opacity > 0))).length;
-          d.opacity = ((collisions < 1) ? 1 : 0);
-          return d.opacity;
-        });
+       .exit()
+      .remove();
     } else {
       genesPanels.selectAll('polygon.geneShape').remove();
       genesPanels.selectAll('text.gene-label').remove();
