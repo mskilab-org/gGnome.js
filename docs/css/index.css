@@ -9,7 +9,7 @@
 }
 /* Main SVG styling */
 svg.plot {
-  border: 1px solid black;
+  border: 1px solid transparent;
 }
 
 .brush .selection {
@@ -28,7 +28,7 @@ svg.plot {
   fill: white !important;
 }
 
-.axis text {
+.axis text, .y-axis-title {
   font: 12px sans-serif;
   fill: steelblue;
   pointer-events: none;
@@ -43,6 +43,7 @@ svg.plot {
 .axis--y .domain {
   stroke: transparent;
 }
+
 .chromo-legend .label-chromosome {
   font-size: 18px;
   font-weight: normal;
@@ -104,7 +105,7 @@ polygon.gene {
   cursor: pointer;
 }
 text.gene-label {
-  font: 12px sans-serif;
+  font: 9px sans-serif;
   fill: steelblue;
   pointer-events: none;
   user-select: none;
