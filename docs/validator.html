@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Project gGnome Data Validator</title>
+  <link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
+  <link rel="stylesheet prefetch" href="css/external/bootstrap.min.css">
+  <link rel="stylesheet" href="css/external/bootstrap-select.min.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+  <nav id="navbar" class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Project gGnome Data Validator</a>
+      </div>
+    </div><!-- .container-fluid -->
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1 class="page-header">Data Validator</h1>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <form method="post" enctype="multipart/form-data" class="form-inline">
+              <div class="form-group">
+                <input id="fileupload" type="file" class="form-control" name="fileName" accept=".json"/>
+              </div>
+              <div class="form-group">
+               <button id="validateBtn" type="button" class="btn btn-info">Validate</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <div id="verdictSuccess" class="alert alert-success hidden" role="alert"> <strong>Great!</strong> Your file is valid to use in the gGnome project.</div>
+         <div id="verdictFail" class="alert alert-danger hidden" role="alert"> <strong>Oops!</strong> The file has validation errors. </div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="detail" class="col-lg-12">
+
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/external/jquery.min.js"></script>
+  <script src="../js/external/bootstrap.min.js"></script>
+  <script src="../js/external/d3.min.js"></script>
+  <script src="../js/base.js"></script>
+  <script src="../js/misc.js"></script>
+  <script src="../js/interval.js"></script>
+  <script src="../js/connection.js"></script>
+  <script src="../js/walk.js"></script>
+  <script src="../js/walk-interval.js"></script>
+  <script src="../js/walk-connection.js"></script>
+  <script src="../js/validator.js"></script>
+</body>
+</html>
