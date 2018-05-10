@@ -48,6 +48,20 @@ class Frame extends Base {
     this.margins.defaults.upperGapPanelWithGenes = (this.height + this.margins.top - 2 * this.margins.intervals.bar + this.margins.panels.chromoGap + this.margins.panels.gap) / 2;
   }
 
+  loadData(dataFile) {
+    d3.queue()
+      .defer(d3.json, dataFile)
+      .defer(d3.json, './public/metadata.json')
+      .defer(d3.json, './public/genes.json')
+      .awaitAll((error, results) => {
+        if (error) throw error;
+        this.dataInput = results[0];
+        this.dataInput.metadata = results[1].metadata;
+        this.dataInput.genes = results[2].genes;
+        this.render();
+    });
+  }
+
   updateData() {
     if (this.dataInput === null) return;
     this.settings = this.dataInput.settings;
@@ -99,8 +113,12 @@ class Frame extends Base {
     });
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yMax = d3.min([d3.max(this.dataInput.intervals.map((d, i) => d.y)), 500]);
-    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
-    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    if (this.yMax < 10) {
+      this.yScale = d3.scaleLinear().domain([0, 10]).range([this.height - this.margins.panels.upperGap + this.margins.top, 2 * this.margins.intervals.bar]).nice();
+    } else {
+      this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
+    }
+    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickFormat(d3.format("d")).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.connections = this.dataInput.connections.map((d, i) => {
       connection = new Connection(d);
       connection.pinpoint(this.intervalBins);
@@ -191,8 +209,12 @@ class Frame extends Base {
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
-    this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
-    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    if (this.yMax < 10) {
+      this.yScale = d3.scaleLinear().domain([0, 10]).range([this.height - this.margins.panels.upperGap + this.margins.top, 2 * this.margins.intervals.bar]).nice();
+    } else {
+      this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
+    }
+    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickFormat(d3.format("d")).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
     this.panelsContainer
       .call(this.yAxis);
     let connection = null;

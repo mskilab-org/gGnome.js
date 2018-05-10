@@ -10,29 +10,33 @@ $(function() {
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
 
-  $('#' + dataSelector).selectpicker('hide');
-
-  d3.json('/datafiles', results => {
-    $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
-    $('#' + dataSelector).selectpicker('refresh');
-    $('#' + dataSelector).selectpicker('show');
-    $('#' + dataSelector).selectpicker('render');
-  });
-
-  // Act upon json reload
-  $('#' + dataSelector).on('rendered.bs.select', event => {
-    d3.queue()
-      .defer(d3.json, $('#' + dataSelector).val())
-      .defer(d3.json, './public/metadata.json')
-      .defer(d3.json, './public/genes.json')
-      .awaitAll((error, results) => {
-        if (error) throw error;
-        frame.dataInput = results[0];
-        frame.dataInput.metadata = results[1].metadata;
-        frame.dataInput.genes = results[2].genes;
-        frame.render();
+  // If there are options defined on the HTML already, we should show them as they are (Web version)
+  if ($('#' + 'data-selector').find('option').length > 0) {
+    // Act upon selector load
+    $('#' + dataSelector).on('loaded.bs.select', event => {
+      frame.loadData($('#' + dataSelector).val());
     });
-  });
+
+    // Act upon json reload
+    $('#' + dataSelector).on('changed.bs.select', event => {
+      frame.loadData($('#' + dataSelector).val());
+    });
+  } else {
+    // Otherwise, we should load them from the server (when running on localhost)
+    $('#' + dataSelector).selectpicker('hide');
+
+    d3.json('/datafiles', results => {
+      $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
+      $('#' + dataSelector).selectpicker('refresh');
+      $('#' + dataSelector).selectpicker('show');
+      $('#' + dataSelector).selectpicker('render');
+    });
+    
+    // Act upon json reload
+    $('#' + dataSelector).on('rendered.bs.select', event => {
+      frame.loadData($('#' + dataSelector).val());
+    });
+  }
 
   // Act upon window resize
   d3.select(window).on('resize', () => {
