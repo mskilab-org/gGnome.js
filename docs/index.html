@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Project gGnome</title>
+  <link rel='shortcut icon' type='image/x-icon' href='../css/favicon.ico' />
+  <link rel="stylesheet prefetch" href="../css/external/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/external/bootstrap-select.min.css">
+  <link rel="stylesheet" href="../css/index.css">
+</head>
+<body>
+  <nav id="navbar" class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./index.html">Project gGnome</a>
+      </div>
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+            <select id="data-selector" class="selectpicker" data-header="Select a data file" show-tick>
+              <option value="./json/data.json">data.json</option>
+              <option value="./json/data2.json">data2.json</option>
+            </select>
+         </div>
+         <div class="form-group">
+           <div>
+             <label class="checkbox-inline"><input id="gene-checkbox" type="checkbox" value="genes">Genes</label>
+           </div>
+         </div>
+         <div class="form-group">
+          <div>
+            <label class="checkbox-inline"><input id="walk-checkbox" type="checkbox" value="walks">Walks</label>
+          </div>
+        </div>
+         <div class="form-group">
+           <input class="btn btn-default" type="button" id="download-button" value="Export"/>
+           <span id="fragmentsDetails" class="hidden"></span>
+         </div>
+         <div class="form-group">
+           <input class="btn btn-default" type="button" id="locate-button" data-toggle="modal" data-target="#locate-modal" value="Locate"/>
+         </div>
+         <div class="form-group">
+           <a class="btn btn-default" href="./validator.html">Validate</a>
+         </div>
+      </form>
+    </div><!-- .container-fluid -->
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row fragments-note-container">
+      <div class="col-lg-12">
+        <a id="fragmentsNote" href="#" data-toggle="tooltip" data-placement="bottom" title="Copied to clipboard"></a>
+      </div>
+    </div>
+    <div class="row">
+      <div id="plot-container" class="col-lg-12">
+        <div class="popover fade top in hidden">
+          <div class="arrow"></div>
+          <h3 class="popover-title"></h3>
+          <div class="popover-content"></div>
+        </div>
+      </div>
+      <div class="modal fade" id="plot-container-gene-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="overflow: hidden;">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 id="gene-modal-title" class="modal-title"></h4>
+              </div>
+              <div id="gene-modal-body" class="modal-body" style="max-height: 1010px; overflow-y: auto;">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+            <!-- /.modal-content -->
+          </div>
+          <!-- /.modal-dialog -->
+        </div>
+        <div class="modal fade" id="locate-modal" tabindex="-1" role="dialog" aria-labelledby="locate-modal" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-lg">
+              <form id="locate-form" role="form">  
+                <div class="modal-content" style="overflow: hidden;">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 id="locate-modal-title" class="modal-title">Loci of interest</h4>
+                  </div>            
+                  <div id="locate-modal-body" class="modal-body">
+                    <div class="form-group">
+                      <input type="text" class="form-control" id="locate-input" placeholder="e.g. 22:12492333-27035862">
+                    </div>                   
+                  </div>
+                  <div class="modal-footer">
+                    <button type="submit" id="locate-submit" class="btn btn-info btn-block" data-dismiss="modal">Locate</button>
+                  </div>                
+                </div>
+              </form>
+              <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+          </div>
+    </div>
+    <a href="data:text/plain;charset=utf-8" id="downloadLink" download="export.txt" style="display: none;"></a>
+  </div>
+
+  <script src="../js/external/jquery.min.js"></script>
+  <script src="../js/external/bootstrap.min.js"></script>
+  <script src="../js/external/bootstrap-select.min.js"></script>
+  <script src="../js/external/d3.min.js"></script>
+  <script src="../js/external/d3-scale-chromatic.v0.3.min.js"></script>
+  <script src="../js/external/d3-collection.v1.min.js"></script>
+  <script src="../js/external/d3-dispatch.v1.min.js"></script>
+  <script src="../js/external/d3-dsv.v1.min.js"></script>
+  <script src="../js/external/d3-request.v1.min.js"></script>
+  <script src="../js/external/d3-queue.v3.min.js"></script>
+  <script src="./index.js"></script>
+  <script src="../js/misc.js"></script>
+  <script src="../js/combinations.js"></script>
+  <script src="../js/base.js"></script>
+  <script src="../js/interval.js"></script>
+  <script src="../js/gene.js"></script>
+  <script src="../js/walk-interval.js"></script>
+  <script src="../js/walk.js"></script>
+  <script src="../js/connection.js"></script>
+  <script src="../js/walk-connection.js"></script>
+  <script src="../js/frame.js"></script>
+  <script src="../js/svg-filter.js"></script>
+  <script src="../js/chromo.js"></script>
+  <script src="../js/brush-container.js"></script>
+  <script src="../js/fragment.js"></script>
+</body>
+</html>
