@@ -287,7 +287,7 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap, 0.5 * (this.height - this.margins.panels.upperGap + this.margins.top)] + ')rotate(-90)')
       .append('text')
       .attr('text-anchor', 'middle')
-      .text(this.settings.y_axis.title);
+      .text(this.settings && this.settings.y_axis && this.settings.y_axis.title);
 
     this.panelsChromoAxisContainerBottom = this.svg.append('g')
       .attr('class', 'panels-axis-container')
