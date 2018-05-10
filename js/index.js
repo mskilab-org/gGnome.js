@@ -48,7 +48,7 @@ $(function() {
   $('#gene-checkbox').on('click', (event) => {
     $('#walk-checkbox').removeAttr('checked'); 
     frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
-      0.8 * frame.height: 
+      0.6 * frame.height: 
       frame.margins.defaults.upperGapPanel;
     frame.showGenes = $('#gene-checkbox').is(":checked");
     frame.showWalks = $('#walk-checkbox').is(":checked");
