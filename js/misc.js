@@ -18,47 +18,8 @@ class Misc {
     });
   }
 
-  static get server() {
-    return 'http://localhost:8000'
-  }
-
   static alerting(text, type) {
     return $('#detail').append(`<div class="alert alert-${type}" role="alert">${text}</div>`);
-  }
-
-  static get metadata() {
-    var input = (function () {
-        var json = null;
-        $.ajax({
-            'async': false,
-            'global': false,
-            'url': Misc.server + '/metadata',
-            'dataType': 'json',
-            'success': (data) => {
-                json = data;
-            }
-        });
-        return json;
-    })();
-    return input.metadata;
-  }
-
-  static intervals(startPlace, endPlace) {
-    var input = (function () {
-        var json = null;
-        $.ajax({
-            'async': false,
-            'global': false,
-            'url': Misc.server + '/intervals',
-            'data': {"startPlace": startPlace, "endPlace": endPlace},
-            'dataType': 'json',
-            'success': (data) => {
-                json = data;
-            }
-        });
-        return json;
-    })();
-    return input.map((d,i) => { return new Interval(d)});
   }
 
   static get guid() {

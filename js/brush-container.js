@@ -997,7 +997,7 @@ class BrushContainer {
       .style('fill', (d, i) => d.fill)
       .style('stroke', (d, i) => d.stroke)
       .attr('d', (d,i) =>  d.render)
-      .on('mouseover', function(d,i) {
+      .on('mouseover', function(d,i) { console.log(d)
         d3.select(this).classed('highlighted', true);
       })
       .on('mouseout', function(d,i) {

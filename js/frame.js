@@ -28,6 +28,7 @@ class Frame extends Base {
     this.dataInput = {};
     this.dataInput.metadata = [];
     this.dataInput.intervals = [];
+    this.dataInput.subintervals = [];
     this.dataInput.connections = [];
     this.dataInput.genes = [];
     this.genomeLength = null;
@@ -85,7 +86,7 @@ class Frame extends Base {
     this.intervalBins = {};
     this.intervals = this.dataInput.intervals.map((d, i) => {
       if (this.settings && this.settings.y_axis && !this.settings.y_axis.visible) {
-        intervalLength = d.endPoint - d.startPoint;
+        intervalLength = d.endPoint - d.startPoint + 1;
         if (intervalLength > (0.1 * lengthExtent[d.chromosome][1])) {
           extentSize = lengthExtent[d.chromosome][0] - lengthExtent[d.chromosome][1];
           d.y = Math.round(1 + (9 / extentSize) * (intervalLength - lengthExtent[d.chromosome][1]));
@@ -101,13 +102,31 @@ class Frame extends Base {
       this.intervalBins[interval.iid] = interval;
       return interval;
     });
+    if (this.dataInput.subintervals) {
+      this.dataInput.subintervals.map((d, i) => {
+        d.chromosome = this.intervalBins[d.iid].chromosome;
+        if (d.startPoint === d.endPoint) {
+          d.startPoint += 0.1;
+          d.endPoint += 0.9;
+        }
+        d.y = this.intervalBins[d.iid].y + ((d.type === 'variant') ? -0.5 : 0.5);
+        d.iid = d.siid + d.iid / this.dataInput.subintervals.length;
+        let interval = new Interval(d);
+        interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+        interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+        interval.color = d3.rgb(this.chromoBins[interval.chromosome].color).brighter(1);
+        interval.shapeHeight = this.margins.walks.bar;
+        this.intervalBins[interval.iid] = interval;
+        this.intervals.push(interval);
+      });
+    }
     this.geneBins = {};
       this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
       let gene = new Gene(d);
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
       gene.color = this.chromoBins[gene.chromosome].color;
-      gene.y = 0; //Math.round(Math.random() * 10);
+      gene.y = 0;
       this.geneBins[gene.iid] = gene;
       return gene;
     });
@@ -130,6 +149,22 @@ class Frame extends Base {
         .endAngle((e, j) => e * Math.PI);
       return connection;
     });
+    if (this.dataInput.subconnections) {
+      this.dataInput.subconnections.map((d, i) => {
+        d.cid = d.iid + d.scid / this.dataInput.subconnections.length;
+        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / this.dataInput.subintervals.length);
+        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / this.dataInput.subintervals.length);
+        connection = new Connection(d);
+        connection.pinpoint(this.intervalBins);
+        connection.yScale = this.yScale;
+        connection.arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(this.margins.intervals.bar / 2)
+          .startAngle(0)
+          .endAngle((e, j) => e * Math.PI);
+        this.connections.push(connection);
+      });
+    }
     if (this.dataInput.walks) {
       this.walkIntervals = [];
       this.walkConnections = [];
@@ -162,9 +197,7 @@ class Frame extends Base {
           return connection;
         });
       });
-
     }
-
   }
 
   render() {

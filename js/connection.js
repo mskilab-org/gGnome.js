@@ -114,11 +114,11 @@ class Connection extends Base {
     var points = [];
 
     var origin = d3.min([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
-    var target = d3.max([this.source.scale(this.source.place), this.sink.scale(this.sink.place)]);
+    var target = (origin === this.source.scale(this.source.place)) ? this.sink.scale(this.sink.place) : this.source.scale(this.source.place);
     var originSign = (origin === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
-    var targetSign = (target === this.source.scale(this.source.place)) ? this.source.sign : this.sink.sign;
+    var targetSign = (originSign === this.source.sign) ? this.sink.sign : this.source.sign;
     var originY = (origin === this.source.scale(this.source.place)) ? (this.source.y) : (this.sink.y);
-    var targetY = (target === this.source.scale(this.source.place)) ? (this.source.y) : (this.sink.y);
+    var targetY = (originY === this.source.y) ? (this.sink.y) : (this.source.y);
     var midPointX = 0.5 * origin + 0.5 * target;
     var midPointY = 0.5 * originY + 0.5 * targetY;
 
