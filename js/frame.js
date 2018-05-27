@@ -58,6 +58,7 @@ class Frame extends Base {
         if (error) throw error;
         this.dataInput = results[0];
         this.dataInput.metadata = results[1].metadata;
+        this.dataInput.sequences = results[1].sequences;
         this.dataInput.genes = results[2].genes;
         this.render();
     });
@@ -66,13 +67,16 @@ class Frame extends Base {
   updateData() {
     if (this.dataInput === null) return;
     this.settings = this.dataInput.settings;
-    this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint + 1), 0);
+    this.dataInput.metadata.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
+    this.dataInput.intervals.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
+    this.dataInput.genes.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
+    this.genomeLength = this.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint), 0);
     let boundary = 0;
     this.genomeScale = d3.scaleLinear().domain([0, this.genomeLength]).range([0, this.width]);
     this.chromoBins = this.dataInput.metadata.reduce((hash, element) => {
       let chromo = new Chromo(element);
-      chromo.scaleToGenome = d3.scaleLinear().domain([0, chromo.endPoint]).range([boundary, boundary + chromo.length - 1]);
-      chromo.scale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(boundary), this.genomeScale(boundary + chromo.length - 1)]);
+      chromo.scaleToGenome = d3.scaleLinear().domain([0, chromo.endPoint]).range([boundary, boundary + chromo.length]);
+      chromo.scale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(boundary), this.genomeScale(boundary + chromo.length)]);
       chromo.innerScale = d3.scaleLinear().domain([0, chromo.endPoint]).range([this.genomeScale(chromo.startPoint), this.genomeScale(chromo.endPoint)]);
       hash[element.chromosome] = chromo; 
       boundary += chromo.length;
@@ -86,7 +90,7 @@ class Frame extends Base {
     this.intervalBins = {};
     this.intervals = this.dataInput.intervals.map((d, i) => {
       if (this.settings && this.settings.y_axis && !this.settings.y_axis.visible) {
-        intervalLength = d.endPoint - d.startPoint + 1;
+        intervalLength = d.endPoint - d.startPoint;
         if (intervalLength > (0.1 * lengthExtent[d.chromosome][1])) {
           extentSize = lengthExtent[d.chromosome][0] - lengthExtent[d.chromosome][1];
           d.y = Math.round(1 + (9 / extentSize) * (intervalLength - lengthExtent[d.chromosome][1]));
@@ -104,21 +108,27 @@ class Frame extends Base {
     });
     if (this.dataInput.subintervals) {
       this.dataInput.subintervals.map((d, i) => {
+        d.endPoint += 1; // because endpoint is inclusive
         d.chromosome = this.intervalBins[d.iid].chromosome;
-        if (d.startPoint === d.endPoint) {
-          d.startPoint += 0.1;
-          d.endPoint += 0.9;
-        }
-        d.y = this.intervalBins[d.iid].y + ((d.type === 'variant') ? -0.5 : 0.5);
-        d.iid = d.siid + d.iid / this.dataInput.subintervals.length;
+        d.y = this.intervalBins[d.iid].y + 2;
+        d.iid = d.siid + d.iid / Misc.power(this.dataInput.subintervals.length);
         let interval = new Interval(d);
         interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
         interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-        interval.color = d3.rgb(this.chromoBins[interval.chromosome].color).brighter(1);
+        interval.color = interval.sequence ? this.dataInput.sequences[interval.sequence] : this.dataInput.sequences.backbone;
         interval.shapeHeight = this.margins.walks.bar;
         this.intervalBins[interval.iid] = interval;
         this.intervals.push(interval);
       });
+      d3.nest()
+      .key((d, i) => [d.startPlace, d.endPlace])
+      .entries(this.intervals.filter((d, i) => d.siid > 0))
+      .filter((d, i) => (d.values.length > 1))
+      .forEach((d, i) => {
+        d.values.forEach((e, j) => {
+          e.y = (j < 1) ? (e.y - 1) : (e.y + j); // position the parallel segments as stacked in a bubble
+        });
+      })
     }
     this.geneBins = {};
       this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
@@ -151,9 +161,9 @@ class Frame extends Base {
     });
     if (this.dataInput.subconnections) {
       this.dataInput.subconnections.map((d, i) => {
-        d.cid = d.iid + d.scid / this.dataInput.subconnections.length;
-        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / this.dataInput.subintervals.length);
-        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / this.dataInput.subintervals.length);
+        d.cid = d.iid + d.scid / Misc.power(this.dataInput.subconnections.length);
+        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / Misc.power(this.dataInput.subintervals.length));
+        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / Misc.power(this.dataInput.subintervals.length));
         connection = new Connection(d);
         connection.pinpoint(this.intervalBins);
         connection.yScale = this.yScale;
@@ -171,6 +181,7 @@ class Frame extends Base {
       this.walks = this.dataInput.walks.map((d, i) => {
         let walk = new Walk(d);
         walk.intervals = walk.iids.map((d, i) => {
+          d.endPoint += 1; // because endpoint is inclusive
           let interval = new WalkInterval(d, walk);
           interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
           interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));

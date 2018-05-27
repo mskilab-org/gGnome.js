@@ -4,6 +4,10 @@ class Misc {
     return (Object.prototype.toString.call(obj) === '[object String]');
   }
 
+  static power(x) {
+    return Math.pow(10, (Math.log10((x ^ (x >> 31)) - (x >> 31)) | 0) + 1);
+  }
+
   static get chromosomeLabels() {
     return new Array(22).fill(0, 0, 22).map((x,i) => `${(i + 1)}`).concat(['X','Y','M']);
   }
