@@ -7,7 +7,7 @@ class Interval extends Base {
     this.chromosome = inter.chromosome;
     this.startPoint = inter.startPoint;
     this.endPoint = inter.endPoint;
-    this.intervalLength = this.endPoint - this.startPoint + 1;
+    this.intervalLength = this.endPoint - this.startPoint;
     this.y = inter.y;
     this.title = inter.title;
     this.type = inter.type;
@@ -18,7 +18,7 @@ class Interval extends Base {
       {label: 'Chromosome', value: this.chromosome}, 
       {label: 'Y', value: this.y}, 
       {label: 'Start Point (chromosome)', value: d3.format(',')(this.startPoint)},
-      {label: 'End Point (chromosome)', value: d3.format(',')(this.endPoint)}, 
+      {label: 'End Point (chromosome)', value: d3.format(',')(this.endPoint - 1)}, // because endpoint is inclusive 
       {label: 'Interval Length', value: d3.format(',')(this.intervalLength)}];
     if (this.strand) {
       this.attributes.push({label: 'Strand', value: this.strand});
