@@ -145,6 +145,7 @@ class Frame extends Base {
     if (this.yMax < 10) {
       this.yScale = d3.scaleLinear().domain([0, 10]).range([this.height - this.margins.panels.upperGap + this.margins.top, 2 * this.margins.intervals.bar]).nice();
     } else {
+      this.yMax = 10 * Math.round(this.yMax / 10) + 1;
       this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
     }
     this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickFormat(d3.format("d")).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));

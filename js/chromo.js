@@ -24,7 +24,7 @@ class Chromo {
   }
 
   get chromoGenome() {
-    return [this.scale.domain()[0] + 1, this.scale.domain()[1] - 1];
+    return [this.scale.domain()[0] + 1, this.scale.domain()[1] - 2];
   }
 
 }
