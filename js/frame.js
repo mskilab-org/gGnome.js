@@ -106,30 +106,6 @@ class Frame extends Base {
       this.intervalBins[interval.iid] = interval;
       return interval;
     });
-    if (this.dataInput.subintervals) {
-      this.dataInput.subintervals.map((d, i) => {
-        d.endPoint += 1; // because endpoint is inclusive
-        d.chromosome = this.intervalBins[d.iid].chromosome;
-        d.y = this.intervalBins[d.iid].y + 2;
-        d.iid = d.siid + d.iid / Misc.power(this.dataInput.subintervals.length);
-        let interval = new Interval(d);
-        interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
-        interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-        interval.color = interval.sequence ? this.dataInput.sequences[interval.sequence] : this.dataInput.sequences.backbone;
-        interval.shapeHeight = this.margins.walks.bar;
-        this.intervalBins[interval.iid] = interval;
-        this.intervals.push(interval);
-      });
-      d3.nest()
-      .key((d, i) => [d.startPlace, d.endPlace])
-      .entries(this.intervals.filter((d, i) => d.siid > 0))
-      .filter((d, i) => (d.values.length > 1))
-      .forEach((d, i) => {
-        d.values.forEach((e, j) => {
-          e.y = (j < 1) ? (e.y - 1) : (e.y + j); // position the parallel segments as stacked in a bubble
-        });
-      })
-    }
     this.geneBins = {};
       this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
       let gene = new Gene(d);
@@ -160,22 +136,6 @@ class Frame extends Base {
         .endAngle((e, j) => e * Math.PI);
       return connection;
     });
-    if (this.dataInput.subconnections) {
-      this.dataInput.subconnections.map((d, i) => {
-        d.cid = d.iid + d.scid / Misc.power(this.dataInput.subconnections.length);
-        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / Misc.power(this.dataInput.subintervals.length));
-        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / Misc.power(this.dataInput.subintervals.length));
-        connection = new Connection(d);
-        connection.pinpoint(this.intervalBins);
-        connection.yScale = this.yScale;
-        connection.arc = d3.arc()
-          .innerRadius(0)
-          .outerRadius(this.margins.intervals.bar / 2)
-          .startAngle(0)
-          .endAngle((e, j) => e * Math.PI);
-        this.connections.push(connection);
-      });
-    }
     if (this.dataInput.walks) {
       this.walkIntervals = [];
       this.walkConnections = [];
@@ -210,6 +170,47 @@ class Frame extends Base {
         });
       });
     }
+    d3.json('/subintervals/data3.json', (error, results) => {
+      this.dataInput.subintervals = results.intervals;
+      this.dataInput.subconnections = results.connections;
+      this.dataInput.subintervals.map((d, i) => {
+        d.endPoint += 1; // because endpoint is inclusive
+        d.type = 'subinterval';
+        d.chromosome = this.intervalBins[d.iid].chromosome;
+        d.y = this.intervalBins[d.iid].y;
+        d.iid = d.siid + d.iid / Misc.power(this.dataInput.subintervals.length);
+        let interval = new Interval(d);
+        interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+        interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+        interval.color = interval.sequence ? this.dataInput.sequences[interval.sequence] : this.dataInput.sequences.backbone;
+        interval.shapeHeight = this.margins.walks.bar;
+        this.intervalBins[interval.iid] = interval;
+        this.intervals.push(interval);
+      });
+      d3.nest()
+      .key((d, i) => [d.startPlace, d.endPlace])
+      .entries(this.intervals.filter((d, i) => d.siid > 0))
+      .filter((d, i) => (d.values.length > 1))
+      .forEach((d, i) => {
+        d.values.forEach((e, j) => {
+          e.y = (j < 1) ? (e.y - 1) : (e.y + j); // position the parallel segments as stacked in a bubble
+        });
+      })
+      this.dataInput.subconnections.map((d, i) => {
+        d.cid = d.iid + d.scid / Misc.power(this.dataInput.subconnections.length);
+        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / Misc.power(this.dataInput.subintervals.length));
+        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / Misc.power(this.dataInput.subintervals.length));
+        connection = new Connection(d);
+        connection.pinpoint(this.intervalBins);
+        connection.yScale = this.yScale;
+        connection.arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(this.margins.intervals.bar / 2)
+          .startAngle(0)
+          .endAngle((e, j) => e * Math.PI);
+        this.connections.push(connection);
+      });
+    });
   }
 
   render() {
