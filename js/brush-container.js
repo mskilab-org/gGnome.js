@@ -456,7 +456,6 @@ class BrushContainer {
       domain[1] = d3.max([domain[1], lowerBound + 1]);
     }
 
-
     // update the current brush
     fragment.scale.domain(domain);
     fragment.innerScale.domain(domain);

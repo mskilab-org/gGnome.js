@@ -31,7 +31,7 @@ $(function() {
       $('#' + dataSelector).selectpicker('show');
       $('#' + dataSelector).selectpicker('render');
     });
-    
+
     // Act upon json reload
     $('#' + dataSelector).on('rendered.bs.select', event => {
       frame.loadData($('#' + dataSelector).val());
