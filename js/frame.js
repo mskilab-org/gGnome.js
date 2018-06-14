@@ -50,12 +50,13 @@ class Frame extends Base {
   }
 
   loadData(dataFile) {
+    this.dataFile = dataFile;
     d3.queue()
-      .defer(d3.json, dataFile)
+      .defer(d3.json, './json/' + dataFile)
       .defer(d3.json, './public/metadata.json')
       .defer(d3.json, './public/genes.json')
       .awaitAll((error, results) => {
-        if (error) throw error;
+        if (error) return;
         this.dataInput = results[0];
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
@@ -170,7 +171,8 @@ class Frame extends Base {
         });
       });
     }
-    d3.json('/subintervals/data3.json', (error, results) => {
+    d3.json('/subintervals/' + this.dataFile, (error, results) => {
+      if (error) return;
       this.dataInput.subintervals = results.intervals;
       this.dataInput.subconnections = results.connections;
       this.dataInput.subintervals.map((d, i) => {
