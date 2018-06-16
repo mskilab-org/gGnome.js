@@ -63,6 +63,10 @@ class Interval extends Base {
     return this.errors.length < 1;
   }
 
+  get isSubInterval() {
+    return this.mode === 'subinterval';
+  }
+
   // The title for the popover on the intervals
   get popoverTitle() {
     return  ((this.siid > 0) ? 'Sub-' : '') + 'Interval #' + this.title;
