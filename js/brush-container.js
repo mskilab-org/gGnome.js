@@ -246,7 +246,7 @@ class BrushContainer {
       // filter the intervals
       d.visibleIntervals = [];
       this.frame.intervals
-      .filter((e, j) => ((d.selectionSize < this.frame.margins.brushes.minSelectionSize) ? (this.frame.hasSubintervals ? (e.isSubInterval) : (!e.isSubInterval)) : (!e.isSubInterval)))
+      .filter((e, j) => ((d.selectionSize < this.frame.margins.brushes.minSelectionSize) || (!e.isSubInterval)))
       .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
         || ((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace)))
       .forEach((inter, j) => {
