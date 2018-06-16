@@ -14,6 +14,10 @@ class Connection extends Base {
     this.errors = [];
   }
 
+  get isSubConnection() {
+    return this.mode === 'subconnection';
+  }
+
   valid() {
     this.errors = [];
     if (!Number.isInteger(this.cid) || (this.cid < 1)) {
