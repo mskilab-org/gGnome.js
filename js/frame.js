@@ -8,7 +8,7 @@ class Frame extends Base {
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 0, lowerGap: 20, axisTop: 10},
       panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10, yAxisTitleGap: 20},
-      brushes: {upperGap: -10, height: 50, minSelectionSize: 5},
+      brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
       walks: {bar: 10},
@@ -119,14 +119,7 @@ class Frame extends Base {
       return interval;
     });
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
-    this.yMax = d3.min([d3.max(this.dataInput.intervals.map((d, i) => d.y)), 500]);
-    if (this.yMax < 10) {
-      this.yScale = d3.scaleLinear().domain([0, 10]).range([this.height - this.margins.panels.upperGap + this.margins.top, 2 * this.margins.intervals.bar]).nice();
-    } else {
-      this.yMax = 10 * Math.round(this.yMax / 10) + 1;
-      this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
-    }
-    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickFormat(d3.format("d")).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
+    this.yScale = d3.scaleLinear();
     this.connections = this.dataInput.connections.map((d, i) => {
       connection = new Connection(d);
       connection.pinpoint(this.intervalBins);
@@ -173,12 +166,14 @@ class Frame extends Base {
       });
     }
     d3.json('./public/genes.json', (error, results) => {
+      console.log('genes succesfully loaded!', error);
       if (error) return;
       this.dataInput.genes = results.genes;
       this.updateGenes();
-      console.log('genes succesfully loaded!');
     });
+    this.hasSubintervals = false;
     d3.json('/subintervals/' + this.dataFile, (error, results) => {
+      console.log('subintervals succesfully loaded!', error);
       if (error) return;
       this.dataInput.subintervals = results.intervals;
       this.dataInput.subconnections = results.connections;
@@ -221,7 +216,6 @@ class Frame extends Base {
           .endAngle((e, j) => e * Math.PI);
         this.connections.push(connection);
       });
-      console.log('subintervals succesfully loaded!');
     });
   }
 
@@ -267,14 +261,6 @@ class Frame extends Base {
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
-    if (this.yMax < 10) {
-      this.yScale = d3.scaleLinear().domain([0, 10]).range([this.height - this.margins.panels.upperGap + this.margins.top, 2 * this.margins.intervals.bar]).nice();
-    } else {
-      this.yScale = d3.scaleLinear().domain([0, 10, this.yMax]).range([this.height - this.margins.panels.upperGap + this.margins.top, 0.4 * (this.height - this.margins.panels.upperGap + this.margins.top), 2 * this.margins.intervals.bar]).nice();
-    }
-    this.yAxis = d3.axisLeft(this.yScale).tickSize(-this.width).tickFormat(d3.format("d")).tickValues(d3.range(0, 10).concat(d3.range(10, 10 * Math.round(this.yMax / 10) + 1, 10)));
-    this.panelsContainer
-      .call(this.yAxis);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer
@@ -326,7 +312,7 @@ class Frame extends Base {
       .enter()
       .append('g')
       .attr('class', 'chromo-legend-container')
-      .attr('transform', (d, i) => ('translate(' + [d.chromoStartPosition, this.margins.legend.upperGap] + ')'))
+      .attr('transform', (d, i) => ('translate(' + [d.chromoStartPosition, this.margins.legend.upperGap] + ')'));
 
     chromoLegendContainer
       .append('rect')
@@ -358,8 +344,7 @@ class Frame extends Base {
     this.panelsContainer.append('g')
       .attr('class', 'axis axis--y')
       .classed('hidden', this.settings && this.settings.y_axis && !this.settings.y_axis.visible)
-      .attr('transform', 'translate(' + [0, 0] + ')')
-      .call(this.yAxis);
+      .attr('transform', 'translate(' + [0, 0] + ')');
 
     this.panelsContainer.append('g')
       .attr('class', 'y-axis-title')

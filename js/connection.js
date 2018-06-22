@@ -126,7 +126,7 @@ class Connection extends Base {
     var midPointX = 0.5 * origin + 0.5 * target;
     var midPointY = 0.5 * originY + 0.5 * targetY;
 
-    if (this.type === 'ALT') {
+    if ((this.type === 'ALT') && (this.mode !== 'subconnection')) {
       if (Math.abs(this.source.y) === Math.abs(this.sink.y)) {
         points = [
                 [origin, this.yScale(originY)],
