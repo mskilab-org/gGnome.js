@@ -6,19 +6,30 @@ $(function() {
   var dataSelector = 'data-selector';
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
+  var currentFile = Misc.getUrlParameter('file');
+  var currentLocation = Misc.getUrlParameter('location');
 
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
+  // set the default location as parsed from the url
+  frame.location = currentLocation;
 
   // If there are options defined on the HTML already, we should show them as they are (Web version)
   if ($('#' + 'data-selector').find('option').length > 0) {
+    // get the list of options
+    let options = $('#' + 'data-selector option').map(function() { return $(this).text(); }).get();
     // Act upon selector load
     $('#' + dataSelector).on('loaded.bs.select', event => {
-      frame.loadData($('#' + dataSelector).val());
+      if (options.indexOf(currentFile) > 0) {
+        $('#' + dataSelector).selectpicker('val', currentFile);
+      } else {
+        $('#' + dataSelector).selectpicker('val', options[0]);
+      }
+      $('#' + dataSelector).selectpicker('render');
     });
 
     // Act upon json reload
-    $('#' + dataSelector).on('changed.bs.select', event => {
+    $('#' + dataSelector).on('rendered.bs.select', event => {
       frame.loadData($('#' + dataSelector).val());
     });
   } else {
@@ -29,6 +40,9 @@ $(function() {
       $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
       $('#' + dataSelector).selectpicker('refresh');
       $('#' + dataSelector).selectpicker('show');
+      if (results.files.filter((d,i) => d.name === currentFile).length > 0) {
+        $('#' + dataSelector).selectpicker('val', currentFile);
+      }
       $('#' + dataSelector).selectpicker('render');
     });
 
