@@ -239,7 +239,8 @@ class Frame extends Base {
 
     this.renderLegend();
     this.renderBrushes();
-    this.brushContainer.createDefaults(this.chromoBins['1'].chromoGenome);
+
+    this.runLocate((this.location ? this.location : this.chromoBins['1'].domain));
 
     this.renderGeneModal();
   }
@@ -248,11 +249,16 @@ class Frame extends Base {
     this.brushContainer.deleteBrush();
   }
 
-  runLocate(domainString) {
-    let chromosome = domainString.split(":")[0];
-    let range = domainString.split(':')[1].split('-');
-    let chromo = this.chromoBins[chromosome];
-    this.brushContainer.createDefaults([chromo.scaleToGenome(parseFloat(range[0])), chromo.scaleToGenome(parseFloat(range[1]))]);
+  runLocate(fullDomainString) {
+    fullDomainString.split(' | ').forEach((subdomainString, i) => {
+      subdomainString.split(' ').forEach((domainString, j) => {
+        console.log(domainString)
+        let chromosome = domainString.split(":")[0];
+        let range = domainString.split(':')[1].split('-');
+        let chromo = this.chromoBins[chromosome];
+        this.brushContainer.createDefaults([chromo.scaleToGenome(parseFloat(range[0])), chromo.scaleToGenome(parseFloat(range[1]))]); 
+      });
+    });
   }
 
   toggleGenesPanel() {

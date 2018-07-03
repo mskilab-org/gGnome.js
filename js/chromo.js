@@ -24,7 +24,11 @@ class Chromo {
   }
 
   get chromoGenome() {
-    return [this.scale.domain()[0] + 1, this.scale.domain()[1] - 2];
+    return [this.scale.domain()[0] + 1, this.scale.domain()[1] - 1];
+  }
+
+  get domain() {
+    return `${this.chromosome}:${this.scale.domain()[0] + 1}-${this.scale.domain()[1] - 1}`;
   }
 
 }
