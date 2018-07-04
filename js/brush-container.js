@@ -128,6 +128,9 @@ class BrushContainer {
 
         // finally, update the chart with the selection in question
         self.update();
+        // update the url state
+        self.frame.url = `/index.html?file=${self.frame.dataFile}&location=${self.frame.note}`;
+        history.replaceState(self.frame.url, 'Project gGnome.js', self.frame.url);
     });
 
     this.fragments.push(new Fragment(brush));
@@ -531,6 +534,9 @@ class BrushContainer {
 
     // update the fragments note
     this.renderFragmentsDetails(this.panelDomainsDetails());
+
+    this.frame.url = `/index.html?file=${this.frame.dataFile}&location=${this.frame.note}`;
+    history.replaceState(this.frame.url, 'Project gGnome.js', this.frame.url);
   }
 
   renderClipPath() {
@@ -1189,6 +1195,7 @@ class BrushContainer {
   }
 
   renderFragmentsNote(note) {
+    this.frame.note = note;
     d3.select('#fragmentsNote').text(note);
   }
 
