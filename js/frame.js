@@ -51,6 +51,8 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
+    this.url = `/index.html?file=${this.dataFile}&location=${this.location}`;
+    history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
       .defer(d3.json, './json/' + dataFile)
       .defer(d3.json, './public/metadata.json')
@@ -250,14 +252,16 @@ class Frame extends Base {
   }
 
   runLocate(fullDomainString) {
+    this.runDelete();
     fullDomainString.split(' | ').forEach((subdomainString, i) => {
+      let domains = [];
       subdomainString.split(' ').forEach((domainString, j) => {
-        console.log(domainString)
         let chromosome = domainString.split(":")[0];
         let range = domainString.split(':')[1].split('-');
         let chromo = this.chromoBins[chromosome];
-        this.brushContainer.createDefaults([chromo.scaleToGenome(parseFloat(range[0])), chromo.scaleToGenome(parseFloat(range[1]))]); 
+        domains.push({chromosome: chromosome, chromo: chromo, range: range});
       });
+      this.brushContainer.createDefaults([domains[0].chromo.scaleToGenome(parseFloat(domains[0].range[0])), domains[domains.length - 1].chromo.scaleToGenome(parseFloat(domains[domains.length - 1].range[1]))]); 
     });
   }
 
