@@ -51,7 +51,7 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
-    this.url = `/index.html?file=${this.dataFile}&location=${this.location}`;
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
       .defer(d3.json, './json/' + dataFile)
