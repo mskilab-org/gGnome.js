@@ -11,6 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
+      reads: {gap: 2, coverageHeight: 20, selectionSize: 2},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -65,10 +66,22 @@ class Frame extends Base {
     });
   }
 
+  updateReads() {
+    this.dataInput.reads.forEach((d, i) => { 
+      d.endPoint += 1;
+      d.iids.forEach((d, i) => { d.endPoint += 1; d.y = 0; });
+     }); // because endpoint is inclusive
+    this.reads = this.dataInput.reads.map((d, i) => {
+      let read = new Read(d, this.chromoBins);
+      read.yCoverageScale = d3.scaleLinear().domain([read.coverageMax, 0]).range([this.margins.reads.gap, this.margins.reads.coverageHeight]);
+      return read;
+    });
+  }
+
   updateGenes() {
     this.dataInput.genes.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
     this.geneBins = {};
-      this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
+    this.genes = this.dataInput.genes.filter((d, i) => d.type === 'gene').map((d, i) => {
       let gene = new Gene(d);
       gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
       gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
@@ -166,6 +179,11 @@ class Frame extends Base {
           return connection;
         });
       });
+    }
+    // Reads
+    if(this.dataInput.reads) {
+      this.yReadIntervalsScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.coverageHeight, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
+      this.updateReads();
     }
     d3.json('./public/genes.json', (error, results) => {
       console.log('genes succesfully loaded!', error);
@@ -271,6 +289,7 @@ class Frame extends Base {
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
+    this.yReadIntervalsScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.coverageHeight, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer
@@ -283,6 +302,7 @@ class Frame extends Base {
       .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap, 0.5 * (this.height - this.margins.panels.upperGap + this.margins.top)] + ')rotate(-90)');
     this.genesContainer.classed('hidden', !this.showGenes);
     this.walksContainer.classed('hidden', !this.showWalks);
+    this.readsContainer.classed('hidden', !this.showReads);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
     this.brushContainer.update();
   }
@@ -380,6 +400,11 @@ class Frame extends Base {
     this.walksContainer = this.svg.append('g')
       .classed('walks-container', true)
       .classed('hidden', !this.showWalks)
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+
+    this.readsContainer = this.svg.append('g')
+      .classed('reads-container', true)
+      .classed('hidden', !this.showReads)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
     this.shapesContainer = this.svg.append('g')
