@@ -64,22 +64,38 @@ $(function() {
   });
 
   $('#gene-checkbox').on('click', (event) => {
-    $('#walk-checkbox').removeAttr('checked'); 
+    $('#walk-checkbox').removeAttr('checked');
+    $('#read-checkbox').removeAttr('checked');
     frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
       0.6 * frame.height: 
       frame.margins.defaults.upperGapPanel;
     frame.showGenes = $('#gene-checkbox').is(":checked");
     frame.showWalks = $('#walk-checkbox').is(":checked");
+    frame.showReads = $('#read-checkbox').is(":checked");
     frame.toggleGenesPanel();
   });
 
   $('#walk-checkbox').on('click', (event) => {
-    $('#gene-checkbox').removeAttr('checked'); 
+    $('#gene-checkbox').removeAttr('checked');
+    $('#read-checkbox').removeAttr('checked');
     frame.margins.panels.upperGap = $('#walk-checkbox').is(":checked") ? 
       0.8 * frame.height: 
       frame.margins.defaults.upperGapPanel;
     frame.showGenes = $('#gene-checkbox').is(":checked");
     frame.showWalks = $('#walk-checkbox').is(":checked");
+    frame.showReads = $('#read-checkbox').is(":checked");
+    frame.toggleGenesPanel();
+  });
+
+  $('#read-checkbox').on('click', (event) => {
+    $('#walk-checkbox').removeAttr('checked');
+    $('#gene-checkbox').removeAttr('checked');
+    frame.margins.panels.upperGap = $('#read-checkbox').is(":checked") ? 
+      0.6 * frame.height: 
+      frame.margins.defaults.upperGapPanel;
+    frame.showGenes = $('#gene-checkbox').is(":checked");
+    frame.showWalks = $('#walk-checkbox').is(":checked");
+    frame.showReads = $('#read-checkbox').is(":checked");
     frame.toggleGenesPanel();
   });
 

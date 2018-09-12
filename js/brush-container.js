@@ -165,6 +165,9 @@ class BrushContainer {
     // Draw the genes
     this.renderGenes();
 
+    // Draw the reads
+    this.renderReads();
+
     // Draw the walk intervals
     this.renderWalkIntervals();
     
@@ -285,6 +288,35 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
+      // filter the read intervals
+      d.visibleReadIntervals = [];
+      d.visibleReads = [];
+      if (this.frame.reads) {
+        this.frame.reads
+        .forEach((read, j) => {
+          read.identifier = Misc.guid;
+          read.areaPath = d3.area()
+            .x((coords) => d.innerScale(coords[0]))
+            .y1((coords) => read.yCoverageScale(coords[1]))
+            .y0((coords) => read.yCoverageScale(0))(read.coverageCoords);
+          d.visibleReads.push(read);
+          read.intervals.forEach((interval, j) => {
+            interval.identifier = Misc.guid;
+            interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
+            interval.shapeWidth = interval.range[1] - interval.range[0];
+            interval.shapeHeight = this.frame.margins.intervals.bar;
+            interval.read = read;
+            interval.fragment = d;
+            if (interval.shapeWidth > this.frame.margins.reads.selectionSize) {
+              let collisions = d.visibleReadIntervals.filter((f,k) => (interval.identifier !== f.identifier) && interval.isOverlappingWith(f));
+              interval.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
+              d.visibleReadIntervals.push(interval);
+            }
+          });
+        });
+        d.yReadIntervals = d3.map(d.visibleReadIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
+        d.yReadIntervalsScale = d3.scalePoint().domain(d.yReadIntervals).padding([1]).rangeRound(this.frame.yReadIntervalsScale.range());
+      }
       // filter the Walks
       d.visibleWalkIntervals = [];
       this.frame.walks.forEach((walk, j) => {
@@ -337,7 +369,6 @@ class BrushContainer {
           this.walkConnections.push(connection);
          });
     });
-
     // filter the connections between the visible fragments
     k_combinations(this.visibleFragments, 2).forEach((pair, i) => {
       frameConnections
@@ -431,6 +462,7 @@ class BrushContainer {
       .tickFormat(d3.format("d"))
       .tickValues(d3.range(0, 10)
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
+    // filter the reads
   }
 
   zoomed(fragment) {
@@ -525,6 +557,9 @@ class BrushContainer {
 
     // update the genes
     this.renderGenes();
+
+    // update the reads
+    this.renderReads();
 
     // update the walk intervals
     this.renderWalkIntervals();
@@ -1176,6 +1211,90 @@ class BrushContainer {
     } else {
       this.frame.walkConnectionsContainer.selectAll('path.connection').remove();
     }
+  }
+
+  renderReads() {
+    var self = this;
+    // create the g elements containing the intervals
+    let readsPanels = this.frame.readsContainer.selectAll('g.reads-panel')
+      .data(this.visibleFragments, (d, i) => d.id);
+
+    readsPanels
+      .enter()
+      .append('g')
+      .attr('class', 'reads-panel')
+      .style('clip-path','url(#genes-clip)')
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    readsPanels
+      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+
+    readsPanels
+      .exit()
+      .remove();
+
+    if (this.frame.showReads) {
+
+      // add the actual intervals as polygons
+      let readIntervals = readsPanels.selectAll('polygon.readInterval')
+        .data((d, i) => d.visibleReadIntervals, (d, i) =>  d.identifier);
+
+      readIntervals
+        .enter()
+        .append('polygon')
+        .attr('id', (d, i) => d.identifier)
+        .attr('class', (d, i) => 'popovered readInterval')
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke)
+        .on('mouseover', function(d,i) {
+          d3.select(this).classed('highlighted', true);
+        })
+        .on('mouseout', function(d,i) {
+          d3.select(this).classed('highlighted', false);
+        })
+        .on('mousemove', (d,i) => this.loadPopover(d));
+
+      readIntervals
+        .attr('id', (d, i) => d.identifier)
+        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
+        .attr('points', (d, i) => d.points)
+        .style('fill', (d, i) => d.fill)
+        .style('stroke', (d, i) => d.stroke);
+
+      readIntervals
+       .exit()
+       .remove();
+
+
+     let readCoverages = readsPanels.selectAll('path.readCoverage')
+       .data((d, i) => d.visibleReads, (d, i) =>  d.identifier);
+
+     readCoverages
+       .enter()
+       .append('path')
+       .attr('id', (d, i) => d.identifier)
+       .attr('class', (d, i) => 'popovered readCoverage')
+       .attr('d', (d,i) => d.areaPath)
+       .style('fill', (d, i) => d.fill)
+       .style('stroke', (d, i) => d.stroke);
+
+     readCoverages
+       .attr('id', (d, i) => d.identifier)
+       .attr('d', (d,i) => d.areaPath)
+       .style('fill', (d, i) => d.fill)
+       .style('stroke', (d, i) => d.stroke);
+
+     readCoverages
+      .exit()
+      .remove();
+
+    } else {
+      readsPanels.selectAll('polygon').remove();
+      readsPanels.selectAll('path').remove();
+    }
+
   }
 
   panelDomainsText() {
