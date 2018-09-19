@@ -288,6 +288,17 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
+      // filter the coverage
+      d.visibleCoveragePoints = this.frame.coveragePoints
+      .filter((e, j) => ((e.x <= d.domain[1]) && (e.x >= d.domain[0])))
+      .map((point,i) => { 
+        point.coords = {x: d.innerScale(point.x), y: this.frame.yCoverageScale(point.y)};
+        return point;
+      });
+      d.areaPath = d3.area()
+      .x((coords) => d.innerScale(coords.x))
+      .y1((coords) => this.frame.yCoverageScale(coords.y))
+      .y0((coords) => this.frame.yCoverageScale(0))(d.visibleCoveragePoints);
       // filter the read intervals
       d.visibleReadIntervals = [];
       d.visibleReads = [];
@@ -295,10 +306,6 @@ class BrushContainer {
         this.frame.reads
         .forEach((read, j) => {
           read.identifier = Misc.guid;
-          read.areaPath = d3.area()
-            .x((coords) => d.innerScale(coords[0]))
-            .y1((coords) => read.yCoverageScale(coords[1]))
-            .y0((coords) => read.yCoverageScale(0))(read.coverageCoords);
           d.visibleReads.push(read);
           read.intervals.forEach((interval, j) => {
             interval.identifier = Misc.guid;
@@ -1267,26 +1274,35 @@ class BrushContainer {
        .exit()
        .remove();
 
+     // add the actual intervals as polygons
+     let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
+       .data((d, i) => d.visibleCoveragePoints, (d, i) =>  d.identifier);
 
-     let readCoverages = readsPanels.selectAll('path.readCoverage')
-       .data((d, i) => d.visibleReads, (d, i) =>  d.identifier);
-
-     readCoverages
+     coverageCircles
        .enter()
-       .append('path')
+       .append('circle')
        .attr('id', (d, i) => d.identifier)
-       .attr('class', (d, i) => 'popovered readCoverage')
-       .attr('d', (d,i) => d.areaPath)
+       .attr('class', (d, i) => 'popovered coverage-circle')
+       .attr('transform', (d, i) => 'translate(' + [d.coords.x, d.coords.y] + ')')
+       .attr('r', (d, i) => d.radius)
        .style('fill', (d, i) => d.fill)
-       .style('stroke', (d, i) => d.stroke);
+       .style('stroke', (d, i) => d.stroke)
+       .on('mouseover', function(d,i) {
+         d3.select(this).classed('highlighted', true);
+       })
+       .on('mouseout', function(d,i) {
+         d3.select(this).classed('highlighted', false);
+       })
+       .on('mousemove', (d,i) => this.loadPopover(d));
 
-     readCoverages
+     coverageCircles
        .attr('id', (d, i) => d.identifier)
-       .attr('d', (d,i) => d.areaPath)
+       .attr('transform', (d, i) => 'translate(' + [d.coords.x, d.coords.y] + ')')
+       .attr('r', (d, i) => d.radius)
        .style('fill', (d, i) => d.fill)
-       .style('stroke', (d, i) => d.stroke);
+       .style('stroke', (d, i) => d.stroke)
 
-     readCoverages
+     coverageCircles
       .exit()
       .remove();
 

@@ -11,7 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
-      reads: {gap: 2, coverageHeight: 20, selectionSize: 2},
+      reads: {gap: 2, coverageHeight: 140, selectionSize: 2},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -38,6 +38,7 @@ class Frame extends Base {
     this.intervals = [];
     this.genes = [];
     this.walks = [];
+    this.coveragePoints = [];
     this.yWalkExtent = [];
     this.axis = null;
   }
@@ -237,6 +238,17 @@ class Frame extends Base {
         this.connections.push(connection);
       });
     });
+    d3.json('./public/coverage.json', (error, results) => {
+      console.log('coverage succesfully loaded!', error);
+      if (error) return;
+      results.coverage.forEach((d,i) => {
+        d.y.forEach((e,j) => {
+          let point = new CoveragePoint(d.iid, d.chromosome, d.startPoint + j * d.binwidth, Math.floor(this.chromoBins[d.chromosome].scaleToGenome(d.startPoint + j * d.binwidth + 1)), e);
+          point.color = this.chromoBins[point.chromosome].color;
+          this.coveragePoints.push(point);
+        });
+      });
+    });
   }
 
   render() {
@@ -290,6 +302,7 @@ class Frame extends Base {
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yReadIntervalsScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.coverageHeight, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
+    this.yCoverageScale = d3.scaleLinear().domain([1, 0]).range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer

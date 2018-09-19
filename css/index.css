@@ -23,6 +23,12 @@ svg.plot {
   stroke-width: 2;
 }
 
+circle.highlighted {
+  stroke: orange !important;
+  fill: white !important;
+  stroke-width: 2;
+}
+
 .dragged {
   stroke: orange !important;
   fill: white !important;
