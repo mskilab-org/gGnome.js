@@ -290,7 +290,7 @@ class BrushContainer {
       }
       // filter the coverage
       d.visibleCoveragePoints = this.frame.coveragePoints
-      .filter((e, j) => ((e.x <= d.domain[1]) && (e.x >= d.domain[0])))
+      .filter((e, j) => (((d.domain[1] - d.domain[0]) < 1e7) && (e.x <= d.domain[1]) && (e.x >= d.domain[0])))
       .map((point,i) => { 
         point.coords = {x: d.innerScale(point.x), y: this.frame.yCoverageScale(point.y)};
         return point;
