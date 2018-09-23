@@ -71,20 +71,20 @@ class BrushContainer {
         let node;
 
         // read the current state of all the self.fragments before you start checking on collisions
-        self.otherSelections = self.fragments.filter((d, i) => (d.selection !== null) && (d.id !== self.activeId)).map((d, i) => {
+        self.otherSelections = self.fragments.filter((d,i) => (d.selection !== null) && (d.id !== self.activeId)).map((d,i) => {
           node = d3.select('#brush-' + d.id).node();
           return node && d3.brushSelection(node);
         });
 
         // calculate the lower allowed selection edge this brush can move
-        let lowerEdge = d3.max(self.otherSelections.filter((d, i) => (d.selection !== null))
-          .filter((d, i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1]))
-          .map((d, i) => d[1]));
+        let lowerEdge = d3.max(self.otherSelections.filter((d,i) => (d.selection !== null))
+          .filter((d,i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1]))
+          .map((d,i) => d[1]));
 
         // calculate the upper allowed selection edge this brush can move
-        let upperEdge = d3.min(self.otherSelections.filter((d, i) => (d.selection !== null))
-          .filter((d, i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1]))
-          .map((d, i) => d[0]));
+        let upperEdge = d3.min(self.otherSelections.filter((d,i) => (d.selection !== null))
+          .filter((d,i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1]))
+          .map((d,i) => d[0]));
 
         // if there is an upper edge, then set this to be the upper bound of the current selection
         if ((upperEdge !== undefined) && (selection[1] >= upperEdge)) {
@@ -199,7 +199,7 @@ class BrushContainer {
     let frameWalkConnections = Object.assign([], this.frame.walkConnections);
 
     // delete any brushes that have a zero selection size
-    this.fragments = this.fragments.filter((d, i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
+    this.fragments = this.fragments.filter((d,i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
 
     // filter the brushes that are visible on the screen
     this.fragments.forEach((fragment, i) => {
@@ -223,10 +223,11 @@ class BrushContainer {
     this.visibleFragments = Object.assign([], this.visibleFragments.sort((x, y) => d3.ascending(x.selection[0], y.selection[0])));
 
     // Determine the panel parameters for rendering
-    this.visibleFragments.forEach((d, i) => {
+    this.visibleFragments.forEach((d,i) => {
       d.selectionSize = d.selection[1] -  d.selection[0];
       d.panelWidth = this.panelWidth;
       d.panelHeight = this.panelHeight;
+      d.domainWidth = d.domain[1] - d.domain[0];
       d.range = [i * (d.panelWidth + this.frame.margins.panels.gap), (i + 1) * d.panelWidth + i * this.frame.margins.panels.gap];
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
       d.innerScale = d3.scaleLinear().domain(d.domain).range([0, d.panelWidth]);
@@ -290,15 +291,11 @@ class BrushContainer {
       }
       // filter the coverage
       d.visibleCoveragePoints = this.frame.coveragePoints
-      .filter((e, j) => (((d.domain[1] - d.domain[0]) < 1e7) && (e.x <= d.domain[1]) && (e.x >= d.domain[0])))
+      .filter((e, j) => ((e.x <= d.domain[1]) && (e.x >= d.domain[0])))
       .map((point,i) => { 
-        point.coords = {x: d.innerScale(point.x), y: this.frame.yCoverageScale(point.y)};
+        point.coords = {point: point, x: d.innerScale(point.x), y: (point.y)};
         return point;
       });
-      d.areaPath = d3.area()
-      .x((coords) => d.innerScale(coords.x))
-      .y1((coords) => this.frame.yCoverageScale(coords.y))
-      .y0((coords) => this.frame.yCoverageScale(0))(d.visibleCoveragePoints);
       // filter the read intervals
       d.visibleReadIntervals = [];
       d.visibleReads = [];
@@ -427,7 +424,7 @@ class BrushContainer {
         });
     });
     // filter the anchor connections
-    let visibleConnections = Object.assign([], this.connections).map((d, i) => d.cid);
+    let visibleConnections = Object.assign([], this.connections).map((d,i) => d.cid);
     this.visibleFragments.forEach((fragment, i) => {
       frameConnections
         .filter((e, j) => { return (e.type !== 'LOOSE') && (!visibleConnections.includes(e.cid))
@@ -441,7 +438,7 @@ class BrushContainer {
         });
     });
     // filter the anchor walk connections
-    let visibleWalkConnections = Object.assign([], this.walkConnections).map((d, i) => d.cid);
+    let visibleWalkConnections = Object.assign([], this.walkConnections).map((d,i) => d.cid);
     this.visibleFragments.forEach((fragment, i) => {
       frameWalkConnections
         .filter((e, j) => { return (e.type !== 'LOOSE') && (!visibleWalkConnections.includes(e.cid))
@@ -455,7 +452,7 @@ class BrushContainer {
         });
     });
     // Calculate the yMax from all the intervals present in the current visible fragments
-    this.frame.yMax = d3.min([d3.max(this.visibleFragments.map((d, i) => d.visibleIntervals.map((d, i) => d.y)).reduce((acc, c) => acc.concat(c),[9])), 500]);
+    this.frame.yMax = d3.min([d3.max(this.visibleFragments.map((d,i) => d.visibleIntervals.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[9])), 500]);
     // if we are at less than 10, then render the y axis from 0 to 10
     if (this.frame.yMax < 10) {
       this.frame.yMax = 10;
@@ -469,7 +466,17 @@ class BrushContainer {
       .tickFormat(d3.format("d"))
       .tickValues(d3.range(0, 10)
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
-    // filter the reads
+    if (this.frame.yCoverageScale) {
+      // Calculate the yMax from all the coverage points present in the current visible fragments
+      this.frame.yCoverageExtent = d3.extent(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]));
+      if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
+        this.frame.yCoverageExtent[0] = this.frame.yCoverageExtent[0] - 1;
+        this.frame.yCoverageExtent[1] = this.frame.yCoverageExtent[1] + 1;
+      }
+      this.frame.yCoverageScale.domain(this.frame.yCoverageExtent.reverse()).nice();
+      this.frame.yCoverageAxis = d3.axisLeft(this.frame.yCoverageScale)
+        .tickSize(-this.frame.width);
+    }
   }
 
   zoomed(fragment) {
@@ -508,9 +515,9 @@ class BrushContainer {
     let domain = Object.assign([], zoomedDomain);
 
     // Calculate the other domains and the domain bounds for the current brush
-    let otherDomains = this.fragments.filter((d, i) => (d.selection !== null) && (d.id !== fragment.id)).map((d, i) => d.domain);
-    let lowerBound = d3.max(otherDomains.filter((d, i) => fragment.domain && (d[1] <= fragment.domain[0])).map((d, i) => d[1]));
-    let upperBound = d3.min(otherDomains.filter((d, i) => fragment.domain && (d[0] >= fragment.domain[1])).map((d, i) => d[0]));
+    let otherDomains = this.fragments.filter((d,i) => (d.selection !== null) && (d.id !== fragment.id)).map((d,i) => d.domain);
+    let lowerBound = d3.max(otherDomains.filter((d,i) => fragment.domain && (d[1] <= fragment.domain[0])).map((d,i) => d[1]));
+    let upperBound = d3.min(otherDomains.filter((d,i) => fragment.domain && (d[0] >= fragment.domain[1])).map((d,i) => d[0]));
 
     // if there is an upper bound, set this to the maximum allowed limit
     if ((upperBound !== undefined) && (domain[1] >= upperBound)) {
@@ -540,7 +547,7 @@ class BrushContainer {
 
     //update the panel axis Top
     this.frame.panelsChromoAxisContainerTop.selectAll('g.axis')
-      .data(this.visibleFragments,  (d, i) => d.id)
+      .data(this.visibleFragments,  (d,i) => d.id)
       .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
         d3.select(this).select('text.label-legend').attr('transform', (e, j) => d.labelTopTranslate);
@@ -548,7 +555,7 @@ class BrushContainer {
 
     //update the panel axis Top
     this.frame.panelsChromoAxisContainerBottom.selectAll('g.axis')
-      .data(this.visibleFragments,  (d, i) => d.id)
+      .data(this.visibleFragments,  (d,i) => d.id)
       .each(function(d,i) {
         d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start');
       });
@@ -598,14 +605,14 @@ class BrushContainer {
     var self = this;
 
     let brushSelection = this.frame.brushesContainer.selectAll('.brush')
-      .data(this.fragments,  (d, i) => d.id);
+      .data(this.fragments,  (d,i) => d.id);
 
     // Set up new brushes
     brushSelection
       .enter()
       .insert('g', '.brush')
       .attr('class', 'brush')
-      .attr('id', (d, i) => 'brush-' + d.id)
+      .attr('id', (d,i) => 'brush-' + d.id)
       .each(function(fragment) {
         //call the brush
         d3.select(this).call(fragment.brush);
@@ -616,9 +623,9 @@ class BrushContainer {
       .each(function (fragment){
         d3.select(this)
           .attr('class', 'brush')
-          .classed('highlighted', (d, i) => d.id === self.activeId)
+          .classed('highlighted', (d,i) => d.id === self.activeId)
           .selectAll('.overlay')
-          .style('pointer-events',(d, i) => {
+          .style('pointer-events',(d,i) => {
             let brush = fragment.brush;
             if (fragment.id === self.fragments[self.fragments.length - 1].id && brush !== undefined) {
               return 'all';
@@ -640,17 +647,17 @@ class BrushContainer {
 
     // Draw the panel rectangles
     let panelRectangles = this.frame.panelsContainer.selectAll('rect.panel')
-      .data(this.visibleFragments,  (d, i) => d.id);
+      .data(this.visibleFragments,  (d,i) => d.id);
 
     panelRectangles
       .enter()
       .append('rect')
       .attr('class', 'panel')
-      .attr('id', (d, i) => 'panel-' + d.id)
+      .attr('id', (d,i) => 'panel-' + d.id)
       .style('clip-path','url(#clip)')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('width', (d, i) => d.panelWidth + this.frame.margins.panels.widthOffset)
-      .attr('height', (d, i) => d.panelHeight + correctionOffset)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('width', (d,i) => d.panelWidth + this.frame.margins.panels.widthOffset)
+      .attr('height', (d,i) => d.panelHeight + correctionOffset)
       .each(function(d,i) {
         d3.select(this)
           .call(d.zoom.transform, d3.zoomIdentity
@@ -665,9 +672,9 @@ class BrushContainer {
       })
 
     panelRectangles
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('width', (d, i) => d.panelWidth + this.frame.margins.panels.widthOffset)
-      .attr('height', (d, i) => d.panelHeight + correctionOffset)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('width', (d,i) => d.panelWidth + this.frame.margins.panels.widthOffset)
+      .attr('height', (d,i) => d.panelHeight + correctionOffset)
       .each(function(d,i) {
         d3.select(this).call(d.zoom)
          .call(d.zoom.transform, d3.zoomIdentity
@@ -691,29 +698,29 @@ class BrushContainer {
 
     //Chromo Axis Top
     let chromoAxisContainer = this.frame.panelsChromoAxisContainerTop.selectAll('g.chromo-axis-container')
-      .data(this.visibleFragments,  (d, i) => d.id);
+      .data(this.visibleFragments,  (d,i) => d.id);
 
     chromoAxisContainer
       .enter()
       .append('g')
       .attr('class', 'chromo-axis-container')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     chromoAxisContainer
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     chromoAxisContainer
       .exit()
       .remove();
 
     let chromoAxis = chromoAxisContainer.selectAll('g.chromo-legend')
-      .data((d, i) => d.chromoAxis, (d, i) => d.identifier);
+      .data((d,i) => d.chromoAxis, (d,i) => d.identifier);
 
     chromoAxis
       .enter()
       .append('g')
       .attr('class', 'chromo-legend')
-      .attr('transform', (d, i) => d.transform)
+      .attr('transform', (d,i) => d.transform)
       .each(function(d,i) {
         d3.select(this).append('rect').attr('width', (e, j) => d.rangeWidth).attr('y', -self.frame.margins.panels.legend).attr('height', self.frame.margins.panels.legend).style('fill', (e, j) => "url('#gradient" + d.chromo.chromosome +"')");
         d3.select(this).append('text').attr('class', 'label-chromosome').attr('transform', (e, j) => d.labelTopTranslate).text((e, j) => d.chromo.chromosome);
@@ -723,7 +730,7 @@ class BrushContainer {
       })
 
     chromoAxis
-      .attr('transform', (d, i) => d.transform)
+      .attr('transform', (d,i) => d.transform)
       .each(function(d,i) {
         d3.select(this).select('rect').attr('width', (e, j) => d.rangeWidth);
         d3.select(this).select('text.label-chromosome').attr('transform', (e, j) => d.labelTopTranslate);
@@ -738,35 +745,35 @@ class BrushContainer {
 
     // Chromo Axis Bottom
     let chromoAxisContainerBottom = this.frame.panelsChromoAxisContainerBottom.selectAll('g.chromo-axis-container-bottom')
-      .data(this.visibleFragments,  (d, i) => d.id);
+      .data(this.visibleFragments,  (d,i) => d.id);
 
     chromoAxisContainerBottom
       .enter()
       .append('g')
       .attr('class', 'chromo-axis-container-bottom')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     chromoAxisContainerBottom
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     chromoAxisContainerBottom
       .exit()
       .remove();
 
     let chromoAxisBottom = chromoAxisContainerBottom.selectAll('g.chromo-axis-bottom')
-      .data((d, i) => d.chromoAxis, (d, i) => d.identifier);
+      .data((d,i) => d.chromoAxis, (d,i) => d.identifier);
 
     chromoAxisBottom
       .enter()
       .append('g')
       .attr('class', 'chromo-axis-bottom axis axis--x')
-      .attr('transform', (d, i) => d.transform)
+      .attr('transform', (d,i) => d.transform)
       .each(function(d,i) {
         d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start').style('fill', (e, j) => d.chromo.color);
       });
 
     chromoAxisBottom
-      .attr('transform', (d, i) => d.transform)
+      .attr('transform', (d,i) => d.transform)
       .each(function(d,i) {
         d3.select(this).call(d.axisBottom).selectAll('text').attr('transform', 'rotate(45)').style('text-anchor', 'start').style('fill', (e, j) => d.chromo.color);
       });
@@ -781,17 +788,17 @@ class BrushContainer {
 
     // create the g elements containing the intervals
     let shapesPanels = this.frame.shapesContainer.selectAll('g.shapes-panel')
-      .data(this.visibleFragments, (d, i) => d.id);
+      .data(this.visibleFragments, (d,i) => d.id);
 
     shapesPanels
       .enter()
       .append('g')
       .attr('class', 'shapes-panel')
       .style('clip-path','url(#clip)')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     shapesPanels
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     shapesPanels
       .exit()
@@ -799,29 +806,29 @@ class BrushContainer {
 
     // add the actual intervals as rectangles
     let shapes = shapesPanels.selectAll('rect.shape')
-      .data((d, i) => d.visibleIntervals, (d, i) =>  d.identifier);
+      .data((d,i) => d.visibleIntervals, (d,i) =>  d.identifier);
 
     shapes
       .enter()
       .append('rect')
-      .attr('id', (d, i) => d.identifier)
+      .attr('id', (d,i) => d.identifier)
       .attr('class', 'popovered shape')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-      .attr('width', (d, i) => d.shapeWidth)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+      .attr('width', (d,i) => d.shapeWidth)
       .attr('height', this.frame.margins.intervals.bar)
-      .style('fill', (d, i) => d.color)
-      .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
-      .on('mouseover', function(d, i) {
+      .style('fill', (d,i) => d.color)
+      .style('stroke', (d,i) => d3.rgb(d.color).darker(1))
+      .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
       })
-      .on('mouseout', function(d, i) {
+      .on('mouseout', function(d,i) {
         d3.select(this).classed('highlighted', false);
       })
-      .on('mousemove', (d, i) => this.loadPopover(d))
-      .on('click', (d, i) => {
+      .on('mousemove', (d,i) => this.loadPopover(d))
+      .on('click', (d,i) => {
         this.renderFragmentsNote(d.location);
       })
-      .on('dblclick', (d, i) => {
+      .on('dblclick', (d,i) => {
         let fragment = d.fragment;
         let lambda = (fragment.panelWidth - 2 * this.frame.margins.intervals.gap) / (d.endPlace - d.startPlace);
         let domainOffset = this.frame.margins.intervals.gap / lambda;
@@ -831,7 +838,7 @@ class BrushContainer {
         this.update();
       })
       .call(d3.drag()
-        .subject((d, i) =>  {return {x: d.range[0], y: (this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar)}})
+        .subject((d,i) =>  {return {x: d.range[0], y: (this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar)}})
         .on('start', function(d,i) {
           if (self.frame.settings && self.frame.settings.y_axis && !self.frame.settings.y_axis.visible) {
             d3.select(this).raise()
@@ -870,11 +877,11 @@ class BrushContainer {
         }));
 
     shapes
-      .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
-      .attr('width', (d, i) => d.shapeWidth)
-      .style('fill', (d, i) => d.color)
-      .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+      .attr('id', (d,i) => d.identifier)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
+      .attr('width', (d,i) => d.shapeWidth)
+      .style('fill', (d,i) => d.color)
+      .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
 
     shapes
       .exit()
@@ -885,17 +892,17 @@ class BrushContainer {
     var self = this;
     // create the g elements containing the intervals
     let genesPanels = this.frame.genesContainer.selectAll('g.genes-panel')
-      .data(this.visibleFragments, (d, i) => d.id);
+      .data(this.visibleFragments, (d,i) => d.id);
 
     genesPanels
       .enter()
       .append('g')
       .attr('class', 'genes-panel')
       .style('clip-path','url(#genes-clip)')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     genesPanels
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     genesPanels
       .exit()
@@ -904,17 +911,17 @@ class BrushContainer {
     if (this.frame.showGenes) {
       // add the actual intervals as rectangles
       let genes = genesPanels.selectAll('polygon.geneShape')
-        .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+        .data((d,i) => d.visibleGenes, (d,i) =>  d.identifier);
 
       genes
         .enter()
         .append('polygon')
-        .attr('id', (d, i) => d.identifier)
-        .attr('class', (d, i) => 'popovered geneShape ' + d.type)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke)
+        .attr('id', (d,i) => d.identifier)
+        .attr('class', (d,i) => 'popovered geneShape ' + d.type)
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke)
         .on('mouseover', function(d,i) {
           d3.select(this).classed('highlighted', true);
         })
@@ -949,11 +956,11 @@ class BrushContainer {
         });
 
       genes
-        .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke);
+        .attr('id', (d,i) => d.identifier)
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y)] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke);
 
       genes
        .exit()
@@ -961,27 +968,27 @@ class BrushContainer {
     
       // add the actual intervals as rectangles
       let genesLabels = genesPanels.selectAll('text.gene-label')
-        .data((d, i) => d.visibleGenes, (d, i) =>  d.identifier);
+        .data((d,i) => d.visibleGenes, (d,i) =>  d.identifier);
     
       genesLabels
         .enter()
         .append('text')
-        .attr('id', (d, i) => d.identifier)
-        .attr('class', (d, i) => 'gene-label')
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-        .text((d, i) => d.title);
+        .attr('id', (d,i) => d.identifier)
+        .attr('class', (d,i) => 'gene-label')
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .text((d,i) => d.title);
     
       genesLabels
-        .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-        .text((d, i) => d.title);
+        .attr('id', (d,i) => d.identifier)
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .text((d,i) => d.title);
 
       genesLabels
         .exit()
         .remove();
 
       genesPanels.selectAll('text.gene-label')
-        .style('opacity', function(d, i) {
+        .style('opacity', function(d,i) {
           let textLength = d3.select(this).node().getComputedTextLength();
           let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)) && (e.opacity > 0))).length;
           d.opacity = ((collisions < 1) ? 1 : 0);
@@ -999,17 +1006,17 @@ class BrushContainer {
 
     // create the g elements containing the intervals
     let shapesPanels = this.frame.walksContainer.selectAll('g.walks-panel')
-      .data(this.visibleFragments, (d, i) => d.id);
+      .data(this.visibleFragments, (d,i) => d.id);
 
     shapesPanels
       .enter()
       .append('g')
       .attr('class', 'walks-panel')
       .style('clip-path','url(#genes-clip)')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     shapesPanels
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     shapesPanels
       .exit()
@@ -1018,17 +1025,17 @@ class BrushContainer {
     if (this.frame.showWalks) {
       // add the actual intervals as rectangles
       let shapes = shapesPanels.selectAll('polygon.shape')
-        .data((d, i) => d.visibleWalkIntervals, (d, i) =>  d.identifier);
+        .data((d,i) => d.visibleWalkIntervals, (d,i) =>  d.identifier);
 
       shapes
         .enter()
         .append('polygon')
-        .attr('id', (d, i) => d.identifier)
+        .attr('id', (d,i) => d.identifier)
         .attr('class', 'popovered shape')
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => 'url(#fill-tilted)')
-        .style('stroke', (d, i) => d3.rgb(d.color).darker(1))
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => 'url(#fill-tilted)')
+        .style('stroke', (d,i) => d3.rgb(d.color).darker(1))
         .on('mouseover', function(d,i) {
           d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
           d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid !== d.walk.pid).classed('faded', true);
@@ -1042,11 +1049,11 @@ class BrushContainer {
         .on('mousemove', (d,i) => this.loadPopover(d));
 
       shapes
-        .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => 'url(#fill-tilted)')
-        .style('stroke', (d, i) => d3.rgb(d.color).darker(1));
+        .attr('id', (d,i) => d.identifier)
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => 'url(#fill-tilted)')
+        .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
 
       shapes
         .exit()
@@ -1065,8 +1072,8 @@ class BrushContainer {
 
     connections
       .attr('class', (d,i) => d.styleClass)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
+      .style('fill', (d,i) => d.fill)
+      .style('stroke', (d,i) => d.stroke)
       .attr('transform', (d,i) => d.transform)
       .attr('d', (d,i) => d.render);
 
@@ -1076,8 +1083,8 @@ class BrushContainer {
       .attr('id', (d,i) => d.identifier)
       .attr('class', (d,i) => d.styleClass)
       .attr('transform', (d,i) => d.transform)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
+      .style('fill', (d,i) => d.fill)
+      .style('stroke', (d,i) => d.stroke)
       .attr('d', (d,i) =>  d.render)
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
@@ -1145,8 +1152,8 @@ class BrushContainer {
 
       connections
         .attr('class', (d,i) => d.styleClass)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke)
         .attr('transform', (d,i) => d.transform)
         .attr('d', (d,i) => d.render);
 
@@ -1156,8 +1163,8 @@ class BrushContainer {
         .attr('id', (d,i) => d.identifier)
         .attr('class', (d,i) => d.styleClass)
         .attr('transform', (d,i) => d.transform)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke)
         .attr('d', (d,i) =>  d.render)
         .on('mouseover', function(d,i) {
           d3.select(this).classed('highlighted', true);
@@ -1224,17 +1231,21 @@ class BrushContainer {
     var self = this;
     // create the g elements containing the intervals
     let readsPanels = this.frame.readsContainer.selectAll('g.reads-panel')
-      .data(this.visibleFragments, (d, i) => d.id);
+      .data(this.visibleFragments, (d,i) => d.id);
 
     readsPanels
       .enter()
       .append('g')
       .attr('class', 'reads-panel')
+      .attr('fill', 'none')
+      .attr('stroke', '#000')
+      .attr('stroke-width', 0.5)
+      .attr('stroke-linejoin', 'round')
       .style('clip-path','url(#genes-clip)')
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     readsPanels
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')');
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
 
     readsPanels
       .exit()
@@ -1244,17 +1255,17 @@ class BrushContainer {
 
       // add the actual intervals as polygons
       let readIntervals = readsPanels.selectAll('polygon.readInterval')
-        .data((d, i) => d.visibleReadIntervals, (d, i) =>  d.identifier);
+        .data((d,i) => d.visibleReadIntervals, (d,i) =>  d.identifier);
 
       readIntervals
         .enter()
         .append('polygon')
-        .attr('id', (d, i) => d.identifier)
-        .attr('class', (d, i) => 'popovered readInterval')
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke)
+        .attr('id', (d,i) => d.identifier)
+        .attr('class', (d,i) => 'popovered readInterval')
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke)
         .on('mouseover', function(d,i) {
           d3.select(this).classed('highlighted', true);
         })
@@ -1264,29 +1275,50 @@ class BrushContainer {
         .on('mousemove', (d,i) => this.loadPopover(d));
 
       readIntervals
-        .attr('id', (d, i) => d.identifier)
-        .attr('transform', (d, i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
-        .attr('points', (d, i) => d.points)
-        .style('fill', (d, i) => d.fill)
-        .style('stroke', (d, i) => d.stroke);
+        .attr('id', (d,i) => d.identifier)
+        .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yReadIntervalsScale(d.y)] + ')')
+        .attr('points', (d,i) => d.points)
+        .style('fill', (d,i) => d.fill)
+        .style('stroke', (d,i) => d.stroke);
 
       readIntervals
        .exit()
        .remove();
 
+     // render the reads coverage Y axis
+     this.frame.readsContainer.select('.axis.axis--y')
+       .call(this.frame.yCoverageAxis);
+
+     // add the actual intervals as polygons
+     readsPanels.selectAll('path').remove();
+     let coverageDensities = readsPanels.selectAll('path.coverage-density')
+       .data((d,i) => d3.contourDensity()
+         .x((e) => e.coords.x)
+         .y((e) => this.frame.yCoverageScale(e.coords.y))
+         .size([d.panelWidth, d.panelHeight])
+         .bandwidth(10)
+       (d.visibleCoveragePoints.filter((e, j) => (d.domainWidth > 1e7))));
+
+     coverageDensities
+       .enter()
+       .append('path')
+       .attr('class', 'coverage-density')
+       .attr('fill', (d,i) => d3.scaleSequential(d3.interpolateYlGnBu).domain([0, 10])(d.value))
+       .attr('d', d3.geoPath());
+
      // add the actual intervals as polygons
      let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d, i) => d.visibleCoveragePoints, (d, i) =>  d.identifier);
+       .data((d,i) => d.visibleCoveragePoints.filter((e, j) => (d.domainWidth <= 1e7)), (d,i) =>  d.identifier);
 
      coverageCircles
        .enter()
        .append('circle')
-       .attr('id', (d, i) => d.identifier)
-       .attr('class', (d, i) => 'popovered coverage-circle')
-       .attr('transform', (d, i) => 'translate(' + [d.coords.x, d.coords.y] + ')')
-       .attr('r', (d, i) => d.radius)
-       .style('fill', (d, i) => d.fill)
-       .style('stroke', (d, i) => d.stroke)
+       .attr('id', (d,i) => d.identifier)
+       .attr('class', (d,i) => 'popovered coverage-circle')
+       .attr('transform', (d,i) => 'translate(' + [d.coords.x, this.frame.yCoverageScale(d.coords.y)] + ')')
+       .attr('r', (d,i) => d.radius)
+       .style('fill', (d,i) => d.fill)
+       .style('stroke', (d,i) => d.stroke)
        .on('mouseover', function(d,i) {
          d3.select(this).classed('highlighted', true);
        })
@@ -1296,11 +1328,11 @@ class BrushContainer {
        .on('mousemove', (d,i) => this.loadPopover(d));
 
      coverageCircles
-       .attr('id', (d, i) => d.identifier)
-       .attr('transform', (d, i) => 'translate(' + [d.coords.x, d.coords.y] + ')')
-       .attr('r', (d, i) => d.radius)
-       .style('fill', (d, i) => d.fill)
-       .style('stroke', (d, i) => d.stroke)
+       .attr('id', (d,i) => d.identifier)
+       .attr('transform', (d,i) => 'translate(' + [d.coords.x, this.frame.yCoverageScale(d.coords.y)] + ')')
+       .attr('r', (d,i) => d.radius)
+       .style('fill', (d,i) => d.fill)
+       .style('stroke', (d,i) => d.stroke)
 
      coverageCircles
       .exit()
@@ -1314,13 +1346,13 @@ class BrushContainer {
   }
 
   panelDomainsText() {
-    return this.visibleFragments.map((d, i) => d.chromoAxis.map((e, j) => {
+    return this.visibleFragments.map((d,i) => d.chromoAxis.map((e, j) => {
       return (e.chromo.chromosome + ':' + Math.floor(e.scale.domain()[0]) + '-' + Math.floor(e.scale.domain()[1]));
     }).join(' ')).join(' | ');
   }
 
   panelDomainsDetails() {
-    return this.visibleFragments.map((d, i) => {
+    return this.visibleFragments.map((d,i) => {
     let text = 'Panel #' + (i + 1) + '\r\n';
     text += d.chromoAxis.map((e, j) => {
       return (e.chromo.chromosome + ':' + Math.floor(e.scale.domain()[0]) + '-' + Math.floor(e.scale.domain()[1]));
@@ -1343,17 +1375,17 @@ class BrushContainer {
     this.frame.geneModalTitle.text(gene.modalTitle);
     // add the actual genes as rectangles
     let genes = this.frame.genesTypesPlot.selectAll('polygon.geneShape')
-      .data(modalGenes, (d, i) =>  d.identifier);
+      .data(modalGenes, (d,i) =>  d.identifier);
 
     genes
       .enter()
       .append('polygon')
-      .attr('id', (d, i) => d.identifier)
-      .attr('class', (d, i) => 'popovered geneShape ' + d.type)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke)
+      .attr('id', (d,i) => d.identifier)
+      .attr('class', (d,i) => 'popovered geneShape ' + d.type)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('points', (d,i) => d.points)
+      .style('fill', (d,i) => d.fill)
+      .style('stroke', (d,i) => d.stroke)
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);
       })
@@ -1365,11 +1397,11 @@ class BrushContainer {
       });
 
     genes
-      .attr('id', (d, i) => d.identifier)
-      .attr('transform', (d, i) => 'translate(' + [d.range[0], 0] + ')')
-      .attr('points', (d, i) => d.points)
-      .style('fill', (d, i) => d.fill)
-      .style('stroke', (d, i) => d.stroke);
+      .attr('id', (d,i) => d.identifier)
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
+      .attr('points', (d,i) => d.points)
+      .style('fill', (d,i) => d.fill)
+      .style('stroke', (d,i) => d.stroke);
 
     genes
      .exit()

@@ -92,10 +92,10 @@ class SvgFilter {
 
   renderGradients(chromosomes) {
     let gradients = this.defs.selectAll('linearGradient')
-      .data(chromosomes, (d, i) => d.chromosome)
+      .data(chromosomes, (d,i) => d.chromosome)
       .enter()
       .append('linearGradient')
-        .attr('id', (d, i) => 'gradient' + d.chromosome)
+        .attr('id', (d,i) => 'gradient' + d.chromosome)
         .attr('x1', '0%')
         .attr('y1', '0%')
         .attr('x2', '0%')
@@ -109,7 +109,7 @@ class SvgFilter {
 
     gradients.append('stop')
         .attr('offset', '100%')
-        .attr('stop-color', (d, i) => d.color)
+        .attr('stop-color', (d,i) => d.color)
         .attr('stop-opacity', 1);
   }
 

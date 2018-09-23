@@ -43,7 +43,7 @@ class Walk extends Base {
       if (this.iids.length > 1) {
         Misc.alerting(`Walk ${this.pid} contains <strong>${this.iids.length}</strong> WalkIntervals`, 'info');
         let interval, ids = [];
-        this.iids.forEach((d, i) => {
+        this.iids.forEach((d,i) => {
           ids.push(d.iid);
           interval = new WalkInterval(d, this);
           if (!interval.valid()) {
@@ -80,7 +80,7 @@ class Walk extends Base {
         Misc.alerting(`Walk ${this.pid} contains <strong>${this.cids.length}</strong> WalkConnections`, 'info');
         let iids = this.iids.map((d,i) => d.iid);
         let connection, intervalIds = [], cids = [];
-        this.cids.forEach((d, i) => {
+        this.cids.forEach((d,i) => {
           connection = new WalkConnection(d, this);
           cids.push(d.cid);
           if (connection.source !== null) { 

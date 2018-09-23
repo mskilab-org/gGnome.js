@@ -37,7 +37,7 @@ $(function() {
     $('#' + dataSelector).selectpicker('hide');
 
     d3.json('/datafiles', results => {
-      $('#' + dataSelector).html(results.files.map((d, i) => `<option value="${d.file}">${d.name}</option>`).join(''));
+      $('#' + dataSelector).html(results.files.map((d,i) => `<option value="${d.file}">${d.name}</option>`).join(''));
       $('#' + dataSelector).selectpicker('refresh');
       $('#' + dataSelector).selectpicker('show');
       if (results.files.filter((d,i) => d.name === currentFile).length > 0) {
