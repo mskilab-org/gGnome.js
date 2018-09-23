@@ -55,7 +55,7 @@ $(function() {
         if (json.intervals.length > 1) {
           alerting(`JSON file contains <strong>${json.intervals.length}</strong> intervals`, 'info');
           let interval, ids = [];
-          json.intervals.forEach((d, i) => {
+          json.intervals.forEach((d,i) => {
             ids.push(d.iid);
             interval = new Interval(d);
             if (!interval.valid()) {
@@ -92,7 +92,7 @@ $(function() {
           alerting(`JSON file contains <strong>${json.connections.length}</strong> connections`, 'info');
           let iids = json.intervals.map((d,i) => d.iid);
           let connection, intervalIds = [], cids = [];
-          json.connections.forEach((d, i) => {
+          json.connections.forEach((d,i) => {
             connection = new Connection(d);
             cids.push(d.cid);
             if (connection.source !== null) { 
@@ -141,7 +141,7 @@ $(function() {
           if (json.walks.length > 1) {
             alerting(`JSON file contains <strong>${json.walks.length}</strong> walks`, 'info');
             let walk, ids = [];
-            json.walks.forEach((d, i) => {
+            json.walks.forEach((d,i) => {
               ids.push(d.pid);
               walk = new Walk(d);
               if (!walk.valid()) {

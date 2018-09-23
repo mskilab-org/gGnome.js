@@ -17,7 +17,7 @@ class Read extends Base {
     this.endPlace = Math.floor(chromoBins[this.chromosome].scaleToGenome(this.endPoint));
     this.color = 'lightgray';
     this.intervalBins = {};
-    this.intervals = this.iids.map((d, i) => {
+    this.intervals = this.iids.map((d,i) => {
       let readInterval = new ReadInterval(d);
       readInterval.startPlace = Math.floor(chromoBins[readInterval.chromosome].scaleToGenome(readInterval.startPoint));
       readInterval.endPlace = Math.floor(chromoBins[readInterval.chromosome].scaleToGenome(readInterval.endPoint));

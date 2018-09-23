@@ -12,7 +12,7 @@ app.use(cors())
 app.get('/datafiles', (req, res) => {
   let files = fs.readdirSync('./json/');
   res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(`{"files": [${files.map((d, i) => `{"file": "${d}", "name": "${d}"}`).join(',')}]}`);
+  res.write(`{"files": [${files.map((d,i) => `{"file": "${d}", "name": "${d}"}`).join(',')}]}`);
   res.end();
 });
 
@@ -32,9 +32,9 @@ app.get('/data', (req, res) => {
           } else {
             res.writeHead(200, {'Content-Type': 'text/html'});
             dataInput = Object.assign({},JSON.parse(dataContent), JSON.parse(medadataContent), JSON.parse(genesContent));
-            dataInput.metadata.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
-            dataInput.intervals.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
-            dataInput.genes.forEach((d, i) => { d.endPoint += 1 }); // because endpoint is inclusive
+            dataInput.metadata.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
+            dataInput.intervals.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
+            dataInput.genes.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
             genomeLength = dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint), 0);
             let boundary = 0;
             result.genomeLength = genomeLength;
@@ -53,7 +53,7 @@ app.get('/data', (req, res) => {
             }, {});
             let interval = null, gene = null, connection = null;
             let intervalBins = {};
-            let intervals = dataInput.intervals.map((d, i) => {
+            let intervals = dataInput.intervals.map((d,i) => {
               let interval = {
                 iid: d.iid,
                 chromosome: d.chromosome,
@@ -120,7 +120,7 @@ app.get('/intervals', (req, res) => {
       }, {});
       let interval = null, gene = null, connection = null;
       let intervalBins = {};
-      let intervals = JSON.parse(data2).intervals.map((d, i) => {
+      let intervals = JSON.parse(data2).intervals.map((d,i) => {
         let interval = {
           iid: d.iid,
           chromosome: d.chromosome,
