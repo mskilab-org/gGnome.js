@@ -23,7 +23,7 @@ self.addEventListener('message', (e) => {
     return hash; 
   }, {});
   let q = d3.queue();
-  e.data.dataInput.metadata.slice(4,7).forEach((k,j) => {
+  e.data.dataInput.metadata.slice(18,19).forEach((k,j) => {
     q.defer(d3.json, `/coverage/${e.data.dataFileName}/${e.data.dataFileName}.${k.chromosome}.json`);
   }); 
   q.awaitAll((error, results) => {
