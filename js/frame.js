@@ -97,7 +97,6 @@ class Frame extends Base {
   }
 
   updateCoveragePoints() {
-    this.dataInput.metadata.slice(4,7).forEach((k,j) => {
     // load the workers
     var worker = new Worker('js/coverage-worker.js');
     // Setup an event listener that will handle messages received from the worker.
@@ -108,8 +107,7 @@ class Frame extends Base {
         toastr.success(`Loaded ${this.coveragePoints.length} coverage points!`);
       }
     }, false);
-    worker.postMessage({chromosome: k.chromosome, dataInput: {metadata: this.dataInput.metadata}, coveragePoints: [], dataFileName: this.dataFileName, width: this.width});
-    });
+    worker.postMessage({dataInput: {metadata: this.dataInput.metadata}, coveragePoints: [], dataFileName: this.dataFileName, width: this.width});
   }
 
   updateData() {
