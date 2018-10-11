@@ -11,7 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
-      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, coverageTitle: 'Coverage'},
+      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, coverageTitle: 'Coverage', domainSizeLimit: 1e6},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -53,6 +53,7 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
+    this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
     this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
@@ -64,6 +65,8 @@ class Frame extends Base {
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
         this.render();
+        this.updateGenes();
+        this.updateCoveragePoints();
     });
   }
 
@@ -80,21 +83,36 @@ class Frame extends Base {
   }
 
   updateGenes() {
-    this.dataInput.genes.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
-    this.geneBins = {};
-    this.genes = this.dataInput.genes.filter((d,i) => d.type === 'gene').map((d,i) => {
-      let gene = new Gene(d);
-      gene.startPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.startPoint));
-      gene.endPlace = Math.floor(this.chromoBins[gene.chromosome].scaleToGenome(gene.endPoint));
-      gene.color = this.chromoBins[gene.chromosome].color;
-      gene.y = 0;
-      this.geneBins[gene.iid] = gene;
-      return gene;
-    });
+    // load the workers
+    var worker = new Worker('js/genes-worker.js');
+    // Setup an event listener that will handle messages received from the worker.
+    worker.addEventListener('message', (e) => {
+      this.dataInput.genes = e.data.dataInput.genes;
+      this.genes = e.data.genes;
+      this.geneBins = e.data.geneBins;
+      console.log('genes icorporated:', this.dataInput.genes.length);
+      toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`);
+    }, false);
+    worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
+  }
+
+  updateCoveragePoints() {
+    // load the workers
+    var worker = new Worker('js/coverage-worker.js');
+    // Setup an event listener that will handle messages received from the worker.
+    worker.addEventListener('message', (e) => {
+      this.coveragePoints = e.data.coveragePoints;
+      console.log('coverage points icorporated:', this.coveragePoints.length);
+      if (this.coveragePoints.length > 0) {
+        toastr.success(`Loaded ${this.coveragePoints.length} coverage points!`);
+      }
+    }, false);
+    worker.postMessage({dataInput: {metadata: this.dataInput.metadata}, coveragePoints: [], dataFileName: this.dataFileName, width: this.width});
   }
 
   updateData() {
     if (this.dataInput === null) return;
+    console.log('called updateData with dataInput!');
     this.settings = this.dataInput.settings;
     this.dataInput.metadata.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
     this.dataInput.intervals.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
@@ -186,69 +204,7 @@ class Frame extends Base {
       this.yReadIntervalsScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.coverageHeight, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
       this.updateReads();
     }
-    d3.json('./public/genes.json', (error, results) => {
-      console.log('genes succesfully loaded!', error);
-      if (error) return;
-      this.dataInput.genes = results.genes;
-      this.updateGenes();
-    });
     this.hasSubintervals = false;
-    d3.json('/subintervals/' + this.dataFile, (error, results) => {
-      console.log('subintervals succesfully loaded!', error);
-      if (error) return;
-      this.dataInput.subintervals = results.intervals;
-      this.dataInput.subconnections = results.connections;
-      this.hasSubintervals = this.dataInput.subintervals.length > 0;
-      this.dataInput.subintervals.map((d,i) => {
-        d.endPoint += 1; // because endpoint is inclusive
-        d.chromosome = this.intervalBins[d.iid].chromosome;
-        d.y = this.intervalBins[d.iid].y;
-        d.iid = d.siid + d.iid / Misc.power(this.dataInput.subintervals.length);
-        let interval = new Interval(d);
-        interval.mode = 'subinterval';
-        interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
-        interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-        interval.color = interval.sequence ? this.dataInput.sequences[interval.sequence] : this.dataInput.sequences.backbone;
-        interval.shapeHeight = this.margins.walks.bar;
-        this.intervalBins[interval.iid] = interval;
-        this.intervals.push(interval);
-      });
-      d3.nest()
-      .key((d,i) => [d.startPlace, d.endPlace])
-      .entries(this.intervals.filter((d,i) => d.siid > 0))
-      .filter((d,i) => (d.values.length > 1))
-      .forEach((d,i) => {
-        d.values.forEach((e, j) => {
-          e.y = (j < 1) ? (e.y - 1) : (e.y + j); // position the parallel segments as stacked in a bubble
-        });
-      })
-      this.dataInput.subconnections.map((d,i) => {
-        d.cid = d.iid + d.scid / Misc.power(this.dataInput.subconnections.length);
-        d.source = Math.sign(d.source) * (Math.abs(d.source) + d.iid / Misc.power(this.dataInput.subintervals.length));
-        d.sink = Math.sign(d.sink) * (Math.abs(d.sink) + d.iid / Misc.power(this.dataInput.subintervals.length));
-        connection = new Connection(d);
-        connection.mode = 'subconnection';
-        connection.pinpoint(this.intervalBins);
-        connection.yScale = this.yScale;
-        connection.arc = d3.arc()
-          .innerRadius(0)
-          .outerRadius(this.margins.intervals.bar / 2)
-          .startAngle(0)
-          .endAngle((e, j) => e * Math.PI);
-        this.connections.push(connection);
-      });
-    });
-    d3.json('/coverage/' + this.dataFile, (error, results) => {
-      console.log('coverage succesfully loaded!', error);
-      if (error) return;
-      results.coverage.forEach((d,i) => {
-        d.y.forEach((e,j) => {
-          let point = new CoveragePoint(d.iid, d.chromosome, d.startPoint + j * d.binwidth, Math.floor(this.chromoBins[d.chromosome].scaleToGenome(d.startPoint + j * d.binwidth + 1)), e);
-          point.color = this.chromoBins[point.chromosome].color;
-          this.coveragePoints.push(point);
-        });
-      });
-    });
   }
 
   render() {

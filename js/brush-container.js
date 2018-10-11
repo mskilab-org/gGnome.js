@@ -274,7 +274,8 @@ class BrushContainer {
         .map((e,j) => {e.y = 0; return e;})
         .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
           || (((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace))))
-        .forEach((gene, j) => {
+        .forEach((gen, j) => {
+          let gene = Object.assign(new Gene(gen), gen);
           gene.identifier = Misc.guid;
           gene.range = [d3.max([0, d.innerScale(gene.startPlace)]), d.innerScale(gene.endPlace)];
           gene.shapeWidth = gene.range[1] - gene.range[0];
@@ -289,13 +290,17 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
-      // filter the coverage
-      d.visibleCoveragePoints = this.frame.coveragePoints
-      .filter((e, j) => ((e.x <= d.domain[1]) && (e.x >= d.domain[0])))
-      .map((point,i) => { 
-        point.coords = {point: point, x: d.innerScale(point.x), y: (point.y)};
-        return point;
-      });
+      d.visibleCoveragePoints = [];
+      if (this.frame.showReads) {
+        // filter the coverage
+        d.visibleCoveragePoints = this.frame.coveragePoints
+        .filter((e, j) => ((e.x <= d.domain[1]) && (e.x >= d.domain[0])))
+        .map((poin,i) => {
+          let point = Object.assign(new CoveragePoint(), poin);
+          point.coords = {point: point, x: d.innerScale(point.x), y: (point.y)};
+          return point;
+        });
+      }
       // filter the read intervals
       d.visibleReadIntervals = [];
       d.visibleReads = [];
@@ -1297,7 +1302,7 @@ class BrushContainer {
          .y((e) => this.frame.yCoverageScale(e.coords.y))
          .size([d.panelWidth, d.panelHeight])
          .bandwidth(10)
-       (d.visibleCoveragePoints.filter((e, j) => (d.domainWidth > 1e7))));
+       (d.visibleCoveragePoints.filter((e, j) => (d.domainWidth > this.frame.margins.reads.domainSizeLimit))));
 
      coverageDensities
        .enter()
@@ -1308,7 +1313,7 @@ class BrushContainer {
 
      // add the actual intervals as polygons
      let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d,i) => d.visibleCoveragePoints.filter((e, j) => (d.domainWidth <= 1e7)), (d,i) =>  d.identifier);
+       .data((d,i) => d.visibleCoveragePoints.filter((e, j) => (d.domainWidth <= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
 
      coverageCircles
        .enter()

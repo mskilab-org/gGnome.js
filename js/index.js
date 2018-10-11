@@ -47,7 +47,10 @@ $(function() {
     });
 
     // Act upon json reload
-    $('#' + dataSelector).on('rendered.bs.select', event => {
+    $('#' + dataSelector).on('refreshed.bs.select', event => {
+      frame.loadData($('#' + dataSelector).val());
+    });
+    $('#' + dataSelector).on('changed.bs.select', event => {
       frame.loadData($('#' + dataSelector).val());
     });
   }
@@ -59,7 +62,7 @@ $(function() {
       totalWidth = $('#' + plotContainerId).width();
       totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
       frame.updateDimensions(totalWidth, totalHeight);
-      frame.render();
+      //frame.render();
     }, 200);
   });
 
