@@ -22,7 +22,19 @@ svg.plot {
   stroke: orange;
   stroke-width: 2;
 }
-
+rect.loading-box {
+  fill: lightgray;
+  stroke: gray;
+  opacity: 0.66;
+  stroke-width: 1px;
+}
+text.loading {
+  stroke: steelblue !important;
+  fill: steelblue !important;
+  font: 16px sans-serif;
+  font-weight: normal;
+  shape-rendering: "optimizeQuality";
+}
 circle.highlighted {
   stroke: orange !important;
   fill: white !important;
