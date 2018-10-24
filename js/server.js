@@ -19,7 +19,7 @@ app.get('/datafiles', (req, res) => {
   res.end();
 });
 
-app.get('/coverages', (req, res) => { console.log('received',req.url)
+app.get('/coverages', (req, res) => {
   // /coverages?dataFile=HCC1143_100&chromosome=Y&startPoint=1&endPoint=2654401
   let mongoClient = require('mongodb').MongoClient;
   mongoClient.connect(mongoURL, { useNewUrlParser: true }, (err, db) => {
@@ -32,7 +32,6 @@ app.get('/coverages', (req, res) => { console.log('received',req.url)
       let qdata = q.query;
       query = {chromosome: qdata.chromosome, x: { $gte: +qdata.startPoint, $lte: +qdata.endPoint }};
       let dbo = db.db(database);
-      console.log(query);
       dbo.collection(collection).find(query).toArray((err, result) => {
         if (err) {
           res.writeHead(200, {'Content-Type': 'text/html'});
