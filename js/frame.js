@@ -65,7 +65,7 @@ class Frame extends Base {
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
         this.render();
-        //this.updateGenes();
+        this.updateGenes();
     });
   }
 
@@ -81,20 +81,6 @@ class Frame extends Base {
       toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`);
     }, false);
     worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
-  }
-
-  updateCoveragePoints() {
-    // load the workers
-    var worker = new Worker('js/coverage-worker.js');
-    // Setup an event listener that will handle messages received from the worker.
-    worker.addEventListener('message', (e) => {
-      this.coveragePoints = e.data.coveragePoints;
-      console.log('coverage points icorporated:', this.coveragePoints.length);
-      if (this.coveragePoints.length > 0) {
-        toastr.success(`Loaded ${this.coveragePoints.length} coverage points!`);
-      }
-    }, false);
-    worker.postMessage({dataInput: {metadata: this.dataInput.metadata}, coveragePoints: [], dataFileName: this.dataFileName, width: this.width});
   }
 
   updateData() {
