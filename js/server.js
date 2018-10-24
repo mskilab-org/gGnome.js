@@ -5,6 +5,9 @@ const d3 = require('d3');
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const mongoURL = "mongodb://localhost:27017/";
+const database = "gGnome";
+const collection = "coverages";
 
 app.use(express.static('./'))
 app.use(cors())
@@ -14,6 +17,36 @@ app.get('/datafiles', (req, res) => {
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(`{"files": [${files.map((d,i) => `{"file": "${d}", "name": "${d}"}`).join(',')}]}`);
   res.end();
+});
+
+app.get('/coverages', (req, res) => { console.log('received',req.url)
+  // /coverages?dataFile=HCC1143_100&chromosome=Y&startPoint=1&endPoint=2654401
+  let mongoClient = require('mongodb').MongoClient;
+  mongoClient.connect(mongoURL, { useNewUrlParser: true }, (err, db) => {
+    if (err) {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.write(JSON.stringify([]));
+      res.end();
+    } else {
+      let q = url.parse(req.url, true);
+      let qdata = q.query;
+      query = {chromosome: qdata.chromosome, x: { $gte: +qdata.startPoint, $lte: +qdata.endPoint }};
+      let dbo = db.db(database);
+      console.log(query);
+      dbo.collection(collection).find(query).toArray((err, result) => {
+        if (err) {
+          res.writeHead(200, {'Content-Type': 'text/html'});
+          res.write(JSON.stringify([]));
+          res.end();
+        } else {
+          res.writeHead(200, {'Content-Type': 'text/html'});
+          res.write(JSON.stringify(result));
+          db.close();
+          res.end(); 
+        }
+      }); 
+    }
+  });
 });
 
 app.get('/data', (req, res) => {

@@ -1,18 +1,17 @@
 class CoveragePoint extends Base {
 
-  constructor(iid, chromosome, loc, x,y) {
+  constructor(iid, chromosome, x,y) {
     super();
     this.identifier = Misc.guid;
     this.iid = iid;
     this.title = iid;
     this.chromosome = chromosome;
-    this.location = loc;
     this.x = x;
     this.y = y;
     this.attributes = [
       {label: 'Chromosome', value: this.chromosome}, 
       {label: 'Y', value: this.y}, 
-      {label: 'Location (chromosome)', value: d3.format(',')(this.location)},
+      {label: 'Location (chromosome)', value: d3.format(',')(this.x)},
       {label: 'Id', value: this.iid},
       {label: 'Ratio', value: d3.format(".0%")(this.y)}];
   }
