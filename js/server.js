@@ -4,6 +4,7 @@ const fs = require('fs');
 const d3 = require('d3');
 const express = require('express');
 const cors = require('cors');
+const downsampler = require('downsample-lttb');
 const app = express();
 const mongoURL = "mongodb://localhost:27017/";
 const database = "gGnome";
@@ -30,16 +31,20 @@ app.get('/coverages', (req, res) => {
     } else {
       let q = url.parse(req.url, true);
       let qdata = q.query;
-      query = {chromosome: qdata.chromosome, x: { $gte: +qdata.startPoint, $lte: +qdata.endPoint }};
+      query = {dataFile: qdata.dataFile, chromosome: qdata.chromosome, x: { $gte: +qdata.startPoint, $lte: +qdata.endPoint }};
       let dbo = db.db(database);
-      dbo.collection(collection).find(query).toArray((err, result) => {
+      dbo.collection(collection).find(query, {projection: {_id: 0, chromosome: 1, x: 1, y: 1}}).toArray((err, result) => {
         if (err) {
           res.writeHead(200, {'Content-Type': 'text/html'});
           res.write(JSON.stringify([]));
           res.end();
         } else {
           res.writeHead(200, {'Content-Type': 'text/html'});
-          res.write(JSON.stringify(result));
+          //console.log(result.length);
+          //pass the series and number of desired datapoints
+          let downsampledSeries = downsampler.processData(result.map(d => [d.x,d.y]), 500);
+          //console.log(downsampledSeries.length)
+          res.write(JSON.stringify(downsampledSeries.map(d => {return {chromosome: qdata.chromosome, x: d[0], y: d[1]}})));
           db.close();
           res.end(); 
         }
