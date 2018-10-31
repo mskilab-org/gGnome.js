@@ -1,19 +1,15 @@
 class CoveragePoint extends Base {
 
-  constructor(chromosome, x,y) {
+  constructor(iid, chromosome, place, x,y, color) {
     super();
-    this.identifier = Misc.guid.slice(0,6);
+    this.identifier = iid;
     this.iid = this.identifier;
     this.title = this.identifier;
     this.chromosome = chromosome;
+    this.place = place;
+    this.color = color;
     this.x = x;
     this.y = y;
-    this.attributes = [
-      {label: 'Chromosome', value: this.chromosome}, 
-      {label: 'Y', value: this.y}, 
-      {label: 'Location (chromosome)', value: d3.format(',')(this.x)},
-      {label: 'Id', value: this.iid},
-      {label: 'Ratio', value: d3.format(".0%")(this.y)}];
   }
 
   // The title for the popover on the intervals
@@ -32,6 +28,16 @@ class CoveragePoint extends Base {
   get stroke() {
     return d3.rgb(this.color).darker(1);
   }
+
+  get attributes() {
+    return [
+      {label: 'Chromosome', value: this.chromosome}, 
+      {label: 'Y', value: this.y}, 
+      {label: 'Location (chromosome)', value: d3.format(',')(this.x)},
+      {label: 'Place', value: d3.format(',')(this.place)},
+      {label: 'Ratio', value: d3.format(".0%")(this.y)}];
+  }
+
 
   // The content for the popover of the intervals
   get popoverContent() {
