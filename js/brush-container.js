@@ -53,15 +53,6 @@ class BrushContainer {
       .on('start', function() {
         // brush starts here
         self.originalSelection = d3.event.selection;
-
-        // clean up any density plots for the reads
-        self.frame.readsContainer.selectAll('g.reads-panel').selectAll('path').remove();
-        // clean up any density plots for the reads
-        self.frame.readsContainer.selectAll('g.reads-panel').selectAll('circle').remove();
-        // show the loading box
-        //self.frame.readsContainer.select('rect.loading-box').classed('hidden', false);
-        // show the loading text
-        self.frame.readsContainer.select('text.loading').classed('hidden', false);
       })
       .on('brush', function() {
         // brushing happens here
@@ -190,6 +181,9 @@ class BrushContainer {
     // update clipPath
     this.renderClipPath();
 
+    // update the reads
+    this.renderReads();
+
     window.pc = this;
   }
 
@@ -297,30 +291,21 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
-      // filter the read intervals
-      d.visibleReadIntervals = [];
-      d.visibleReads = [];
-      if (this.frame.reads) {
-        this.frame.reads
-        .forEach((read, j) => {
-          read.identifier = Misc.guid;
-          d.visibleReads.push(read);
-          read.intervals.forEach((interval, j) => {
-            interval.identifier = Misc.guid;
-            interval.range = [d3.max([0, d.innerScale(interval.startPlace)]), d.innerScale(interval.endPlace)];
-            interval.shapeWidth = interval.range[1] - interval.range[0];
-            interval.shapeHeight = this.frame.margins.intervals.bar;
-            interval.read = read;
-            interval.fragment = d;
-            if (interval.shapeWidth > this.frame.margins.reads.selectionSize) {
-              let collisions = d.visibleReadIntervals.filter((f,k) => (interval.identifier !== f.identifier) && interval.isOverlappingWith(f));
-              interval.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
-              d.visibleReadIntervals.push(interval);
-            }
-          });
+      // filter the coveragePoints
+      d.visibleCoveragePoints = [];
+      if (this.frame.showReads) {
+        let filteredPoints = this.frame.coveragePoints
+        .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
+        if (filteredPoints.length > 2000) {
+          let downsampled = Misc.processData(filteredPoints.map(e => [e.place, e.y]), 2000).map(e => e[0]);
+          filteredPoints = filteredPoints.filter((e) => downsampled.includes(e.place));
+        }
+        filteredPoints
+        .forEach((cov, j) => {
+          let coveragePoint = Object.assign(new CoveragePoint(cov), cov);
+          coveragePoint.fragment = d;
+          d.visibleCoveragePoints.push(coveragePoint);
         });
-        d.yReadIntervals = d3.map(d.visibleReadIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
-        d.yReadIntervalsScale = d3.scalePoint().domain(d.yReadIntervals).padding([1]).rangeRound(this.frame.yReadIntervalsScale.range());
       }
       // filter the Walks
       d.visibleWalkIntervals = [];
@@ -469,7 +454,7 @@ class BrushContainer {
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
     if (this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
-      this.frame.yCoverageExtent = [0,5]; //d3.extent(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]));
+      this.frame.yCoverageExtent = d3.extent(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]));
       if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
         this.frame.yCoverageExtent[0] = this.frame.yCoverageExtent[0] - 1;
         this.frame.yCoverageExtent[1] = this.frame.yCoverageExtent[1] + 1;
@@ -582,8 +567,8 @@ class BrushContainer {
     // update the fragments note
     this.renderFragmentsDetails(this.panelDomainsDetails());
 
-    // clean up any density plots for the reads
-    this.frame.readsContainer.selectAll('g.reads-panel').selectAll('path').remove();
+    // update the reads
+    this.renderReads();
   }
 
   zoomEnded(fragment) {
@@ -593,9 +578,6 @@ class BrushContainer {
     // update the browser history
     this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.note}`;
     history.replaceState(this.frame.url, 'Project gGnome.js', this.frame.url);
-
-    // update the reads
-    this.renderReads();
   }
 
   renderClipPath() {
@@ -1267,6 +1249,39 @@ class BrushContainer {
      this.frame.readsContainer.select('.axis.axis--y')
        .call(this.frame.yCoverageAxis);
 
+     // add the actual intervals as rectangles
+     let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
+       .data((d,i) => d.visibleCoveragePoints, (d,i) =>  d.identifier);
+
+     coverageCircles
+       .enter()
+       .append('circle')
+       .attr('id', (d,i) => d.identifier)
+       .attr('class', (d,i) => 'popovered coverage-circle')
+       .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
+       .attr('r', (d,i) => d.radius)
+       .style('fill', (d,i) => d.fill)
+       .style('stroke', (d,i) => d.stroke)
+       .on('mouseover', function(d,i) {
+         d3.select(this).classed('highlighted', true);
+       })
+       .on('mouseout', function(d,i) {
+         d3.select(this).classed('highlighted', false);
+       })
+       .on('mousemove', (d,i) => this.loadPopover(d));
+
+     coverageCircles
+       .attr('id', (d,i) => d.identifier)
+       .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
+       .attr('r', (d,i) => d.radius)
+       .style('fill', (d,i) => d.fill)
+       .style('stroke', (d,i) => d.stroke);
+
+     coverageCircles
+      .exit()
+      .remove();
+
+/*
      this.visibleFragments.map((fragment) => {
 
        let q = d3.queue();
@@ -1317,7 +1332,7 @@ class BrushContainer {
 
        });
      }); 
-
+*/
     } else {
       readsPanels.selectAll('circle').remove();
       readsPanels.selectAll('path').remove();
