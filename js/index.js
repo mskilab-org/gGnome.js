@@ -62,7 +62,7 @@ $(function() {
       totalWidth = $('#' + plotContainerId).width();
       totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
       frame.updateDimensions(totalWidth, totalHeight);
-      //frame.render();
+      frame.render();
     }, 200);
   });
 

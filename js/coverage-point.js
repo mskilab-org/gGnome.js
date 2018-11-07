@@ -1,6 +1,6 @@
 class CoveragePoint extends Base {
 
-  constructor(iid, chromosome, place, x,y, color) {
+  constructor(iid, chromosome, place, x,y, color, density) {
     super();
     this.identifier = iid;
     this.iid = this.identifier;
@@ -8,6 +8,7 @@ class CoveragePoint extends Base {
     this.chromosome = chromosome;
     this.place = place;
     this.color = color;
+    this.density = density;
     this.x = x;
     this.y = y;
   }
