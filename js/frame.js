@@ -11,7 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
-      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, coverageRadius: 2, coverageTitle: 'Coverage', domainSizeLimit: 1e6},
+      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 2000},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));

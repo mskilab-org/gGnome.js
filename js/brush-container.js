@@ -295,17 +295,21 @@ class BrushContainer {
       d.visibleCoveragePoints = [];
       if (this.frame.showReads) {
         let filteredPoints = this.frame.coveragePoints
-        .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
-        if (filteredPoints.length > 2000) {
-          let downsampled = Misc.processData(filteredPoints.map(e => [e.place, e.y]), 2000).map(e => e[0]);
-          filteredPoints = filteredPoints.filter((e) => downsampled.includes(e.place));
-        }
-        filteredPoints
-        .forEach((cov, j) => {
+          .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
+        filteredPoints.forEach((cov, j) => {
           let coveragePoint = Object.assign(new CoveragePoint(cov), cov);
           coveragePoint.fragment = d;
           d.visibleCoveragePoints.push(coveragePoint);
         });
+        d.densityScale = d3.scaleSequential(d3.interpolateBlues).domain(d3.extent(d.visibleCoveragePoints, e => e.density));
+        d.hexbin = d3.hexbin()
+          .x(e => d.innerScale(e.place))
+          .y(e => this.frame.yCoverageScale(e.y))
+          .radius(d3.max([this.frame.margins.reads.minCoverageRadius, d3.min([this.frame.margins.reads.maxCoverageRadius, Math.round(this.frame.margins.reads.maxCoverageRadius / d.selectionSize)])]))
+          .extent([[0,0], [d.panelWidth, d.panelHeight]]);
+        d.bins = d.hexbin(d.visibleCoveragePoints);
+        d.extentBins = d3.extent(d.bins.flat(), e => e.density);
+        d.hexbinColor = d3.scaleSequential(d3.interpolateBuPu).domain(d.extentBins);
       }
       // filter the Walks
       d.visibleWalkIntervals = [];
@@ -467,6 +471,7 @@ class BrushContainer {
 
   zoomed(fragment) {
     var self = this;
+    fragment.zoomTransform = d3.event.transform;
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
     // set this brush as active
 
@@ -1250,8 +1255,39 @@ class BrushContainer {
        .call(this.frame.yCoverageAxis);
 
      // add the actual intervals as rectangles
+     let coverageHexagons = readsPanels.selectAll('path.coverage-hexagon')
+       .data((d,i) => d.bins.filter((e,j) => (d.visibleCoveragePoints.length >= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
+
+     coverageHexagons
+       .enter()
+       .append('path')
+       .attr('id', (d,i) => d.identifier)
+       .attr('class', (d,i) => 'popovered coverage-hexagon')
+       .attr('d', (d,i) => d[0].fragment.hexbin.hexagon())
+       .attr('transform', d => `translate(${d.x},${d.y})`)
+       .attr('fill', d => d[0].fragment.hexbinColor(d3.max(d, e => e.density)))
+       .attr('stroke', "#000")
+       .attr('stroke-opacity', 0.1)
+       .on('mouseover', function(d,i) {
+         d3.select(this).classed('highlighted', true);
+       })
+       .on('mouseout', function(d,i) {
+         d3.select(this).classed('highlighted', false);
+       });
+
+     coverageHexagons
+       .attr('id', (d,i) => d.identifier)
+       .attr('d', (d,i) => d[0].fragment.hexbin.hexagon())
+       .attr('transform', d => `translate(${d.x},${d.y})`)
+       .attr('fill', d => d[0].fragment.hexbinColor(d3.max(d, e => e.density)))
+
+     coverageHexagons
+      .exit()
+      .remove();
+
+     // add the actual intervals as rectangles
      let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d,i) => d.visibleCoveragePoints, (d,i) =>  d.identifier);
+       .data((d,i) => d.visibleCoveragePoints.filter((e,j) => (d.visibleCoveragePoints.length < this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
 
      coverageCircles
        .enter()
@@ -1260,8 +1296,9 @@ class BrushContainer {
        .attr('class', (d,i) => 'popovered coverage-circle')
        .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
        .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.fill)
-       .style('stroke', (d,i) => d.stroke)
+       .style('fill', (d,i) => d.fragment.densityScale(d.density))
+       .attr('stroke', "#000")
+       .attr('stroke-opacity', 0.1)
        .on('mouseover', function(d,i) {
          d3.select(this).classed('highlighted', true);
        })
@@ -1274,65 +1311,14 @@ class BrushContainer {
        .attr('id', (d,i) => d.identifier)
        .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
        .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.fill)
-       .style('stroke', (d,i) => d.stroke);
+       .style('fill', (d,i) => d.fragment.densityScale(d.density))
+       .attr('stroke', "#000")
+       .attr('stroke-opacity', 0.1)
 
      coverageCircles
       .exit()
       .remove();
 
-/*
-     this.visibleFragments.map((fragment) => {
-
-       let q = d3.queue();
-       fragment.chromoAxis.map((chromoAxis) => {
-         let serviceURL = [
-           '/coverages?dataFile=',this.frame.dataFileName,'&chromosome=',chromoAxis.chromo.chromosome,
-           '&startPoint=',Math.floor(chromoAxis.scale.domain()[0]),'&endPoint=',Math.floor(chromoAxis.scale.domain()[1])].join('');
-           q.defer(d3.json, serviceURL);
-       });
-       q.awaitAll((error, results) => {
-         if (error) return;
-
-         //self.frame.readsContainer.select('rect.loading-box').classed('hidden', true);
-         self.frame.readsContainer.select('text.loading').classed('hidden', true);
-
-         let flatResults = results.flat();
-
-         // add the actual coverage points as circles
-         readsPanels.filter((d,i) => d.id === fragment.id).selectAll('circle').remove();
-         let coverageCircles = readsPanels.filter((d,i) => d.id === fragment.id).selectAll('circle.coverage-circle')
-           .data((d,i) => flatResults, (d,i) =>  d.identifier);
-           //.data((d,i) => flatResults.filter((e, j) => (d.domainWidth <= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
-
-         coverageCircles
-           .enter()
-           .append('circle')
-           .each(function(d,i) {
-             d.point = new CoveragePoint(d.chromosome, d.x, d.y);
-             d.point.coords = {
-               x: fragment.innerScale(Math.floor(self.frame.chromoBins[d.chromosome].scaleToGenome(d.x))),
-               y: self.frame.yCoverageScale(d.y)
-             };
-             d.point.color = self.frame.chromoBins[d.chromosome].color;
-           })
-           .attr('id', (d,i) => d.point.identifier)
-           .attr('class', (d,i) => 'popovered coverage-circle')
-           .attr('transform', (d,i) => 'translate(' + [d.point.coords.x, d.point.coords.y] + ')')
-           .attr('r', (d,i) => d.point.radius)
-           .style('fill', (d,i) => d.point.fill)
-           .style('stroke', (d,i) => d.point.stroke)
-           .on('mouseover', function(d,i) {
-             d3.select(this).classed('highlighted', true);
-           })
-           .on('mouseout', function(d,i) {
-             d3.select(this).classed('highlighted', false);
-           })
-           .on('mousemove', (d,i) => this.loadPopover(d.point));
-
-       });
-     }); 
-*/
     } else {
       readsPanels.selectAll('circle').remove();
       readsPanels.selectAll('path').remove();

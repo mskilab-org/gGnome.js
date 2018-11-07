@@ -1,6 +1,9 @@
 const fs = require('fs');
-const downsampler = require('downsample-lttb');
 const d3 = require('d3');
+const d3_hexbin = require('d3-hexbin');
+const outliers = require('outliers');
+
+const dimensions = {width: 1366, height: 200, radius: 3};
 
 function guid() {
 
@@ -29,7 +32,7 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
     .filter((d,i) =>  fs.lstatSync(`./coverage/${d}`).isDirectory())
     .map((dataFile) => {
       let records = [];
-      fs.readdirSync(`./coverage/${dataFile}/`).map((chromoData) => {
+      fs.readdirSync(`./coverage/${dataFile}/`).map((chromoData) => { //if (chromoData !== 'HCC1143_100.1.json') return;
         let contents = fs.readFileSync(`./coverage/${dataFile}/${chromoData}`);
         let dataInput = Object.assign({}, JSON.parse(contents));
         let results = [];
@@ -43,9 +46,18 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
         });
         //console.log(chromoData, dataInput.coverage.length, results.length);
         if (results.length > 0) {
-          let downsampledSeries = downsampler.processData(results.map(d => [d.place,d.y]), 2000);
-          downsampledSeries.forEach((d,i) => {
-            records.push({iid: guid(), chromosome: results[0].chromosome, place: d[0], x: Math.round(chromoBins[results[0].chromosome].scale.invert(d[0])), y: d[1], color: results[0].color});
+          let cleaned = results.filter(outliers('y'));
+          let scaleX = d3.scaleLinear().domain(d3.extent(cleaned, d => d.place)).range([0, dimensions.width]);
+          let scaleY = d3.scaleLinear().domain(d3.extent(cleaned, d => d.y)).range([0, dimensions.height]);
+          let hexb = d3_hexbin.hexbin()
+            .x(e => scaleX(e.place))
+            .y(e => scaleY(e.y))
+            .radius(dimensions.radius)
+            .extent([[0,0], [dimensions.width, dimensions.height]]);
+          let bins = hexb(cleaned);
+          bins.forEach((bin,i) => {
+            let d = bin[0];
+            records.push({iid: guid(), chromosome: d.chromosome, place: d.place, x: d.x, y: d.y, color: d.color, density: bin.length});
           });
         }
       });

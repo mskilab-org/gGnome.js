@@ -12,7 +12,7 @@ self.addEventListener('message', (e) => {
     if (error) return;
     console.log('coverage points succesfully loaded!', results.length);
     e.data.dataInput.coveragePoints = results.map((d,i) => {
-      return new CoveragePoint(d.iid, d.chromosome, d.place, d.x, d.y, d.color);
+      return new CoveragePoint(d.iid, d.chromosome, d.place, d.x, d.y, d.color, d.density);
     });
     // Send the message back.
     self.postMessage(e.data);
