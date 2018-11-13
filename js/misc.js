@@ -23,6 +23,15 @@ class Misc {
     return ['LOOSE', 'REF', 'ALT'];
   }
 
+  static shuffleArray(arr) {
+    let array = Object.assign(arr);
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   static unique(array) {
     return Object.assign([],array).filter((value, index, self) => { 
       return self.indexOf(value) === index;
