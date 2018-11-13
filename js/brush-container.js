@@ -301,14 +301,17 @@ class BrushContainer {
           coveragePoint.fragment = d;
           d.visibleCoveragePoints.push(coveragePoint);
         });
-        d.densityScale = d3.scaleSequential(d3.interpolateBlues).domain(d3.extent(d.visibleCoveragePoints, e => e.density));
+        //let points = Misc.processData(d.visibleCoveragePoints.map(e => [e.place, e.y]),this.frame.margins.reads.domainSizeLimit).map(e => e[0]);
+        //d.visibleCoveragePoints = d.visibleCoveragePoints.filter(e => points.indexOf(e.place) > -1);
+        d.visibleCoveragePoints = Misc.shuffleArray(d.visibleCoveragePoints).slice(0,this.frame.margins.reads.domainSizeLimit);
         d.hexbin = d3.hexbin()
           .x(e => d.innerScale(e.place))
           .y(e => this.frame.yCoverageScale(e.y))
-          .radius(d3.max([this.frame.margins.reads.minCoverageRadius, d3.min([this.frame.margins.reads.maxCoverageRadius, Math.round(this.frame.margins.reads.maxCoverageRadius / d.selectionSize)])]))
+          .radius(this.frame.margins.reads.minCoverageRadius)
+         // .radius(d3.max([this.frame.margins.reads.minCoverageRadius, d3.min([this.frame.margins.reads.maxCoverageRadius, Math.round(this.frame.margins.reads.maxCoverageRadius / d.selectionSize)])]))
           .extent([[0,0], [d.panelWidth, d.panelHeight]]);
         d.bins = d.hexbin(d.visibleCoveragePoints);
-        d.extentBins = d3.extent(d.bins.flat(), e => e.density);
+        d.extentBins = d3.extent(d.bins, e => e.length);
         d.hexbinColor = d3.scaleSequential(d3.interpolateBuPu).domain(d.extentBins);
       }
       // filter the Walks
@@ -458,7 +461,7 @@ class BrushContainer {
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
     if (this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
-      this.frame.yCoverageExtent = d3.extent(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]));
+      this.frame.yCoverageExtent = [0, d3.max(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]))];
       if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
         this.frame.yCoverageExtent[0] = this.frame.yCoverageExtent[0] - 1;
         this.frame.yCoverageExtent[1] = this.frame.yCoverageExtent[1] + 1;
@@ -1256,7 +1259,7 @@ class BrushContainer {
 
      // add the actual intervals as rectangles
      let coverageHexagons = readsPanels.selectAll('path.coverage-hexagon')
-       .data((d,i) => d.bins.filter((e,j) => (d.visibleCoveragePoints.length >= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
+       .data((d,i) => d.bins.filter((e,j) => (d.visibleCoveragePoints.length > this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
 
      coverageHexagons
        .enter()
@@ -1265,7 +1268,7 @@ class BrushContainer {
        .attr('class', (d,i) => 'popovered coverage-hexagon')
        .attr('d', (d,i) => d[0].fragment.hexbin.hexagon())
        .attr('transform', d => `translate(${d.x},${d.y})`)
-       .attr('fill', d => d[0].fragment.hexbinColor(d3.max(d, e => e.density)))
+       .attr('fill', d => d[0].fragment.hexbinColor(d.length))
        .attr('stroke', "#000")
        .attr('stroke-opacity', 0.1)
        .on('mouseover', function(d,i) {
@@ -1279,7 +1282,7 @@ class BrushContainer {
        .attr('id', (d,i) => d.identifier)
        .attr('d', (d,i) => d[0].fragment.hexbin.hexagon())
        .attr('transform', d => `translate(${d.x},${d.y})`)
-       .attr('fill', d => d[0].fragment.hexbinColor(d3.max(d, e => e.density)))
+       .attr('fill', d => d[0].fragment.hexbinColor(d3.max(d, e => e.length)))
 
      coverageHexagons
       .exit()
@@ -1287,7 +1290,7 @@ class BrushContainer {
 
      // add the actual intervals as rectangles
      let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d,i) => d.visibleCoveragePoints.filter((e,j) => (d.visibleCoveragePoints.length < this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
+       .data((d,i) => d.visibleCoveragePoints.filter((e,j) => (d.visibleCoveragePoints.length <= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
 
      coverageCircles
        .enter()
@@ -1296,8 +1299,8 @@ class BrushContainer {
        .attr('class', (d,i) => 'popovered coverage-circle')
        .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
        .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.fragment.densityScale(d.density))
-       .attr('stroke', "#000")
+       .style('fill', (d,i) => d.color)
+       .attr('stroke', (d,i) => d.stroke)
        .attr('stroke-opacity', 0.1)
        .on('mouseover', function(d,i) {
          d3.select(this).classed('highlighted', true);
@@ -1311,8 +1314,8 @@ class BrushContainer {
        .attr('id', (d,i) => d.identifier)
        .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
        .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.fragment.densityScale(d.density))
-       .attr('stroke', "#000")
+       .style('fill', (d,i) => d.fill)
+       .attr('stroke', (d,i) => d.stroke)
        .attr('stroke-opacity', 0.1)
 
      coverageCircles

@@ -1,18 +1,7 @@
 const fs = require('fs');
 const d3 = require('d3');
-const d3_hexbin = require('d3-hexbin');
 const outliers = require('outliers');
-
-const dimensions = {width: 1366, height: 200, radius: 3};
-
-function guid() {
-
-  function S4() {
-    return (((1+Math.random())*0x10000)|0).toString(16).substring(1); 
-  }
-  // then to call it, plus stitch in '4' in the third group
-  return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
-}
+const csvWriter = require('csv-write-stream');
 
 fs.readFile('./public/metadata.json', (err, metadataContent) => {
   if (err) {
@@ -36,35 +25,25 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
         let contents = fs.readFileSync(`./coverage/${dataFile}/${chromoData}`);
         let dataInput = Object.assign({}, JSON.parse(contents));
         let results = [];
+        let iid = 0;
         dataInput.coverage.forEach((cov,i) => {
           cov.y.forEach((k,j) => {
-            let point = {chromosome: cov.chromosome, x: (cov.startPoint + j * cov.binwidth + 1), y: k};
+            let point = {x: (cov.startPoint + j * cov.binwidth + 1), y: k};
             point.place = chromoBins[cov.chromosome].scale(point.x);
-            point.color = chromoBins[cov.chromosome].color;
             results.push(point);
           });
         });
-        //console.log(chromoData, dataInput.coverage.length, results.length);
+        console.log(`loaded ${results.length} records for ${chromoData} of ${dataFile}...`);
         if (results.length > 0) {
-          let cleaned = results.filter(outliers('y'));
-          let scaleX = d3.scaleLinear().domain(d3.extent(cleaned, d => d.place)).range([0, dimensions.width]);
-          let scaleY = d3.scaleLinear().domain(d3.extent(cleaned, d => d.y)).range([0, dimensions.height]);
-          let hexb = d3_hexbin.hexbin()
-            .x(e => scaleX(e.place))
-            .y(e => scaleY(e.y))
-            .radius(dimensions.radius)
-            .extent([[0,0], [dimensions.width, dimensions.height]]);
-          let bins = hexb(cleaned);
-          bins.forEach((bin,i) => {
-            let d = bin[0];
-            records.push({iid: guid(), chromosome: d.chromosome, place: d.place, x: d.x, y: d.y, color: d.color, density: bin.length});
-          });
+          let chromosome = dataInput.coverage[0].chromosome;
+          results = results.filter(outliers('y'));
+          console.log(`Outliers removal left ${results.length} records for ${chromoData} of ${dataFile}...`);
+          console.log(`Writing ${results.length} records in todal in ./coverage/${dataFile}/${dataFile}.${chromosome}.csv`);
+          let writer = csvWriter()
+          writer.pipe(fs.createWriteStream(`./coverage/${dataFile}/${dataFile}.${chromosome}.csv`));
+          results.forEach((d,i) => writer.write(d));
+          writer.end();
         }
-      });
-      //console.log(records.length)
-      fs.writeFile(`./coverage/${dataFile}.json`, JSON.stringify(records.sort((x,y) => d3.ascending(x.place, y.place)).map((d,i) => {d.iid = i; return d;}), null, 2), (err) => {
-        if (err) throw err;
-          console.log('complete');
       });
     });
   }
