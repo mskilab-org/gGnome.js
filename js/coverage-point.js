@@ -30,6 +30,10 @@ class CoveragePoint extends Base {
     return d3.rgb(this.color).darker(1);
   }
 
+  get strokeWidth() {
+    return 1;
+  }
+
   get attributes() {
     return [
       {label: 'Chromosome', value: this.chromosome}, 
