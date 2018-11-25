@@ -65,13 +65,14 @@ class Frame extends Base {
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
         this.render();
+        this.updateGenes();
     });
-    this.updateGenes();
-    this.updateCSV('18');
-    this.updateCSV('20');
-    this.updateCSV('21');
-    this.updateCSV('22');
-    this.updateCSV('Y');
+
+//    this.updateCSV('18');
+//    this.updateCSV('20');
+//    this.updateCSV('21');
+//    this.updateCSV('22');
+//    this.updateCSV('Y');
   }
 
   updateCSV(chromosome) {
@@ -236,7 +237,7 @@ class Frame extends Base {
         let chromo = this.chromoBins[chromosome];
         domains.push({chromosome: chromosome, chromo: chromo, range: range});
       });
-      this.brushContainer.createDefaults([domains[0].chromo.scaleToGenome(parseFloat(domains[0].range[0])), domains[domains.length - 1].chromo.scaleToGenome(parseFloat(domains[domains.length - 1].range[1]))]); 
+      this.brushContainer.createDefaults([domains[0].chromo.scaleToGenome(parseFloat(domains[0].range[0])), domains[domains.length - 1].chromo.scaleToGenome(parseFloat(domains[domains.length - 1].range[1] - 1))]); 
     });
   }
 

@@ -176,6 +176,41 @@ $(function() {
     document.body.removeChild(textArea);
   });
 
+
+  // We can attach the `fileselect` event to all file inputs on the page
+  $(document).on('change', ':file', function() {
+    var input = $(this),
+    numFiles = input.get(0).files ? input.get(0).files.length : 1,
+    label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.trigger('fileselect', [numFiles, label, input.get(0).files[0]]);
+  });
+
+  // We can watch for our custom `fileselect` event like this
+  $(document).ready( function() {
+    $(':file').on('fileselect', function(event, numFiles, label, file) {
+
+      var input = $(this).parents('.input-group').find(':text'),
+      log = numFiles > 1 ? numFiles + ' files selected' : label;
+console.log(event, numFiles, label, file)
+      if( input.length ) {
+        input.val(log);
+      } else {
+        if( log ) alert(log);
+      }
+      Papa.parse(file, {
+        dynamicTyping: true,
+        header: true,
+        step: function(row) {
+          console.log("Row:", row.data);
+        },
+        complete: function() {
+          console.log("All done!");
+        }
+      });
+
+    });
+  });
+
   function download(filename, text) {
     let element = document.getElementById("downloadLink");
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
