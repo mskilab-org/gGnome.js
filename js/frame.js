@@ -67,28 +67,10 @@ class Frame extends Base {
         this.render();
         this.updateGenes();
     });
-
-//    this.updateCSV('18');
-//    this.updateCSV('20');
-//    this.updateCSV('21');
-//    this.updateCSV('22');
-//    this.updateCSV('Y');
   }
 
-  updateCSV(chromosome) {
-    let iid = 0;
-    Papa.parse(`./coverage/${this.dataFileName}/${this.dataFileName}.${chromosome}.csv`, {
-    	download: true, 
-      header:true,
-      step: (row) => {
-        let d = row.data[0];
-        this.coveragePoints.push({iid: iid++, chromosome: chromosome, place: +d.place, x: +d.x, y: +d.y, color:  this.chromoBins[chromosome].color});
-      },
-      complete: () => {
-        console.log('done', new Date());
-        toastr.success(`Loaded ${iid} coverage points for chromosome ${chromosome}!`);
-      }
-    });
+  updateCoveragePoints(iid, data) {
+    this.coveragePoints.push({iid: iid, chromosome: 'Y', place: +data.place, x: +data.x, y: +data.y, color:  'red'});
   }
 
   updateGenes() {

@@ -188,23 +188,24 @@ $(function() {
   // We can watch for our custom `fileselect` event like this
   $(document).ready( function() {
     $(':file').on('fileselect', function(event, numFiles, label, file) {
-
+      $('#coverage-help').html('Loading coverage points ...');
       var input = $(this).parents('.input-group').find(':text'),
       log = numFiles > 1 ? numFiles + ' files selected' : label;
-console.log(event, numFiles, label, file)
       if( input.length ) {
         input.val(log);
       } else {
         if( log ) alert(log);
       }
+      let t1 = new Date();
       Papa.parse(file, {
         dynamicTyping: true,
+        skipEmptyLines: true,
         header: true,
-        step: function(row) {
-          console.log("Row:", row.data);
-        },
-        complete: function() {
+        complete: function(results) {
           console.log("All done!");
+          frame.coveragePoints.push(results.data);
+          frame.coveragePoints = frame.coveragePoints.flat();
+          $('#coverage-help').html(`Successfully loaded ${results.data.length} records in ${(new Date() - t1) / 1000} seconds.`);
         }
       });
 

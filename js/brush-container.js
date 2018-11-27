@@ -294,16 +294,15 @@ class BrushContainer {
       // filter the coveragePoints
       d.visibleCoveragePoints = [];
       if (this.frame.showReads) {
-        let filteredPoints = this.frame.coveragePoints
-          .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
-        filteredPoints.forEach((cov, j) => {
+        let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
+        for (let k = 0; (k < d3.min([this.frame.margins.reads.domainSizeLimit / this.visibleFragments.length, filteredPoints.length])); k++) {
+          let index = (this.frame.margins.reads.domainSizeLimit / this.visibleFragments.length) < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
+          let cov = filteredPoints[index];
           let coveragePoint = Object.assign(new CoveragePoint(cov), cov);
+          coveragePoint.color = this.frame.chromoBins[coveragePoint.chromosome].color;
           coveragePoint.fragment = d;
           d.visibleCoveragePoints.push(coveragePoint);
-        });
-        //let points = Misc.processData(d.visibleCoveragePoints.map(e => [e.place, e.y]),this.frame.margins.reads.domainSizeLimit).map(e => e[0]);
-        //d.visibleCoveragePoints = d.visibleCoveragePoints.filter(e => points.indexOf(e.place) > -1);
-        d.visibleCoveragePoints = Misc.shuffleArray(d.visibleCoveragePoints).slice(0,this.frame.margins.reads.domainSizeLimit);
+        }
       }
       // filter the Walks
       d.visibleWalkIntervals = [];
@@ -566,17 +565,18 @@ class BrushContainer {
     // update the fragments note
     this.renderFragmentsDetails(this.panelDomainsDetails());
 
+    //d3.selectAll('circle.coverage-circle').style('opacity', 0.33);
     // update the reads
     this.renderReads();
   }
 
   zoomEnded(fragment) {
-
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
 
     // update the browser history
     this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.note}`;
     history.replaceState(this.frame.url, 'Project gGnome.js', this.frame.url);
+
   }
 
   renderClipPath() {
@@ -1250,7 +1250,7 @@ class BrushContainer {
 
      // add the actual intervals as rectangles
      let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d,i) => d.visibleCoveragePoints.filter((e,j) => (d.visibleCoveragePoints.length <= this.frame.margins.reads.domainSizeLimit)), (d,i) =>  d.identifier);
+       .data((d,i) => d.visibleCoveragePoints, (d,i) =>  d.identifier);
 
      coverageCircles
        .enter()
@@ -1262,6 +1262,7 @@ class BrushContainer {
        .style('fill', (d,i) => d.color)
        .attr('stroke', (d,i) => d.stroke)
        .attr('stroke-width', (d,i) => d.strokeWidth)
+       .style('opacity', 1)
        .on('mouseover', function(d,i) {
          d3.select(this).classed('highlighted', true);
        })
@@ -1277,6 +1278,7 @@ class BrushContainer {
        .style('fill', (d,i) => d.fill)
        .attr('stroke', (d,i) => d.stroke)
        .attr('stroke-width', (d,i) => d.strokeWidth)
+       .style('opacity', 1);
 
      coverageCircles
       .exit()
