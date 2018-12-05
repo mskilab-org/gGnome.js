@@ -39,6 +39,7 @@ class Frame extends Base {
     this.genes = [];
     this.walks = [];
     this.coveragePoints = [];
+    this.downsampledCoveragePoints = [];
     this.yWalkExtent = [];
     this.axis = null;
   }
@@ -69,11 +70,8 @@ class Frame extends Base {
     });
   }
 
-  updateCoveragePoints(iid, data) {
-    this.coveragePoints.push({iid: iid, chromosome: 'Y', place: +data.place, x: +data.x, y: +data.y, color:  'red'});
-  }
-
   updateGenes() {
+    if (this.genes.length > 0) return;
     // load the workers
     var worker = new Worker('js/genes-worker.js');
     // Setup an event listener that will handle messages received from the worker.
@@ -229,7 +227,7 @@ class Frame extends Base {
       this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
-    this.yCoverageScale = d3.scaleLinear().domain([1, 0]).range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
+    this.yCoverageScale = d3.scaleLinear().range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer

@@ -203,14 +203,18 @@ class BrushContainer {
     this.fragments = this.fragments.filter((d,i) => (d.selection === null) || (d.selection[0] !== d.selection[1]));
 
     // filter the brushes that are visible on the screen
-    this.fragments.forEach((fragment, i) => {
+    this.visibleFragments = this.fragments.map((fragment, i) => {
       node = d3.select('#brush-' + fragment.id).node();
+      fragment.previousSelection = fragment.selection;
+      fragment.previousSelectionSize = fragment.selectionSize;
       fragment.selection = node && d3.brushSelection(node);
       fragment.domain = fragment.selection && fragment.selection.map(this.frame.genomeScale.invert,this.frame.genomeScale);
       if (fragment.selection) {
-        this.visibleFragments.push(Object.assign({}, fragment));
+        fragment.changed = (fragment.selection[0] !== fragment.previousSelection[0]) || (fragment.selection[1] !== fragment.previousSelection[1]);
+        fragment.selectionSize = fragment.selection[1] - fragment.selection[0];
       }
-    });
+      return fragment;
+    }).filter((fragment,i) => fragment.selection);
 
     // determine the new Panel Width
     this.panelWidth = (this.frame.width - (this.visibleFragments.length - 1) * this.frame.margins.panels.gap) / this.visibleFragments.length;
@@ -225,7 +229,6 @@ class BrushContainer {
 
     // Determine the panel parameters for rendering
     this.visibleFragments.forEach((d,i) => {
-      d.selectionSize = d.selection[1] -  d.selection[0];
       d.panelWidth = this.panelWidth;
       d.panelHeight = this.panelHeight;
       d.domainWidth = d.domain[1] - d.domain[0];
@@ -292,16 +295,27 @@ class BrushContainer {
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
       // filter the coveragePoints
-      d.visibleCoveragePoints = [];
       if (this.frame.showReads) {
-        let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
-        for (let k = 0; (k < d3.min([this.frame.margins.reads.domainSizeLimit / this.visibleFragments.length, filteredPoints.length])); k++) {
-          let index = (this.frame.margins.reads.domainSizeLimit / this.visibleFragments.length) < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
-          let cov = filteredPoints[index];
-          let coveragePoint = Object.assign(new CoveragePoint(cov), cov);
-          coveragePoint.color = this.frame.chromoBins[coveragePoint.chromosome].color;
-          coveragePoint.fragment = d;
-          d.visibleCoveragePoints.push(coveragePoint);
+        if (d.changed || d.visibleCoveragePoints === undefined) { //console.log('called for', d.id)
+          d.visibleCoveragePoints = this.frame.downsampledCoveragePoints
+            .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])))
+            .map((cov,j) => {
+              let coveragePoint = new CoveragePoint(cov);
+              coveragePoint.fragment = d;
+              return coveragePoint;
+            });
+          let remaining = this.frame.margins.reads.domainSizeLimit - d.visibleCoveragePoints.length;
+          if (remaining > 0 * this.frame.margins.reads.domainSizeLimit) {
+            let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
+            for (let k = 0; k < d3.min([remaining, filteredPoints.length]); k++) {
+              let index = remaining < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
+              let coveragePoint = new CoveragePoint(filteredPoints[index]);
+              //if (d.visibleCoveragePoints.filter((e,j) => e.identifier === coveragePoint.identifier).length < 1) {
+                coveragePoint.fragment = d;
+                d.visibleCoveragePoints.push(coveragePoint);
+                //}
+            }
+          }
         }
       }
       // filter the Walks
