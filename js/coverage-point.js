@@ -1,13 +1,14 @@
 class CoveragePoint extends Base {
 
   constructor(cov) {
-    let {iid, chromosome, place, x,y} = cov;
+    let {chromosome, place, x,y, color} = cov;
     super();
-    this.identifier = Misc.guid;
+    this.identifier = `${chromosome}-${x}-${y}`;
     this.iid = this.identifier;
     this.title = this.identifier;
     this.chromosome = chromosome;
     this.place = place;
+    this.color = color;
     this.x = x;
     this.y = y;
   }

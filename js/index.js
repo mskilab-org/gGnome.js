@@ -203,6 +203,15 @@ $(function() {
         header: true,
         complete: function(results) {
           console.log("All done!");
+          results.data.forEach((d,i) => {
+            d.color = frame.chromoBins[d.chromosome].color;
+            d.place = frame.chromoBins[d.chromosome].scaleToGenome(d.x);
+          })
+          for (let k = 0; k < d3.min([frame.margins.reads.domainSizeLimit, results.data.length]); k++) {
+            let index = frame.margins.reads.domainSizeLimit < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
+            let coveragePoint = results.data[index];
+            frame.downsampledCoveragePoints.push(coveragePoint);
+          }
           frame.coveragePoints.push(results.data);
           frame.coveragePoints = frame.coveragePoints.flat();
           $('#coverage-help').html(`Successfully loaded ${results.data.length} records in ${(new Date() - t1) / 1000} seconds.`);
