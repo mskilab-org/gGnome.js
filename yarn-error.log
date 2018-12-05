@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/Cellar/node/11.0.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js remove simplify-js
+  /usr/local/Cellar/node/11.0.0/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js start.sh
 
 PATH: 
   /Users/xanthopoulakis/.rvm/gems/ruby-2.3.1/bin:/Users/xanthopoulakis/.rvm/gems/ruby-2.3.1@global/bin:/Users/xanthopoulakis/.rvm/rubies/ruby-2.3.1/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Users/xanthopoulakis/.rvm/bin
@@ -30,14 +30,18 @@ npm manifest:
     "author": "Charalampos Xanthopoulakis",
     "license": "MIT",
     "dependencies": {
+      "JSONStream": "^1.3.5",
+      "big-json": "^2.0.2",
       "cors": "^2.8.4",
-      "d3": "^4.12.0",
-      "downsample-lttb": "git+https://github.com/pingec/downsample-lttb.git",
+      "csv-write-stream": "^2.0.0",
+      "d3": "4",
+      "d3-hexbin": "0.2",
+      "d3fc-sample": "^3.0.5",
       "express": "^4.16.2",
       "increase-memory-limit": "^1.0.6",
-      "mongodb": "^3.1.8",
       "nodemon": "^1.18.5",
-      "npm": "^6.0.1"
+      "npm": "^6.0.1",
+      "outliers": "^0.0.3"
     }
   }
 
@@ -49,7 +53,7 @@ Lockfile:
   # yarn lockfile v1
   
   
-  JSONStream@^1.3.4:
+  JSONStream@^1.3.1, JSONStream@^1.3.4, JSONStream@^1.3.5:
     version "1.3.5"
     resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-1.3.5.tgz#3208c1f08d3a4d99261ab64f92302bc15e111ca0"
     dependencies:
@@ -142,6 +146,12 @@ Lockfile:
       delegates "^1.0.0"
       readable-stream "^2.0.6"
   
+  argparse@^1.0.7:
+    version "1.0.10"
+    resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"
+    dependencies:
+      sprintf-js "~1.0.2"
+  
   arr-diff@^4.0.0:
     version "4.0.0"
     resolved "https://registry.yarnpkg.com/arr-diff/-/arr-diff-4.0.0.tgz#d6461074febfec71e7e15235761a329a5dc7c520"
@@ -222,6 +232,17 @@ Lockfile:
     dependencies:
       tweetnacl "^0.14.3"
   
+  big-json@^2.0.2:
+    version "2.0.2"
+    resolved "https://registry.yarnpkg.com/big-json/-/big-json-2.0.2.tgz#85dd230243e00b5ee73d2e81e60a5ef6dafbac87"
+    dependencies:
+      JSONStream "^1.3.1"
+      assert-plus "^1.0.0"
+      into-stream "^3.1.0"
+      json-stream-stringify "^1.6.1"
+      once "^1.4.0"
+      through2 "^2.0.3"
+  
   bin-links@^1.1.2:
     version "1.1.2"
     resolved "https://registry.yarnpkg.com/bin-links/-/bin-links-1.1.2.tgz#fb74bd54bae6b7befc6c6221f25322ac830d9757"
@@ -294,10 +315,6 @@ Lockfile:
       snapdragon-node "^2.0.1"
       split-string "^3.0.2"
       to-regex "^3.0.1"
-  
-  bson@^1.1.0:
-    version "1.1.0"
-    resolved "https://registry.yarnpkg.com/bson/-/bson-1.1.0.tgz#bee57d1fb6a87713471af4e32bcae36de814b5b0"
   
   buffer-from@^1.0.0:
     version "1.1.1"
@@ -628,11 +645,19 @@ Lockfile:
     version "1.0.0"
     resolved "https://registry.yarnpkg.com/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
   
+  csv-write-stream@^2.0.0:
+    version "2.0.0"
+    resolved "https://registry.yarnpkg.com/csv-write-stream/-/csv-write-stream-2.0.0.tgz#fc2da21a48d6ea5f8c17fde39cfb911e4f0292b0"
+    dependencies:
+      argparse "^1.0.7"
+      generate-object-property "^1.0.0"
+      ndjson "^1.3.0"
+  
   cyclist@~0.2.2:
     version "0.2.2"
     resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-0.2.2.tgz#1b33792e11e914a2fd6d6ed6447464444e5fa640"
   
-  d3-array@1, d3-array@^1.2.0:
+  d3-array@1, d3-array@^1.0.0, d3-array@^1.2.0:
     version "1.2.4"
     resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.4.tgz#635ce4d5eea759f6f605863dbcfc30edc737f71f"
   
@@ -745,6 +770,10 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/d3-geo/-/d3-geo-1.9.1.tgz#157e3b0f917379d0f73bebfff3be537f49fa7356"
     dependencies:
       d3-array "1"
+  
+  d3-hexbin@0.2:
+    version "0.2.2"
+    resolved "https://registry.yarnpkg.com/d3-hexbin/-/d3-hexbin-0.2.2.tgz#9c5837dacfd471ab05337a9e91ef10bfc4f98831"
   
   d3-hierarchy@1.1.5:
     version "1.1.5"
@@ -889,7 +918,7 @@ Lockfile:
       d3-selection "1"
       d3-transition "1"
   
-  d3@^4.12.0:
+  d3@4:
     version "4.13.0"
     resolved "https://registry.yarnpkg.com/d3/-/d3-4.13.0.tgz#ab236ff8cf0cfc27a81e69bf2fb7518bc9b4f33d"
     dependencies:
@@ -923,6 +952,17 @@ Lockfile:
       d3-transition "1.1.1"
       d3-voronoi "1.1.2"
       d3-zoom "1.7.1"
+  
+  d3fc-rebind@^4.0.1:
+    version "4.1.1"
+    resolved "https://registry.yarnpkg.com/d3fc-rebind/-/d3fc-rebind-4.1.1.tgz#70c8d6b63fee63dbb3cb577c68732ded535f9b32"
+  
+  d3fc-sample@^3.0.5:
+    version "3.0.5"
+    resolved "https://registry.yarnpkg.com/d3fc-sample/-/d3fc-sample-3.0.5.tgz#5b0a758f1a042e1a624b6a37e7f0ddd11ae7f86a"
+    dependencies:
+      d3-array "^1.0.0"
+      d3fc-rebind "^4.0.1"
   
   dashdash@^1.12.0:
     version "1.14.1"
@@ -1033,10 +1073,6 @@ Lockfile:
   dotenv@^5.0.1:
     version "5.0.1"
     resolved "http://registry.npmjs.org/dotenv/-/dotenv-5.0.1.tgz#a5317459bd3d79ab88cff6e44057a6a3fbb1fcef"
-  
-  "downsample-lttb@git+https://github.com/pingec/downsample-lttb.git":
-    version "0.0.1"
-    resolved "git+https://github.com/pingec/downsample-lttb.git#e6473596fbd969f3afb0f457cc4790b0a9b42790"
   
   duplexer3@^0.1.4:
     version "0.1.4"
@@ -1319,7 +1355,7 @@ Lockfile:
       inherits "~2.0.1"
       readable-stream "~1.1.10"
   
-  from2@^2.1.0:
+  from2@^2.1.0, from2@^2.1.1:
     version "2.3.0"
     resolved "https://registry.yarnpkg.com/from2/-/from2-2.3.0.tgz#8bfb5502bde4a4d36cfdeea007fcca21d7e382af"
     dependencies:
@@ -1385,6 +1421,12 @@ Lockfile:
       string-width "^1.0.1"
       strip-ansi "^3.0.1"
       wide-align "^1.1.0"
+  
+  generate-object-property@^1.0.0:
+    version "1.2.0"
+    resolved "https://registry.yarnpkg.com/generate-object-property/-/generate-object-property-1.2.0.tgz#9c0e1c40308ce804f4783618b937fa88f99d50d0"
+    dependencies:
+      is-property "^1.0.0"
   
   genfun@^4.0.1:
     version "4.0.1"
@@ -1628,6 +1670,13 @@ Lockfile:
       validate-npm-package-license "^3.0.1"
       validate-npm-package-name "^3.0.0"
   
+  into-stream@^3.1.0:
+    version "3.1.0"
+    resolved "http://registry.npmjs.org/into-stream/-/into-stream-3.1.0.tgz#96fb0a936c12babd6ff1752a17d05616abd094c6"
+    dependencies:
+      from2 "^2.1.1"
+      p-is-promise "^1.1.0"
+  
   invert-kv@^1.0.0:
     version "1.0.0"
     resolved "https://registry.yarnpkg.com/invert-kv/-/invert-kv-1.0.0.tgz#104a8e4aaca6d3d8cd157a8ef8bfab2d7a3ffdb6"
@@ -1781,6 +1830,10 @@ Lockfile:
     dependencies:
       isobject "^3.0.1"
   
+  is-property@^1.0.0:
+    version "1.0.2"
+    resolved "https://registry.yarnpkg.com/is-property/-/is-property-1.0.2.tgz#57fe1c4e48474edd65b09911f26b1cd4095dda84"
+  
   is-redirect@^1.0.0:
     version "1.0.0"
     resolved "https://registry.yarnpkg.com/is-redirect/-/is-redirect-1.0.0.tgz#1d03dded53bd8db0f30c26e4f95d36fc7c87dc24"
@@ -1843,7 +1896,11 @@ Lockfile:
     version "0.2.3"
     resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz#b480c892e59a2f05954ce727bd3f2a4e882f9e13"
   
-  json-stringify-safe@~5.0.1:
+  json-stream-stringify@^1.6.1:
+    version "1.6.1"
+    resolved "https://registry.yarnpkg.com/json-stream-stringify/-/json-stream-stringify-1.6.1.tgz#061828842c2155674500ac5aa0750d9aa7c36435"
+  
+  json-stringify-safe@^5.0.1, json-stringify-safe@~5.0.1:
     version "5.0.1"
     resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   
@@ -2067,10 +2124,6 @@ Lockfile:
     dependencies:
       mimic-fn "^1.0.0"
   
-  memory-pager@^1.0.2:
-    version "1.1.0"
-    resolved "https://registry.yarnpkg.com/memory-pager/-/memory-pager-1.1.0.tgz#9308915e0e972849fefbae6f8bc95d6b350e7344"
-  
   merge-descriptors@1.0.1:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
@@ -2185,23 +2238,6 @@ Lockfile:
     dependencies:
       minimist "0.0.8"
   
-  mongodb-core@3.1.7:
-    version "3.1.7"
-    resolved "https://registry.yarnpkg.com/mongodb-core/-/mongodb-core-3.1.7.tgz#fe61853a6a6acbd2046c91794e5325ecad85428a"
-    dependencies:
-      bson "^1.1.0"
-      require_optional "^1.0.1"
-      safe-buffer "^5.1.2"
-    optionalDependencies:
-      saslprep "^1.0.0"
-  
-  mongodb@^3.1.8:
-    version "3.1.8"
-    resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.1.8.tgz#df8084fda2efdbaddd05dfd6a269891fc4cc72df"
-    dependencies:
-      mongodb-core "3.1.7"
-      safe-buffer "^5.1.2"
-  
   move-concurrently@^1.0.1:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/move-concurrently/-/move-concurrently-1.0.1.tgz#be2c005fda32e0b29af1f05d7c4b33214c701f92"
@@ -2244,6 +2280,15 @@ Lockfile:
       regex-not "^1.0.0"
       snapdragon "^0.8.1"
       to-regex "^3.0.1"
+  
+  ndjson@^1.3.0:
+    version "1.5.0"
+    resolved "https://registry.yarnpkg.com/ndjson/-/ndjson-1.5.0.tgz#ae603b36b134bcec347b452422b0bf98d5832ec8"
+    dependencies:
+      json-stringify-safe "^5.0.1"
+      minimist "^1.2.0"
+      split2 "^2.1.0"
+      through2 "^2.0.3"
   
   needle@^2.2.1:
     version "2.2.4"
@@ -2658,9 +2703,17 @@ Lockfile:
       os-homedir "^1.0.0"
       os-tmpdir "^1.0.0"
   
+  outliers@^0.0.3:
+    version "0.0.3"
+    resolved "https://registry.yarnpkg.com/outliers/-/outliers-0.0.3.tgz#4d8329bf25340495b628d3997016525d097dd5b8"
+  
   p-finally@^1.0.0:
     version "1.0.0"
     resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
+  
+  p-is-promise@^1.1.0:
+    version "1.1.0"
+    resolved "http://registry.npmjs.org/p-is-promise/-/p-is-promise-1.1.0.tgz#9c9456989e9f6588017b0434d56097675c3da05e"
   
   p-limit@^1.1.0:
     version "1.3.0"
@@ -2954,7 +3007,7 @@ Lockfile:
     dependencies:
       mute-stream "~0.0.4"
   
-  "readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.6, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.6:
+  "readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.6, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.6, readable-stream@~2.3.6:
     version "2.3.6"
     resolved "http://registry.npmjs.org/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
     dependencies:
@@ -3057,17 +3110,6 @@ Lockfile:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-1.0.1.tgz#97f717b69d48784f5f526a6c5aa8ffdda055a4d1"
   
-  require_optional@^1.0.1:
-    version "1.0.1"
-    resolved "https://registry.yarnpkg.com/require_optional/-/require_optional-1.0.1.tgz#4cf35a4247f64ca3df8c2ef208cc494b1ca8fc2e"
-    dependencies:
-      resolve-from "^2.0.0"
-      semver "^5.1.0"
-  
-  resolve-from@^2.0.0:
-    version "2.0.0"
-    resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-2.0.0.tgz#9480ab20e94ffa1d9e80a804c7ea147611966b57"
-  
   resolve-from@^4.0.0:
     version "4.0.0"
     resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz#4abcd852ad32dd7baabfe9b40e00a36db5f392e6"
@@ -3117,12 +3159,6 @@ Lockfile:
   "safer-buffer@>= 2.1.2 < 3", safer-buffer@^2.0.2, safer-buffer@^2.1.0, safer-buffer@~2.1.0:
     version "2.1.2"
     resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
-  
-  saslprep@^1.0.0:
-    version "1.0.2"
-    resolved "https://registry.yarnpkg.com/saslprep/-/saslprep-1.0.2.tgz#da5ab936e6ea0bbae911ffec77534be370c9f52d"
-    dependencies:
-      sparse-bitfield "^3.0.3"
   
   sax@^1.2.4:
     version "1.2.4"
@@ -3316,12 +3352,6 @@ Lockfile:
     version "0.5.7"
     resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
   
-  sparse-bitfield@^3.0.3:
-    version "3.0.3"
-    resolved "https://registry.yarnpkg.com/sparse-bitfield/-/sparse-bitfield-3.0.3.tgz#ff4ae6e68656056ba4b3e792ab3334d38273ca11"
-    dependencies:
-      memory-pager "^1.0.2"
-  
   spdx-correct@^3.0.0:
     version "3.0.2"
     resolved "https://registry.yarnpkg.com/spdx-correct/-/spdx-correct-3.0.2.tgz#19bb409e91b47b1ad54159243f7312a858db3c2e"
@@ -3350,11 +3380,21 @@ Lockfile:
     dependencies:
       extend-shallow "^3.0.0"
   
+  split2@^2.1.0:
+    version "2.2.0"
+    resolved "https://registry.yarnpkg.com/split2/-/split2-2.2.0.tgz#186b2575bcf83e85b7d18465756238ee4ee42493"
+    dependencies:
+      through2 "^2.0.2"
+  
   split@^1.0.1:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/split/-/split-1.0.1.tgz#605bd9be303aa59fb35f9229fbea0ddec9ea07d9"
     dependencies:
       through "2"
+  
+  sprintf-js@~1.0.2:
+    version "1.0.3"
+    resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   
   sshpk@^1.7.0:
     version "1.15.1"
@@ -3516,6 +3556,13 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
     dependencies:
       readable-stream "^2.1.5"
+      xtend "~4.0.1"
+  
+  through2@^2.0.2, through2@^2.0.3:
+    version "2.0.5"
+    resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.5.tgz#01c1e39eb31d07cb7d03a96a70823260b23132cd"
+    dependencies:
+      readable-stream "~2.3.6"
       xtend "~4.0.1"
   
   through@2, "through@>=2.2.7 <3", through@^2.3.8, through@~2.3, through@~2.3.4:
@@ -3821,9 +3868,14 @@ Lockfile:
       yargs-parser "^9.0.2"
 
 Trace: 
-  Error: This module isn't specified in a manifest.
+  Error: Command "start.sh" not found.
       at new MessageError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:186:110)
-      at Object.<anonymous> (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:60445:15)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:87307:17
       at Generator.next (<anonymous>)
       at step (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:98:30)
-      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:109:13
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:116:14
+      at new Promise (<anonymous>)
+      at new F (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:23451:28)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:95:12
+      at runCommand (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:87312:22)
+      at Object.<anonymous> (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:87412:14)
