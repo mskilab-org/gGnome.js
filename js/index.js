@@ -214,6 +214,7 @@ $(function() {
           }
           frame.coveragePoints.push(results.data);
           frame.coveragePoints = frame.coveragePoints.flat();
+          frame.render();
           $('#coverage-help').html(`Successfully loaded ${results.data.length} records in ${(new Date() - t1) / 1000} seconds.`);
         }
       });

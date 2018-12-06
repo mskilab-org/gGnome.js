@@ -210,7 +210,7 @@ class BrushContainer {
       fragment.selection = node && d3.brushSelection(node);
       fragment.domain = fragment.selection && fragment.selection.map(this.frame.genomeScale.invert,this.frame.genomeScale);
       if (fragment.selection) {
-        fragment.changed = (fragment.selection[0] !== fragment.previousSelection[0]) || (fragment.selection[1] !== fragment.previousSelection[1]);
+        fragment.changed = (!fragment.previousSelection) || ((fragment.selection[0] !== fragment.previousSelection[0]) || (fragment.selection[1] !== fragment.previousSelection[1]));
         fragment.selectionSize = fragment.selection[1] - fragment.selection[0];
       }
       return fragment;
@@ -463,7 +463,7 @@ class BrushContainer {
       .tickFormat(d3.format("d"))
       .tickValues(d3.range(0, 10)
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
-    if (this.frame.yCoverageScale) {
+    if (this.frame.showReads && this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
       this.frame.yCoverageExtent = [0, d3.max(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[]))];
       if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
