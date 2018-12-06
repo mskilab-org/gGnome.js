@@ -8,15 +8,6 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
     console.log(`File not found: ${err}`)
     return;
   } else {
-    let dataInput = Object.assign({}, JSON.parse(metadataContent));
-    let genomeLength = dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint), 0);
-    let boundary = 0;
-    let chromoBins = dataInput.metadata.reduce((hash, element) => {
-      let chromoLength = element.endPoint - element.startPoint;
-      hash[element.chromosome] = {scale: d3.scaleLinear().domain([0, element.endPoint]).range([boundary, boundary + chromoLength]), records: [], color: element.color}; 
-      boundary += chromoLength;
-      return hash; 
-    }, {});
     fs.readdirSync('./coverage/json/')
     .filter((d,i) =>  fs.lstatSync(`./coverage/json/${d}`).isDirectory())
     .map((dataFile) => {
@@ -29,7 +20,6 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
         dataInput.coverage.forEach((cov,i) => {
           cov.y.forEach((k,j) => {
             let point = {x: (cov.startPoint + j * cov.binwidth + 1), y: k, chromosome: cov.chromosome};
-            point.place = chromoBins[cov.chromosome].scale(point.x);
             results.push(point);
           });
         });
@@ -39,19 +29,12 @@ fs.readFile('./public/metadata.json', (err, metadataContent) => {
           results = results.filter(outliers('y'));
           console.log(`Outliers removal left ${results.length} records for ${chromoData} of ${dataFile}...`);
           console.log(`Writing ${results.length} records in todal in ./coverage/csv/${dataFile}/${dataFile}.${chromosome}.csv`);
-          let writer = csvWriter()
+          let writer = csvWriter();
           writer.pipe(fs.createWriteStream(`./coverage/csv/${dataFile}/${dataFile}.${chromosome}.csv`));
           results.forEach((d,i) => writer.write(d));
           writer.end();
-          records.push(results);
         }
       });
-      /*
-      let writer = csvWriter()
-      writer.pipe(fs.createWriteStream(`./coverage/${dataFile}/${dataFile}.csv`));
-      records.flat().forEach((d,i) => writer.write(d));
-      writer.end();
-      */
     });
   }
 });
