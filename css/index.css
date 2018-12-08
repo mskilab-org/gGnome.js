@@ -9,9 +9,14 @@
 }
 /* Main SVG styling */
 svg.plot {
-  border: 1px solid transparent;
+  fill: transparent;
+  background: transparent;
 }
-
+canvas.plot {
+  position: absolute;
+  margin: 0px;
+  z-index: -1000;
+}
 .brush .selection {
   stroke: steelblue;
   fill-opacity: .125;
@@ -51,6 +56,12 @@ circle.highlighted {
   fill: steelblue;
   pointer-events: none;
   user-select: none;
+}
+
+g.reads-container .axis--y g.tick line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+  opacity: 0.3;
 }
 
 .axis--y g.tick line {

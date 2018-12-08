@@ -182,6 +182,22 @@ class Frame extends Base {
   render() {
     // Clear any existing svg
     this.plotContainer.selectAll('svg').remove();
+    // Clear any existing canvas
+    this.plotContainer.selectAll('canvas').remove();
+
+    // Add the svg container
+    this.canvas = this.plotContainer.append('canvas')
+      .attr('class', 'plot')
+      .attr('width', 2 * this.totalWidth)
+      .attr('height', 2 * this.totalHeight)
+      .style('width', `${this.totalWidth}px`)
+      .style('height', `${this.totalHeight}px`);
+
+    // get the canvas context
+    this.ctxCanvas = this.canvas.node().getContext('2d');
+    // to achieve proper rendering on retina screens
+    this.ctxCanvas.scale(2,2);
+
     // Add the svg container
     this.svg = this.plotContainer.append('svg')
       .attr('class', 'plot')

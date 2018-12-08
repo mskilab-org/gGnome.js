@@ -297,6 +297,7 @@ class BrushContainer {
       // filter the coveragePoints
       if (this.frame.showReads) {
         if (d.changed || d.visibleCoveragePoints === undefined) { //console.log('called for', d.id)
+
           d.visibleCoveragePoints = this.frame.downsampledCoveragePoints
             .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])))
             .map((cov,j) => {
@@ -1233,28 +1234,6 @@ class BrushContainer {
   }
 
   renderReads() {
-    var self = this;
-    // create the g elements containing the intervals
-    let readsPanels = this.frame.readsContainer.selectAll('g.reads-panel')
-      .data(this.visibleFragments, (d,i) => d.id);
-
-    readsPanels
-      .enter()
-      .append('g')
-      .attr('class', 'reads-panel')
-      .attr('fill', 'none')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-linejoin', 'round')
-      .style('clip-path','url(#genes-clip)')
-      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
-
-    readsPanels
-      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
-
-    readsPanels
-      .exit()
-      .remove();
 
     if (this.frame.showReads) {
 
@@ -1262,45 +1241,22 @@ class BrushContainer {
      this.frame.readsContainer.select('.axis.axis--y')
        .call(this.frame.yCoverageAxis);
 
-     // add the actual intervals as rectangles
-     let coverageCircles = readsPanels.selectAll('circle.coverage-circle')
-       .data((d,i) => d.visibleCoveragePoints, (d,i) =>  d.identifier);
-
-     coverageCircles
-       .enter()
-       .append('circle')
-       .attr('id', (d,i) => d.identifier)
-       .attr('class', (d,i) => 'popovered coverage-circle')
-       .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
-       .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.color)
-       .attr('stroke', (d,i) => d.stroke)
-       .attr('stroke-width', (d,i) => d.strokeWidth)
-       .style('opacity', 1)
-       .on('mouseover', function(d,i) {
-         d3.select(this).classed('highlighted', true);
-       })
-       .on('mouseout', function(d,i) {
-         d3.select(this).classed('highlighted', false);
-       })
-       .on('mousemove', (d,i) => this.loadPopover(d));
-
-     coverageCircles
-       .attr('id', (d,i) => d.identifier)
-       .attr('transform', (d,i) => 'translate(' + [d.fragment.innerScale(d.place), this.frame.yCoverageScale(d.y)] + ')')
-       .attr('r', (d,i) => d.radius)
-       .style('fill', (d,i) => d.fill)
-       .attr('stroke', (d,i) => d.stroke)
-       .attr('stroke-width', (d,i) => d.strokeWidth)
-       .style('opacity', 1);
-
-     coverageCircles
-      .exit()
-      .remove();
+      // render the points on the canvas
+      this.frame.ctxCanvas.clearRect(0, 0, this.frame.totalWidth, this.frame.totalHeight);
+      this.visibleFragments.forEach((fragment) => {
+        fragment.visibleCoveragePoints.forEach((d,i) => {
+          this.frame.ctxCanvas.beginPath();
+          this.frame.ctxCanvas.fillStyle = d.color;
+          this.frame.ctxCanvas.strokeStyle = d.stroke;
+          this.frame.ctxCanvas.arc(Math.floor(fragment.range[0] + this.frame.margins.left + d.fragment.innerScale(d.place)), Math.floor(this.frame.margins.panels.chromoGap + this.frame.yCoverageScale(d.y)), d.radius, 0, 2 * Math.PI);
+          this.frame.ctxCanvas.closePath();
+          this.frame.ctxCanvas.stroke();
+          this.frame.ctxCanvas.fill();
+        });
+      });
 
     } else {
-      readsPanels.selectAll('circle').remove();
-      readsPanels.selectAll('path').remove();
+      this.frame.ctxCanvas.clearRect(0, 0, this.frame.totalWidth, this.frame.totalHeight);
     }
 
   }
