@@ -176,6 +176,12 @@ $(function() {
     document.body.removeChild(textArea);
   });
 
+  $('#coverage-button').click(() => {
+    $('#coverage-modal').modal({
+      backdrop: 'static',
+      keyboard: false
+    });
+  }); 
 
   // We can attach the `fileselect` event to all file inputs on the page
   $(document).on('change', ':file', function() {
@@ -189,6 +195,7 @@ $(function() {
   $(document).ready( function() {
     $(':file').on('fileselect', function(event, numFiles, label, file) {
       $('#coverage-help').html('Loading coverage points ...');
+      d3.select('#coverage-submit').attr('data-dismiss', 'modal0').classed('disabled', true);
       var input = $(this).parents('.input-group').find(':text'),
       log = numFiles > 1 ? numFiles + ' files selected' : label;
       if( input.length ) {
@@ -206,16 +213,16 @@ $(function() {
           results.data.forEach((d,i) => {
             d.color = frame.chromoBins[d.chromosome].color;
             d.place = frame.chromoBins[d.chromosome].scaleToGenome(d.x);
+            frame.coveragePoints.push(d);
           })
           for (let k = 0; k < d3.min([frame.margins.reads.domainSizeLimit, results.data.length]); k++) {
             let index = frame.margins.reads.domainSizeLimit < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
             let coveragePoint = results.data[index];
             frame.downsampledCoveragePoints.push(coveragePoint);
           }
-          frame.coveragePoints.push(results.data);
-          frame.coveragePoints = frame.coveragePoints.flat();
           frame.render();
           $('#coverage-help').html(`Successfully loaded ${results.data.length} records in ${(new Date() - t1) / 1000} seconds.`);
+          d3.select('#coverage-submit').attr('data-dismiss', 'modal').classed('disabled', false);
         }
       });
 
