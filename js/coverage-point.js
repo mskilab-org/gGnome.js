@@ -23,7 +23,8 @@ class CoveragePoint extends Base {
   }
 
   get fill() {
-    return this.color;
+    let col = d3.rgb(this.color);
+    return [col.r / 255.0, col.g / 255.0, col.b / 255.0, 1.0];
   }
 
   get stroke() {

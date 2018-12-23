@@ -305,6 +305,7 @@ class BrushContainer {
               coveragePoint.fragment = d;
               return coveragePoint;
             });
+          
           let remaining = this.frame.margins.reads.domainSizeLimit - d.visibleCoveragePoints.length;
           if (remaining > 0 * this.frame.margins.reads.domainSizeLimit) {
             let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
@@ -317,6 +318,7 @@ class BrushContainer {
                 //}
             }
           }
+          
         }
       }
       // filter the Walks
@@ -1241,22 +1243,19 @@ class BrushContainer {
      this.frame.readsContainer.select('.axis.axis--y')
        .call(this.frame.yCoverageAxis);
 
-      // render the points on the canvas
-      this.frame.ctxCanvas.clearRect(0, 0, this.frame.totalWidth, this.frame.totalHeight);
-      this.visibleFragments.forEach((fragment) => {
-        fragment.visibleCoveragePoints.forEach((d,i) => {
-          this.frame.ctxCanvas.beginPath();
-          this.frame.ctxCanvas.fillStyle = d.color;
-          this.frame.ctxCanvas.strokeStyle = d.stroke;
-          this.frame.ctxCanvas.arc(Math.floor(fragment.range[0] + this.frame.margins.left + d.fragment.innerScale(d.place)), Math.floor(this.frame.margins.panels.chromoGap + this.frame.yCoverageScale(d.y)), d.radius, 0, 2 * Math.PI);
-          this.frame.ctxCanvas.closePath();
-          this.frame.ctxCanvas.stroke();
-          this.frame.ctxCanvas.fill();
-        });
-      });
-
+       this.frame.reglCanvas.points = [];
+       this.visibleFragments.forEach((fragment) => {
+         fragment.visibleCoveragePoints.forEach((d,i) => {
+           this.frame.reglCanvas.points.push({
+             x: Math.floor(fragment.range[0] + this.frame.margins.left + d.fragment.innerScale(d.place)),
+             y: Math.floor(this.frame.margins.panels.chromoGap + this.frame.yCoverageScale(d.y)),
+             size: 2 * d.radius,
+             color: d.fill
+           });
+         });
+       });
     } else {
-      this.frame.ctxCanvas.clearRect(0, 0, this.frame.totalWidth, this.frame.totalHeight);
+      this.frame.reglCanvas.points = [];
     }
 
   }
