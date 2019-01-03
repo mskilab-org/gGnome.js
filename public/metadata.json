@@ -26,5 +26,6 @@
     { "chromosome": "M",  "startPoint": 1, "endPoint": 16571,     "color": "#d6616b"},
     { "chromosome": "Y",  "startPoint": 1, "endPoint": 59373566,  "color": "#ad494a"}
   ],
-"sequences": {"T": "#E6E431", "A": "#5157FB", "G": "#1DBE21", "C": "#DE0A17", "backbone" : "#AD26FA"}
+"sequences": {"T": "#E6E431", "A": "#5157FB", "G": "#1DBE21", "C": "#DE0A17", "backbone" : "#AD26FA"},
+"coveragePointsThreshold": 30000
 }

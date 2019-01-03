@@ -215,12 +215,16 @@ $(function() {
             d.place = frame.chromoBins[d.chromosome].scaleToGenome(d.x);
             frame.coveragePoints.push(d);
           })
-          for (let k = 0; k < d3.min([frame.margins.reads.domainSizeLimit, results.data.length]); k++) {
-            let index = frame.margins.reads.domainSizeLimit < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
+          for (let k = 0; k < d3.min([frame.coveragePointsThreshold, results.data.length]); k++) {
+            let index = frame.coveragePointsThreshold < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
             let coveragePoint = results.data[index];
             frame.downsampledCoveragePoints.push(coveragePoint);
           }
-          frame.render();
+          // update the fragments
+          frame.brushContainer.updateFragments(true);
+          // update the reads
+          frame.brushContainer.renderReads();
+
           $('#coverage-help').html(`Successfully loaded ${results.data.length} records in ${(new Date() - t1) / 1000} seconds.`);
           d3.select('#coverage-submit').attr('data-dismiss', 'modal').classed('disabled', false);
         }
