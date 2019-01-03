@@ -11,7 +11,7 @@ class Frame extends Base {
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2},
-      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 50000},
+      reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
       walks: {bar: 10},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -65,6 +65,7 @@ class Frame extends Base {
         this.dataInput = results[0];
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
+        this.coveragePointsThreshold = results[1].coveragePointsThreshold || this.margins.reads.domainSizeLimit;
         this.coveragePoints = [];
         this.downsampledCoveragePoints = [];
         this.render();
@@ -194,20 +195,6 @@ class Frame extends Base {
     this.reglCanvas = new ReglCanvas('coverage-canvas');
     this.ctxCanvas = this.canvas.node().getContext('2d');
 
-/*
-    // Add the svg container
-    this.canvas = this.plotContainer.append('canvas')
-      .attr('class', 'plot')
-      .attr('width', 2 * this.totalWidth)
-      .attr('height', 2 * this.totalHeight)
-      .style('width', `${this.totalWidth}px`)
-      .style('height', `${this.totalHeight}px`);
-
-    // get the canvas context
-    this.ctxCanvas = this.canvas.node().getContext('2d');
-    // to achieve proper rendering on retina screens
-    this.ctxCanvas.scale(2,2);
-*/
     // Add the svg container
     this.svg = this.plotContainer.append('svg')
       .attr('class', 'plot')

@@ -140,7 +140,7 @@ class BrushContainer {
   update() {
 
     // first recalculate the current selections
-    this.updateFragments();
+    this.updateFragments(false);
 
     // Draw the notes of the fragments
     this.renderFragmentsNote(this.panelDomainsText());
@@ -187,7 +187,7 @@ class BrushContainer {
     window.pc = this;
   }
 
-  updateFragments() {
+  updateFragments(force) {
     let node;
     this.visibleFragments = [];
     this.visibleIntervals = [];
@@ -210,7 +210,7 @@ class BrushContainer {
       fragment.selection = node && d3.brushSelection(node);
       fragment.domain = fragment.selection && fragment.selection.map(this.frame.genomeScale.invert,this.frame.genomeScale);
       if (fragment.selection) {
-        fragment.changed = (!fragment.previousSelection) || ((fragment.selection[0] !== fragment.previousSelection[0]) || (fragment.selection[1] !== fragment.previousSelection[1]));
+        fragment.changed = force || (!fragment.previousSelection) || ((fragment.selection[0] !== fragment.previousSelection[0]) || (fragment.selection[1] !== fragment.previousSelection[1]));
         fragment.selectionSize = fragment.selection[1] - fragment.selection[0];
       }
       return fragment;
@@ -306,8 +306,8 @@ class BrushContainer {
               return coveragePoint;
             });
           
-          let remaining = this.frame.margins.reads.domainSizeLimit - d.visibleCoveragePoints.length;
-          if (remaining > 0 * this.frame.margins.reads.domainSizeLimit) {
+          let remaining = this.frame.coveragePointsThreshold - d.visibleCoveragePoints.length;
+          if (remaining > 0 * this.frame.coveragePointsThreshold) {
             let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
             for (let k = 0; k < d3.min([remaining, filteredPoints.length]); k++) {
               let index = remaining < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
@@ -538,7 +538,7 @@ class BrushContainer {
     d3.select('#brush-' + fragment.id).call(fragment.brush.move, selection);
 
     // update the data
-    this.updateFragments();
+    this.updateFragments(false);
 
     // update the interconnections
     this.renderInterconnections();
