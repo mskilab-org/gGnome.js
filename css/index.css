@@ -146,6 +146,7 @@ text.chromo-text {
   user-select: none;
 }
 text.label-magnitude {
+  fill: #000;
   pointer-events: none;
   user-select: none;
 }
