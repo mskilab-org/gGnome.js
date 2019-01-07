@@ -70,6 +70,36 @@ class Frame extends Base {
         this.downsampledCoveragePoints = [];
         this.render();
         this.updateGenes();
+        this.updateCoveragePoints();
+    });
+  }
+
+  updateCoveragePoints() {
+    Papa.parse(window.location.origin + '/coverage/' + this.dataFileName + '.csv', {
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      header: true,
+      worker: true,
+      download: true,
+      complete: (results) => {
+        if (results) {
+          results.data.forEach((d,i) => {
+            d.color = this.chromoBins[d.chromosome].color;
+            d.place = this.chromoBins[d.chromosome].scaleToGenome(d.x);
+            this.coveragePoints.push(d);
+          })
+          for (let k = 0; k < d3.min([this.coveragePointsThreshold, results.data.length]); k++) {
+            let index = this.coveragePointsThreshold < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
+            let coveragePoint = results.data[index];
+            this.downsampledCoveragePoints.push(coveragePoint);
+          }
+          // update the fragments
+          this.brushContainer.updateFragments(true);
+          // update the reads
+          this.brushContainer.renderReads();
+          toastr.success(`Loaded ${results.data.length} coverage records!`);
+        }
+      }
     });
   }
 
@@ -82,7 +112,6 @@ class Frame extends Base {
       this.dataInput.genes = e.data.dataInput.genes;
       this.genes = e.data.genes;
       this.geneBins = e.data.geneBins;
-      console.log('genes incorporated:', this.dataInput.genes.length);
       toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`);
     }, false);
     worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
