@@ -52,7 +52,10 @@ class Frame extends Base {
     this.margins.defaults.upperGapPanelWithGenes = (this.height + this.margins.top - 2 * this.margins.intervals.bar + this.margins.panels.chromoGap + this.margins.panels.gap) / 2;
   }
 
-  loadData(dataFile) {
+  loadData(dataFile) { console.log(this.dataFile, dataFile);
+    if (this.dataFile && (this.dataFile !== dataFile)) {
+      this.location = null;
+    }
     this.dataFile = dataFile;
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
     this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
