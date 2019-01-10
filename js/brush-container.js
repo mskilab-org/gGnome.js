@@ -469,7 +469,7 @@ class BrushContainer {
     if (this.frame.showReads && this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
       let points = [... new Set(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((e,j) => Math.round(e.y * 10) / 10)).reduce((acc, c) => acc.concat(c),[]))].sort((a,b) => d3.descending(a,b));
-      let upperbound = points[Math.floor(0.1 * points.length)]; //d3.max(points)
+      let upperbound = points[Math.floor(0.01 * points.length)]; //d3.max(points)
       this.frame.yCoverageExtent = [0, upperbound];
       if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
         this.frame.yCoverageExtent[0] = this.frame.yCoverageExtent[0] - 1;
