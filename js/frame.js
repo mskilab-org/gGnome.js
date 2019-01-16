@@ -52,7 +52,7 @@ class Frame extends Base {
     this.margins.defaults.upperGapPanelWithGenes = (this.height + this.margins.top - 2 * this.margins.intervals.bar + this.margins.panels.chromoGap + this.margins.panels.gap) / 2;
   }
 
-  loadData(dataFile) { console.log(this.dataFile, dataFile);
+  loadData(dataFile) {
     if (this.dataFile && (this.dataFile !== dataFile)) {
       this.location = null;
     }
@@ -61,8 +61,8 @@ class Frame extends Base {
     this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
-      .defer(d3.json, './json/' + dataFile)
-      .defer(d3.json, './public/metadata.json')
+      .defer(d3.json, 'json/' + dataFile)
+      .defer(d3.json, 'public/metadata.json')
       .awaitAll((error, results) => {
         if (error) return;
         this.dataInput = results[0];

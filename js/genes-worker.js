@@ -22,7 +22,7 @@ self.addEventListener('message', (e) => {
     boundary += chromo.length;
     return hash; 
   }, {});
-  d3.json('/public/genes.json', (error, results) => {
+  d3.json('../public/genes.json', (error, results) => {
     if (error) return;
     console.log('genes succesfully loaded!', results.length);
     e.data.dataInput.genes = results.genes;

@@ -14,46 +14,15 @@ $(function() {
   // set the default location as parsed from the url
   frame.location = currentLocation;
 
-  // If there are options defined on the HTML already, we should show them as they are (Web version)
-  if ($('#' + 'data-selector').find('option').length > 0) {
-    // get the list of options
-    let options = $('#' + 'data-selector option').map(function() { return $(this).text(); }).get();
-    // Act upon selector load
-    $('#' + dataSelector).on('loaded.bs.select', event => {
-      if (options.indexOf(currentFile) > 0) {
-        $('#' + dataSelector).selectpicker('val', currentFile);
-      } else {
-        $('#' + dataSelector).selectpicker('val', options[0]);
-      }
-      $('#' + dataSelector).selectpicker('render');
-    });
-
-    // Act upon json reload
-    $('#' + dataSelector).on('rendered.bs.select', event => {
-      frame.loadData($('#' + dataSelector).val());
-    });
-  } else {
-    // Otherwise, we should load them from the server (when running on localhost)
-    $('#' + dataSelector).selectpicker('hide');
-
-    d3.json('/datafiles', results => {
-      $('#' + dataSelector).html(results.files.map((d,i) => `<option value="${d.file}">${d.name}</option>`).join(''));
-      $('#' + dataSelector).selectpicker('refresh');
-      $('#' + dataSelector).selectpicker('show');
-      if (results.files.filter((d,i) => d.name === currentFile).length > 0) {
-        $('#' + dataSelector).selectpicker('val', currentFile);
-      }
-      $('#' + dataSelector).selectpicker('render');
-    });
-
-    // Act upon json reload
-    $('#' + dataSelector).on('refreshed.bs.select', event => {
-      frame.loadData($('#' + dataSelector).val());
-    });
-    $('#' + dataSelector).on('changed.bs.select', event => {
-      frame.loadData($('#' + dataSelector).val());
-    });
-  }
+  d3.csv('datafiles.csv', (error, results) => {
+    if (error) {
+      d3.csv('datafiles', (res) => {
+        populateComboBox(res);
+      });
+    } else {
+      populateComboBox(results);
+    }
+  });
 
   // Act upon window resize
   d3.select(window).on('resize', () => {
@@ -242,5 +211,20 @@ $(function() {
 
     element.click();
   };
+
+  function populateComboBox(results) {
+    $(`#${dataSelector}`)
+      .dropdown({
+        clearable: true,
+        on: 'hover',
+        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (i === 0)}}),
+        action: 'activate',
+        onChange: (value, text, $selectedItem) => {
+          if (value) {
+            frame.loadData(value);
+          }
+        }
+    });
+  }
 });
 
