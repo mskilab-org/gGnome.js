@@ -296,7 +296,7 @@ class BrushContainer {
       }
       // filter the coveragePoints
       if (this.frame.showReads) {
-        if (d.changed || d.visibleCoveragePoints === undefined) { //console.log('called for', d.id)
+        if (d.changed || d.visibleCoveragePoints === undefined) {
 
           d.visibleCoveragePoints = this.frame.downsampledCoveragePoints
             .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])))

@@ -10,8 +10,9 @@ app.use(cors())
 
 app.get('/datafiles', (req, res) => {
   let files = fs.readdirSync('./json/');
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(`{"files": [${files.map((d,i) => `{"file": "${d}", "name": "${d}"}`).join(',')}]}`);
+  res.writeHead(200, {'Content-Type': 'text/csv'});
+  res.write('datafile\r\n');
+  res.write(`${files.join('\r\n')}`);
   res.end();
 });
 
