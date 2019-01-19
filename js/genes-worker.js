@@ -4,11 +4,11 @@
 // Setup an event listener that will handle messages sent to the worker.
 self.addEventListener('message', (e) => {
   /* Bring in D3.js*/
-  importScripts( "/js/external/d3.min.js");
-  importScripts( "/js/chromo.js");
-  importScripts( "/js/base.js");
-  importScripts( "/js/interval.js");
-  importScripts( "/js/gene.js");
+  importScripts( "external/d3.min.js");
+  importScripts( "chromo.js");
+  importScripts( "base.js");
+  importScripts( "interval.js");
+  importScripts( "gene.js");
 
   let genomeLength = e.data.dataInput.metadata.reduce((acc, elem) => (acc + elem.endPoint - elem.startPoint), 0);
   let boundary = 0;
