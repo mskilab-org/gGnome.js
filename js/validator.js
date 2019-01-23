@@ -1,5 +1,14 @@
 $(function() {
 
+  $('.menu .item').tab();
+
+    $('input[type=file]').change(function(){
+      var t = $(this).val();
+      var labelText = 'File : ' + t.substr(12, t.length);
+      $(this).prev('label').text(labelText);
+    })
+
+  
   if (window.File && window.FileReader && window.FileList && window.Blob) {
     // Great success! All the File APIs are supported.
     $('#validateBtn').on('click', (event) => {
@@ -7,6 +16,70 @@ $(function() {
       $('#detail').html('');
       validateInputFile();
     });
+
+    $('#validateBtn-csv').on('click', (event) => {
+      event.preventDefault();
+      $('#detail-csv').html('');
+      validateCSVFile();
+    });
+
+    function validateCSVFile() {
+      var fileName = $("#fileupload-csv").val();
+      var file_extension = fileName.split('.').pop();
+      if (file_extension === 'csv') {
+        var input = document.getElementById('fileupload-csv');
+        var files = input.files; // FileList object
+        // use the 1st file from the list
+        f = files[0];
+        var reader = new FileReader();
+        reader.onprogress = ((theFile) => {
+          return (e) => {
+            var percentLoaded = Math.round((e.loaded / e.total) * 100);
+          };
+        })(f);
+        // Closure to capture the file information.
+        reader.onload = ((theFile) => {
+          return (e) => {
+            try {
+              Papa.parse(e.target.result, {
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                header: true,
+                complete: function(results) {
+                  if (results.errors.length > 0) {
+                    results.errors.forEach((d,i) => {
+                      alerting(`The CSV parsing failed with error: ${d}`, 'danger', 'detail-csv')
+                    })
+                  } else {
+                    alerting(`Loaded ${theFile.name}, containing ${results.data.length} records, sized ${theFile.size} Bytes`, 'info', 'detail-csv');
+                    if (results.meta.fields.join(',') === ["x", "y", "chromosome"].join(',')) {
+                      alerting(`Header fields "x,y,chromosome" properly defined!`, 'success', 'detail-csv');
+                    } else {
+                      alerting(`Header fields "x,y,chromosome" expected, found ${results.meta.fields}`, 'danger', 'detail-csv');
+                    }
+                    results.data.forEach((d,i) => {
+                     if (typeof d.x !== 'number') {
+                       alerting(`Record at row ${i+1} expected numeric x value, found ${d.x}`, 'danger', 'detail-csv');
+                     }
+                     if (typeof d.y !== 'number') {
+                       alerting(`Record at row ${i+1} expected numeric y value, found ${d.y}`, 'danger', 'detail-csv');
+                     }
+                    });
+                  }
+                }
+              });
+
+             } catch(e) {
+                alerting(`The CSV parsing failed with error: ${e}`, 'danger', 'detail-csv')
+             }
+          };
+        })(f);
+        // Read in the image file as a data URL.
+        reader.readAsText(f);
+      } else {
+        alerting('The file has an invalid type; only .csv files are supported.', 'danger')
+      }
+    }
 
     function validateInputFile() {
       var fileName = $("#fileupload").val();
@@ -166,8 +239,8 @@ $(function() {
       return valid;
     }
 
-    function alerting(text, type) {
-      return $('#detail').append(`<div class="alert alert-${type}" role="alert">${text}</div>`);
+    function alerting(text, type, id = 'detail') {
+      return $('#' + id).append(`<div class="alert alert-${type}" role="alert">${text}</div>`);
     }
 
   } else {
