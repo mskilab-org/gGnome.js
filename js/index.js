@@ -6,7 +6,6 @@ $(function() {
   var dataSelector = 'data-selector';
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
-  var currentFile = Misc.getUrlParameter('file');
   var currentLocation = Misc.getUrlParameter('location');
 
   // used to maintain the main frame container
@@ -217,7 +216,7 @@ $(function() {
       .dropdown({
         clearable: true,
         on: 'hover',
-        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (i === 0)}}),
+        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
           if (value) {
