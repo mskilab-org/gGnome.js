@@ -53,9 +53,6 @@ class Frame extends Base {
   }
 
   loadData(dataFile) {
-    if (this.dataFile && (this.dataFile !== dataFile)) {
-      this.location = null;
-    }
     this.dataFile = dataFile;
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
     this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
@@ -78,7 +75,7 @@ class Frame extends Base {
   }
 
   updateCoveragePoints() {
-    Papa.parse(window.location.origin + '/coverage/' + this.dataFileName + '.csv', {
+    Papa.parse('../../coverage/' + this.dataFileName + '.csv', {
       dynamicTyping: true,
       skipEmptyLines: true,
       header: true,
