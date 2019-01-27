@@ -71,6 +71,7 @@ class Frame extends Base {
         this.render();
         this.updateGenes();
         this.updateCoveragePoints();
+        this.updateDescription();
     });
   }
 
@@ -101,6 +102,10 @@ class Frame extends Base {
         }
       }
     });
+  }
+
+  updateDescription() {
+    d3.select('#genome-description').html(this.settings.description);
   }
 
   updateGenes() {
