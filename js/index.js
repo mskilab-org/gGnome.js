@@ -13,7 +13,7 @@ $(function() {
   // set the default location as parsed from the url
   frame.location = currentLocation;
 
-  d3.csv('datafiles.csv', (error, results) => {
+  d3.csv('datafiles.csv', (error, results) => { console.log(error, results)
     if (error) {
       d3.csv('datafiles', (res) => {
         populateComboBox(res);
@@ -216,7 +216,8 @@ $(function() {
       .dropdown({
         clearable: true,
         on: 'hover',
-        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
+        values: results.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
+        fullTextSearch: true,
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
           if (value) {

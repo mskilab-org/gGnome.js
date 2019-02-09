@@ -1,6 +1,9 @@
 #navbar {
   margin-bottom: 0px;
 }
+.data-selector .text {
+  min-width: 300px;
+}
 .faded {
   opacity: 0.2 !important;
 }

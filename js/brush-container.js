@@ -312,10 +312,8 @@ class BrushContainer {
             for (let k = 0; k < d3.min([remaining, filteredPoints.length]); k++) {
               let index = remaining < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
               let coveragePoint = new CoveragePoint(filteredPoints[index]);
-              //if (d.visibleCoveragePoints.filter((e,j) => e.identifier === coveragePoint.identifier).length < 1) {
-                coveragePoint.fragment = d;
-                d.visibleCoveragePoints.push(coveragePoint);
-                //}
+              coveragePoint.fragment = d;
+              d.visibleCoveragePoints.push(coveragePoint);
             }
           }
           
@@ -469,8 +467,8 @@ class BrushContainer {
     if (this.frame.showReads && this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
       let points = [... new Set(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((e,j) => Math.round(e.y * 10) / 10)).reduce((acc, c) => acc.concat(c),[]))].sort((a,b) => d3.descending(a,b));
-      let upperbound = points[Math.floor(0.01 * points.length)]; //d3.max(points)
-      this.frame.yCoverageExtent = [0, upperbound];
+      this.coverageUpperbound = points[Math.floor(0.01 * points.length)];
+      this.frame.yCoverageExtent = [0, this.coverageUpperbound];
       if (this.frame.yCoverageExtent[1] === this.frame.yCoverageExtent[0]) {
         this.frame.yCoverageExtent[0] = this.frame.yCoverageExtent[0] - 1;
         this.frame.yCoverageExtent[1] = this.frame.yCoverageExtent[1] + 1;
@@ -1250,7 +1248,7 @@ class BrushContainer {
          fragment.visibleCoveragePoints.forEach((d,i) => {
            this.frame.reglCanvas.points.push({
              x: Math.floor(fragment.range[0] + this.frame.margins.left + d.fragment.innerScale(d.place)),
-             y: Math.floor(this.frame.margins.panels.chromoGap + this.frame.yCoverageScale(d.y)),
+             y: Math.floor(this.frame.margins.panels.chromoGap + this.frame.yCoverageScale(d3.min([d.y, this.coverageUpperbound]))),
              size: 2 * d.radius,
              color: d.fill
            });
