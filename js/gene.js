@@ -3,7 +3,8 @@ class Gene extends Interval {
   constructor(gen) {
     super(gen);
     this.group_id = gen.group_id;
-    this.margins = {arrow: 0}
+    this.weight = gen.weight;
+    this.margins = {arrow: 0};
     this.arrowLegth = 5;
     this.coefficient = 0.66;
   }

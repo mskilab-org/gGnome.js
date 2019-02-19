@@ -34,42 +34,6 @@ $(function() {
     }, 200);
   });
 
-  $('#gene-checkbox').on('click', (event) => {
-    $('#walk-checkbox').removeAttr('checked');
-    $('#read-checkbox').removeAttr('checked');
-    frame.margins.panels.upperGap = $('#gene-checkbox').is(":checked") ? 
-      0.6 * frame.height: 
-      frame.margins.defaults.upperGapPanel;
-    frame.showGenes = $('#gene-checkbox').is(":checked");
-    frame.showWalks = $('#walk-checkbox').is(":checked");
-    frame.showReads = $('#read-checkbox').is(":checked");
-    frame.toggleGenesPanel();
-  });
-
-  $('#walk-checkbox').on('click', (event) => {
-    $('#gene-checkbox').removeAttr('checked');
-    $('#read-checkbox').removeAttr('checked');
-    frame.margins.panels.upperGap = $('#walk-checkbox').is(":checked") ? 
-      0.8 * frame.height: 
-      frame.margins.defaults.upperGapPanel;
-    frame.showGenes = $('#gene-checkbox').is(":checked");
-    frame.showWalks = $('#walk-checkbox').is(":checked");
-    frame.showReads = $('#read-checkbox').is(":checked");
-    frame.toggleGenesPanel();
-  });
-
-  $('#read-checkbox').on('click', (event) => {
-    $('#walk-checkbox').removeAttr('checked');
-    $('#gene-checkbox').removeAttr('checked');
-    frame.margins.panels.upperGap = $('#read-checkbox').is(":checked") ? 
-      0.6 * frame.height: 
-      frame.margins.defaults.upperGapPanel;
-    frame.showGenes = $('#gene-checkbox').is(":checked");
-    frame.showWalks = $('#walk-checkbox').is(":checked");
-    frame.showReads = $('#read-checkbox').is(":checked");
-    frame.toggleGenesPanel();
-  });
-
   $('#locate-submit').on('click', (event) => {
     frame.runLocate($('#locate-input').val());
   });
@@ -151,6 +115,20 @@ $(function() {
     });
   }); 
 
+  $('#validate-button').click(() => {
+    window.location.href = "validator.html";
+  }); 
+
+  $('.content .ui.dropdown').dropdown({
+    onChange: (value, text, $selectedItem) => {
+      frame.margins.panels.upperGap = (value !== 'intervals') ? 0.8 * frame.height : frame.margins.defaults.upperGapPanel;
+      frame.showGenes = (value === 'genes');
+      frame.showWalks = (value === 'walks');
+      frame.showReads = (value === 'coverage');
+      frame.toggleGenesPanel();
+    }
+  });
+
   // We can attach the `fileselect` event to all file inputs on the page
   $(document).on('change', ':file', function() {
     var input = $(this),
@@ -215,6 +193,7 @@ $(function() {
     $(`#${dataSelector}`)
       .dropdown({
         clearable: true,
+        compact: true,
         on: 'hover',
         values: results.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
         fullTextSearch: true,
