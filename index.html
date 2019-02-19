@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/external/semantic.css">
   <link rel="stylesheet" href="css/external/transition.css">
   <link rel="stylesheet" href="css/external/dropdown.css">
+  <link rel="stylesheet" href="css/external/icon.css">
   <link rel="stylesheet" href="css/toastr.css">
   <link rel="stylesheet" href="css/index.css">
 </head>
@@ -19,35 +20,45 @@
       </div>
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
+          <div class="ui simple dropdown">
+            <div class="text">Tools</div>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+
+              <div class="item">
+                <span id="locate-button" data-toggle="modal" data-target="#locate-modal"><i class="map marker alternate icon"></i>  Locate</span>
+              </div>
+              <div class="item">
+                <span id="validate-button"><i class="check icon"></i> Validate</span>
+              </div>
+              <div class="item">
+                <span id="coverage-button"><i class="upload icon"></i> Upload</span>
+              </div>
+              <div class="item">
+                <span id="download-button"><i class="download icon"></i> Export</span>
+                <span id="fragmentsDetails" class="hidden"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group marleft20">
+          <div class="content">
+            View as 
+            <div class="ui simple inline dropdown">
+              <div class="text">Intervals</div>
+              <i class="dropdown icon"></i>
+              <div class="menu">
+                <div class="header">Viewing options</div>
+                <div class="active item" data-text="Intervals">Intervals</div>
+                <div class="item" data-text="Genes">Genes</div>
+                <div class="item" data-text="Walks">Walks</div>
+                <div class="item" data-text="Coverage">Coverage</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <select id="data-selector" class="ui search selection dropdown data-selector"></select>
-        </div>
-        <div class="form-group">
-          <div>
-            <label class="checkbox-inline"><input id="gene-checkbox" type="checkbox" value="genes">Genes</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <div>
-            <label class="checkbox-inline"><input id="walk-checkbox" type="checkbox" value="walks">Walks</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <div>
-            <label class="checkbox-inline"><input id="read-checkbox" type="checkbox" value="reads">Coverage</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <input class="btn btn-default" type="button" id="download-button" value="Export"/>
-          <span id="fragmentsDetails" class="hidden"></span>
-        </div>
-        <div class="form-group">
-          <input class="btn btn-default" type="button" id="locate-button" data-toggle="modal" data-target="#locate-modal" value="Locate"/>
-        </div>
-        <div class="form-group">
-          <a class="btn btn-default" href="./validator.html">Validate</a>
-        </div>
-        <div class="form-group">
-          <input class="btn btn-default" type="button" id="coverage-button" value="Upload"/>
         </div>
       </form>
     </div><!-- .container-fluid -->
@@ -97,7 +108,7 @@
               </div>
               <div id="locate-modal-body" class="modal-body custom-modal-body">
                 <div class="form-group">
-                  <input type="text" class="form-control" id="locate-input" placeholder="e.g. 22:12492333-27035862">
+                  <input type="text" class="form-control" id="locate-input" placeholder="e.g. 22:12492333-27035862 or KCNT2">
                 </div>
               </div>
               <div class="modal-footer">

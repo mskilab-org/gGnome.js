@@ -1,8 +1,19 @@
 #navbar {
   margin-bottom: 0px;
 }
-.data-selector .text {
-  min-width: 300px;
+.marleft20 {
+  margin-left: 20px;
+}
+.data-selector {
+  margin-left: 50px;
+}
+.data-selector span.description {
+  /*margin-left: 150px !important;*/
+}
+.data-selector span.text {
+  margin-right: 20px !important;
+  min-width: 100px !important;
+  display: inherit;
 }
 .faded {
   opacity: 0.2 !important;
@@ -158,7 +169,7 @@ div.popover {
   max-width: 100%;
   position: absolute;
   pointer-events: none;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.8);
 }
 div.popover .table-label {
   color: #404041;

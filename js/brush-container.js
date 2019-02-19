@@ -285,7 +285,7 @@ class BrushContainer {
           gene.shapeWidth = gene.range[1] - gene.range[0];
           gene.shapeHeight = (gene.type === 'gene') ? this.frame.margins.intervals.geneBar : this.frame.margins.intervals.bar;
           gene.fragment = d;
-          if (gene.shapeWidth > this.frame.margins.genes.selectionSize) {
+          if ((gene.shapeWidth > this.frame.margins.genes.selectionSize) || (gene.weight > 1)) {
             let collisions = d.visibleGenes.filter((f,k) => (gene.identifier !== f.identifier) && gene.isOverlappingWith(f));
             gene.y = collisions.length > 0 ? d3.max(collisions.map((f,k) => f.y)) + 1 : 0;
             d.visibleGenes.push(gene);
@@ -1082,6 +1082,7 @@ class BrushContainer {
       .attr('class', (d,i) => d.styleClass)
       .style('fill', (d,i) => d.fill)
       .style('stroke', (d,i) => d.stroke)
+      .style('opacity', (d,i) => this.frame.connectionWeightScale(d.weight))
       .attr('transform', (d,i) => d.transform)
       .attr('d', (d,i) => d.render);
 
@@ -1093,6 +1094,7 @@ class BrushContainer {
       .attr('transform', (d,i) => d.transform)
       .style('fill', (d,i) => d.fill)
       .style('stroke', (d,i) => d.stroke)
+      .style('opacity', (d,i) => this.frame.connectionWeightScale(d.weight))
       .attr('d', (d,i) =>  d.render)
       .on('mouseover', function(d,i) {
         d3.select(this).classed('highlighted', true);

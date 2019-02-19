@@ -42,6 +42,7 @@ class Frame extends Base {
     this.downsampledCoveragePoints = [];
     this.yWalkExtent = [];
     this.axis = null;
+    this.connectionWeightScale;
   }
 
   updateDimensions(totalWidth, totalHeight) {
@@ -212,6 +213,9 @@ class Frame extends Base {
       });
     }
     this.hasSubintervals = false;
+    // Calculate the range of weight in the visible connections
+    let weightExtent = d3.extent(this.connections.map((d,i) => d.weight));
+    this.connectionWeightScale = d3.scaleLinear().domain(weightExtent).range([0.25, 1]);
   }
 
   render() {
