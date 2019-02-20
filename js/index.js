@@ -4,6 +4,7 @@ $(function() {
   var throttleTimer;
   var plotContainerId = 'plot-container';
   var dataSelector = 'data-selector';
+  var tagsSelector = 'tags-selector';
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
   var currentLocation = Misc.getUrlParameter('location');
@@ -13,13 +14,16 @@ $(function() {
   // set the default location as parsed from the url
   frame.location = currentLocation;
 
-  d3.csv('datafiles.csv', (error, results) => { console.log(error, results)
+  d3.csv('datafiles.csv', (error, results) => {
     if (error) {
       d3.csv('datafiles', (res) => {
+        d3.select('#tags-selector').classed('hidden', true);
         populateComboBox(res);
       });
     } else {
+      d3.select('#tags-selector').classed('hidden', false);
       populateComboBox(results);
+      populateTags(results);
     }
   });
 
@@ -189,7 +193,7 @@ $(function() {
     element.click();
   };
 
-  function populateComboBox(results) {
+  function populateComboBox(results) { console.log(results.length)
     $(`#${dataSelector}`)
       .dropdown({
         clearable: true,
@@ -204,6 +208,31 @@ $(function() {
           }
         }
     });
+  }
+
+  function populateTags(results) {
+    let tags = [ ...new Set(results.map((d,i) => d.description.split('|')).flat())].sort();
+    $(`#${tagsSelector}`)
+      .dropdown({
+        placeholder: 'Filter tags',
+        clearable: true,
+        on: 'hover',
+        action: 'activate',
+        values: tags.map((d,i) => {return {name: d, value: d}}),
+        onChange: (value, text, $selectedItem) => {
+          let filtered = [...results];
+          if (value) {
+            filtered = results.filter((d,i) => value.split(',').map((v) => d.description.split('|').includes(v)).flat().reduce((a,b) => a && b, true)); 
+          }
+          let values = filtered.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile}});
+          $('#data-selector').dropdown('clear');
+          $('#data-selector').dropdown('setup menu', {values: values});
+          if (values.length > 0) {
+            $('#data-selector').dropdown('set exactly', values[0].value);
+          }
+        }
+    });
+    
   }
 });
 

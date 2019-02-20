@@ -106,7 +106,7 @@ class Frame extends Base {
   }
 
   updateDescription() {
-    d3.select('#genome-description').html(this.settings.description);
+    d3.select('#genome-description').html(this.settings && this.settings.description);
   }
 
   updateGenes() {
