@@ -56,7 +56,7 @@ class Frame extends Base {
   loadData(dataFile) {
     this.dataFile = dataFile;
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
-    this.url = `index.html?file=${this.dataFile}&location=${this.location}`;
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
       .defer(d3.json, 'json/' + dataFile)
@@ -73,7 +73,22 @@ class Frame extends Base {
         this.updateGenes();
         this.updateCoveragePoints();
         this.updateDescription();
+        if (this.view === 'walks') {
+          $('.content .ui.dropdown').dropdown('set exactly', 'walks');
+        }
     });
+  }
+
+  toggleView(value) {
+    if (['intervals', 'genes', 'walks', 'coverage'].includes(value)) {
+      this.margins.panels.upperGap = (value !== 'intervals') ? 0.8 * this.height : this.margins.defaults.upperGapPanel;
+      this.showGenes = (value === 'genes');
+      this.showWalks = (value === 'walks');
+      this.showReads = (value === 'coverage');
+      this.toggleGenesPanel();
+      this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
+      history.replaceState(this.url, 'Project gGnome.js', this.url);
+    }
   }
 
   updateCoveragePoints() {
@@ -100,6 +115,10 @@ class Frame extends Base {
           // update the reads
           this.brushContainer.renderReads();
           toastr.success(`Loaded ${results.data.length} coverage records!`);
+          if (this.view === 'coverage') {
+            $('.content .ui.dropdown').dropdown('set exactly', 'coverage');
+            d3.select('#shadow').classed('hidden', true);
+          }
         }
       }
     });
@@ -110,7 +129,10 @@ class Frame extends Base {
   }
 
   updateGenes() {
-    if (this.genes.length > 0) return;
+    if (this.genes.length > 0) {
+      d3.select('body').classed('shadowed', false);
+      return;
+    }
     // load the workers
     var worker = new Worker('js/genes-worker.js');
     // Setup an event listener that will handle messages received from the worker.
@@ -119,6 +141,10 @@ class Frame extends Base {
       this.genes = e.data.genes;
       this.geneBins = e.data.geneBins;
       toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`);
+      if (this.view === 'genes') {
+        $('.content .ui.dropdown').dropdown('set exactly', 'genes');
+        d3.select('#shadow').classed('hidden', true);
+      }
     }, false);
     worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
   }

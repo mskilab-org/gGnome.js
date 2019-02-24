@@ -130,7 +130,7 @@ class BrushContainer {
         self.update();
 
         // update the url state
-        self.frame.url = `index.html?file=${self.frame.dataFile}&location=${self.frame.note}`;
+        self.frame.url = `index.html?file=${self.frame.dataFile}&location=${self.frame.note}&view=${self.frame.view}`;
         history.replaceState(self.frame.url, 'Project gGnome.js', self.frame.url);
     });
 
@@ -591,7 +591,7 @@ class BrushContainer {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
 
     // update the browser history
-    this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.note}`;
+    this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.note}&view=${this.frame.view}`;
     history.replaceState(this.frame.url, 'Project gGnome.js', this.frame.url);
 
   }

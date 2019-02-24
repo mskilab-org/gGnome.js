@@ -8,11 +8,16 @@ $(function() {
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
   var currentLocation = Misc.getUrlParameter('location');
+  var currentView = Misc.getUrlParameter('view');
 
+  if (['genes', 'coverage'].includes(currentView)) {
+    d3.select('#shadow').classed('hidden', false);
+  }
   // used to maintain the main frame container
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
   // set the default location as parsed from the url
   frame.location = currentLocation;
+  frame.view = currentView;
 
   d3.csv('datafiles.csv', (error, results) => {
     if (error) {
@@ -125,11 +130,9 @@ $(function() {
 
   $('.content .ui.dropdown').dropdown({
     onChange: (value, text, $selectedItem) => {
-      frame.margins.panels.upperGap = (value !== 'intervals') ? 0.8 * frame.height : frame.margins.defaults.upperGapPanel;
-      frame.showGenes = (value === 'genes');
-      frame.showWalks = (value === 'walks');
-      frame.showReads = (value === 'coverage');
-      frame.toggleGenesPanel();
+      frame.location = Misc.getUrlParameter('location');
+      frame.view = value;
+      frame.toggleView(value);
     }
   });
 
@@ -193,7 +196,7 @@ $(function() {
     element.click();
   };
 
-  function populateComboBox(results) { console.log(results.length)
+  function populateComboBox(results) {
     $(`#${dataSelector}`)
       .dropdown({
         clearable: true,
