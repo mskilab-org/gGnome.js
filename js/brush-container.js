@@ -938,6 +938,8 @@ class BrushContainer {
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
         .on('click', (d,i) => {
+          // make this gene visible for the remaining session
+          this.frame.genes.filter((e,j) => (e.iid === d.iid) && e.type === 'gene').forEach((e,j) => {e.weight = this.frame.margins.genes.weightThreshold});
           // show the gene location on the fragment note
           this.renderFragmentsNote(d.location);
           // filter the Genes
