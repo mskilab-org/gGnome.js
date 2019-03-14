@@ -820,7 +820,7 @@ class BrushContainer {
       .enter()
       .append('rect')
       .attr('id', (d,i) => d.identifier)
-      .attr('class', 'popovered shape')
+      .attr('class', (d,i) => ('popovered shape ' + (d.annotation ? 'annotated' : '')))
       .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d,i) => d.shapeWidth)
       .attr('height', this.frame.margins.intervals.bar)
@@ -886,6 +886,7 @@ class BrushContainer {
 
     shapes
       .attr('id', (d,i) => d.identifier)
+      .attr('class', (d,i) => ('popovered shape ' + (d.annotation ? 'annotated' : '')))
       .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d,i) => d.shapeWidth)
       .style('fill', (d,i) => d.color)
