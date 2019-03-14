@@ -18,6 +18,7 @@ class Frame extends Base {
     this.updateDimensions(totalWidth, totalHeight);
     this.geneModalSelector = '#' + plotContainerId + '-gene-modal';
     this.popoverSelector = '.popover';
+    this.annotationsSelector = 'annotations-selector';
 
     // Frame DOM elements
     this.plotContainer = d3.select('#' + plotContainerId);
@@ -73,8 +74,33 @@ class Frame extends Base {
         this.updateGenes();
         this.updateCoveragePoints();
         this.updateDescription();
+        this.updateAnnotations();
         if (this.view === 'walks') {
           $('.content .ui.dropdown').dropdown('set exactly', 'walks');
+        }
+    });
+  }
+
+  updateAnnotations() {
+    let values = [...new Set(this.dataInput.intervals.filter(d => d.annotation).map(d => d.annotation))].sort((a,b) => d3.ascending(a,b));
+    console.log(values);
+    $(`#${this.annotationsSelector}`)
+      .dropdown({
+        placeholder: 'Show annotations',
+        clearable: true,
+        compact: true,
+        on: 'hover',
+        values: values.map((d,i) => {return {name: d, value: d}}),
+        action: 'activate',
+        onChange: (value, text, $selectedItem) => {
+          if (value) {
+            console.log(value);
+            //frame.loadData(value);
+            let annotated = this.intervals.filter(d => d.annotation === value).sort((a,b) => d3.ascending(a.iid, b.iid));
+                this.brushContainer.reset();
+            this.runDelete();
+            this.brushContainer.createDefaults([annotated[0].startPlace, annotated[annotated.length - 1].endPlace]); 
+          }
         }
     });
   }

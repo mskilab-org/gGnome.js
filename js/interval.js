@@ -7,6 +7,7 @@ class Interval extends Base {
     this.chromosome = inter.chromosome;
     this.startPoint = inter.startPoint;
     this.endPoint = inter.endPoint;
+    this.annotation = inter.annotation;
     this.intervalLength = this.endPoint - this.startPoint;
     this.y = inter.y;
     this.title = inter.title;
@@ -69,7 +70,7 @@ class Interval extends Base {
 
   // The title for the popover on the intervals
   get popoverTitle() {
-    return  ((this.siid > 0) ? 'Sub-' : '') + 'Interval #' + this.title;
+    return  ((this.siid > 0) ? 'Sub-' : '') + 'Interval #' + this.title + ' ' + this.annotation;
   }
 
   // The content for the popover of the intervals

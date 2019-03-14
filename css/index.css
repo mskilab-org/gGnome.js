@@ -4,11 +4,8 @@
 .marleft20 {
   margin-left: 20px;
 }
-.data-selector {
+.data-selector, .annotations-selector {
   margin-left: 50px;
-}
-.data-selector span.description {
-  /*margin-left: 150px !important;*/
 }
 .data-selector span.text {
   margin-right: 20px !important;
@@ -119,6 +116,9 @@ rect.panel {
 }
 .walk-highlighted {
   fill: rgb(255, 127, 14) !important;
+}
+.annotated {
+  fill: #A020F0 !important;
 }
 path.connection {
   fill: none;

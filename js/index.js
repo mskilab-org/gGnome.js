@@ -5,6 +5,7 @@ $(function() {
   var plotContainerId = 'plot-container';
   var dataSelector = 'data-selector';
   var tagsSelector = 'tags-selector';
+  var annotationsSelector = 'annotations-selector';
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
   var currentLocation = Misc.getUrlParameter('location');
@@ -136,6 +137,23 @@ $(function() {
     }
   });
 
+  // $(`#${annotationsSelector}`)
+  //   .dropdown({
+  //     placeholder: 'Filter annotations',
+  //     clearable: true,
+  //     compact: true,
+  //     on: 'hover',
+  //     values: [],
+  //     fullTextSearch: true,
+  //     action: 'activate',
+  //     onChange: (value, text, $selectedItem) => {
+  //       if (value) {
+  //         console.log(value);
+  //         //frame.loadData(value);
+  //       }
+  //     }
+  // });
+
   // We can attach the `fileselect` event to all file inputs on the page
   $(document).on('change', ':file', function() {
     var input = $(this),
@@ -214,7 +232,7 @@ $(function() {
   }
 
   function populateTags(results) {
-    let tags = [ ...new Set(results.map((d,i) => d.description.split('|')).flat())].sort();
+    let tags = [ ...new Set(results.map((d,i) => d.description.split('|')).flat())].sort(); console.log(tags)
     $(`#${tagsSelector}`)
       .dropdown({
         placeholder: 'Filter tags',
@@ -235,7 +253,6 @@ $(function() {
           }
         }
     });
-    
   }
 });
 
