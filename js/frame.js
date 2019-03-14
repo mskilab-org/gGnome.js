@@ -83,7 +83,6 @@ class Frame extends Base {
 
   updateAnnotations() {
     let values = [...new Set(this.dataInput.intervals.filter(d => d.annotation).map(d => d.annotation))].sort((a,b) => d3.ascending(a,b));
-    console.log(values);
     $(`#${this.annotationsSelector}`)
       .dropdown({
         placeholder: 'Show annotations',
@@ -94,10 +93,8 @@ class Frame extends Base {
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
           if (value) {
-            console.log(value);
-            //frame.loadData(value);
             let annotated = this.intervals.filter(d => d.annotation === value).sort((a,b) => d3.ascending(a.iid, b.iid));
-                this.brushContainer.reset();
+            this.brushContainer.reset();
             this.runDelete();
             this.brushContainer.createDefaults([annotated[0].startPlace, annotated[annotated.length - 1].endPlace]); 
           }

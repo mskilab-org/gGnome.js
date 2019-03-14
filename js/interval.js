@@ -70,7 +70,7 @@ class Interval extends Base {
 
   // The title for the popover on the intervals
   get popoverTitle() {
-    return  ((this.siid > 0) ? 'Sub-' : '') + 'Interval #' + this.title + ' ' + this.annotation;
+    return  ((this.siid > 0) ? 'Sub-' : '') + 'Interval #' + this.title + (this.annotation ? (' : ' + this.annotation) : '');
   }
 
   // The content for the popover of the intervals
