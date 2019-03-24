@@ -86,7 +86,7 @@ class Frame extends Base {
     d3.select(`#${this.annotationsSelector}`).classed('hidden', values.length < 1);
     $(`#${this.annotationsSelector}`)
       .dropdown({
-        placeholder: 'Show annotations',
+        placeholder: 'Select annotation',
         clearable: true,
         compact: true,
         on: 'hover',

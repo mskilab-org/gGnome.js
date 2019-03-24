@@ -7,9 +7,6 @@
 .data-selector, .annotations-selector {
   margin-left: 50px;
 }
-.annotations-selector {
-  width: 300px !important;
-}
 .data-selector span.text {
   margin-right: 20px !important;
   min-width: 100px !important;
