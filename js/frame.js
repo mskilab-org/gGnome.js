@@ -13,6 +13,7 @@ class Frame extends Base {
       genes: {textGap: 5, selectionSize: 2, weightThreshold: 10},
       reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
       walks: {bar: 10},
+      annotations: {minDistance: 1e7},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
@@ -44,6 +45,7 @@ class Frame extends Base {
     this.yWalkExtent = [];
     this.axis = null;
     this.connectionWeightScale;
+    this.activeAnnotation = null;
   }
 
   updateDimensions(totalWidth, totalHeight) {
@@ -95,10 +97,18 @@ class Frame extends Base {
         onChange: (value, text, $selectedItem) => {
           this.activeAnnotation = value;
           if (value) {
-            let annotated = this.intervals.filter(d => d.annotation === value).sort((a,b) => d3.ascending(a.iid, b.iid));
+            let annotated = this.intervals.filter(d => d.annotation === value).sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
+            let clusters = [{startPlace: annotated[0].startPlace, endPlace: annotated[0].endPlace}];
+            for (let i = 0; i < annotated.length - 1; i++) {
+              if (annotated[i + 1].startPlace - annotated[i].endPlace > this.margins.annotations.minDistance) {
+                clusters.push({startPlace: annotated[i + 1].startPlace, endPlace: annotated[i + 1].endPlace});
+              } else {
+                clusters[clusters.length - 1].endPlace = annotated[i + 1].endPlace;
+              }
+            }
             this.brushContainer.reset();
             this.runDelete();
-            this.brushContainer.createDefaults([annotated[0].startPlace, annotated[annotated.length - 1].endPlace]); 
+            clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace, d.endPlace]));
           } else {
             this.runLocate(this.chromoBins['1'].domain);
           }
