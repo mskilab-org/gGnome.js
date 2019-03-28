@@ -3,3 +3,4 @@ HCC1143_100.json,Lung Cancer|smoker|male
 data.json,Colon Cancer|non-smoker|female
 data2.json,Colon Cancer|smoker|male
 data3.json,Prostate Cancer|non-smoker|male
+annotated.json,Prostate Cancer|non-smoker|male
