@@ -8,6 +8,7 @@ class Interval extends Base {
     this.startPoint = inter.startPoint;
     this.endPoint = inter.endPoint;
     this.annotation = inter.annotation;
+    this.annotationArray = inter.annotation ? inter.annotation.split('|') : [];
     this.intervalLength = this.endPoint - this.startPoint;
     this.y = inter.y;
     this.title = inter.title;

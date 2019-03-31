@@ -8,6 +8,8 @@ class Connection extends Base {
     this.title = con.title;
     this.type = con.type;
     this.weight = con.weight;
+    this.annotation = con.annotation;
+    this.annotationArray = con.annotation ? con.annotation.split('|') : [];
     this.styleClass = `popovered connection local ${con.type}`;
     this.clipPath = 'url("#clip")';
     this.line = d3.line().curve(d3.curveBasis).x((d) => d[0]).y((d) => d[1]);
@@ -163,7 +165,7 @@ class Connection extends Base {
 
   // The title for the popover on the connections
   get popoverTitle() {
-    return 'Connection #' + this.cid + ' - ' + this.type;
+    return 'Connection #' + this.cid + ' - ' + this.type + (this.annotation ? (' : ' + this.annotation) : '');
   }
 
   // The content for the popover on the connections
@@ -192,6 +194,17 @@ class Connection extends Base {
      ${((!this.sink) ? 'Unknown' : this.sink.interval.chromosome)}: 
      ${((!this.sink) ? 'Unknown' : (this.sink.point))}
     `;
+  }
+
+  get bounds() {
+    let boundaries = [];
+    if (this.source) {
+      boundaries.push(this.source.place);
+    }
+    if (this.sink) {
+      boundaries.push(this.sink.place);
+    }
+    return boundaries.sort((a,b) => d3.ascending(a, b));
   }
 
   get toString() {
