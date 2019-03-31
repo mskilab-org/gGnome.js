@@ -13,7 +13,7 @@ class Frame extends Base {
       genes: {textGap: 5, selectionSize: 2, weightThreshold: 10},
       reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
       walks: {bar: 10},
-      annotations: {minDistance: 1e7},
+      annotations: {minDistance: 1e7, padding: 1e3},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
@@ -84,7 +84,8 @@ class Frame extends Base {
   }
 
   updateAnnotations() {
-    let values = [...new Set(this.dataInput.intervals.filter(d => d.annotation).map(d => d.annotation))].sort((a,b) => d3.ascending(a,b));
+    let intervalAnnotations = this.intervals.map(d => d.annotationArray).flat();
+    let values = [...new Set(intervalAnnotations)].sort((a,b) => d3.ascending(a,b));
     d3.select(`#${this.annotationsSelector}`).classed('hidden', values.length < 1);
     $(`#${this.annotationsSelector}`)
       .dropdown({
@@ -97,7 +98,10 @@ class Frame extends Base {
         onChange: (value, text, $selectedItem) => {
           this.activeAnnotation = value;
           if (value) {
-            let annotated = this.intervals.filter(d => d.annotation === value).sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
+            let annotatedIntervals = this.intervals.filter(d => d.annotationArray.includes(value));
+            let annotatedConnections = this.connections.filter(d => d.source && d.sink && d.annotationArray.includes(value)).map((d,i) => [d.source.interval, d.sink.interval]).flat();
+            let annotated = annotatedIntervals.concat(annotatedConnections);
+            annotated = [...new Set(annotated)].sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
             let clusters = [{startPlace: annotated[0].startPlace, endPlace: annotated[0].endPlace}];
             for (let i = 0; i < annotated.length - 1; i++) {
               if (annotated[i + 1].startPlace - annotated[i].endPlace > this.margins.annotations.minDistance) {
@@ -108,7 +112,7 @@ class Frame extends Base {
             }
             this.brushContainer.reset();
             this.runDelete();
-            clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace, d.endPlace]));
+            clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace - this.margins.annotations.padding, d.endPlace + this.margins.annotations.padding]));
           } else {
             this.runLocate(this.chromoBins['1'].domain);
           }
