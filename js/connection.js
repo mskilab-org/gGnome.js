@@ -198,11 +198,12 @@ class Connection extends Base {
 
   get bounds() {
     let boundaries = [];
-    if (this.source) {
-      boundaries.push(this.source.place);
-    }
-    if (this.sink) {
-      boundaries.push(this.sink.place);
+    if (this.source && this.sink) {
+      boundaries[this.source.place, this.sink.place];
+    } else if (this.source && !this.sink) {
+      boundaries[this.source.place, this.source.place];
+    } else if (!this.source && this.sink) {
+      boundaries[this.sink.place, this.sink.place];
     }
     return boundaries.sort((a,b) => d3.ascending(a, b));
   }
