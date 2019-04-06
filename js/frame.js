@@ -112,7 +112,8 @@ class Frame extends Base {
             }
             this.brushContainer.reset();
             this.runDelete();
-            clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace - this.margins.annotations.padding, d.endPlace + this.margins.annotations.padding]));
+            clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace, d.endPlace]));
+            this.brushContainer.visibleFragments.forEach((fragment,i) => this.brushContainer.pad(fragment));
           } else {
             this.runLocate(this.chromoBins['1'].domain);
           }

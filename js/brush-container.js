@@ -700,6 +700,15 @@ class BrushContainer {
       .call(this.frame.yAxis);
   }
 
+  pad(fragment, padding = this.frame.margins.intervals.gap) {
+    let lambda = (fragment.panelWidth - 2 * padding) / (fragment.domain[1] - fragment.domain[0]);
+    let domainOffset = padding / lambda;
+    fragment.domain = [d3.max([fragment.domain[0] - domainOffset, this.frame.genomeScale.domain()[0]]), d3.min([fragment.domain[1] + domainOffset, this.frame.genomeScale.domain()[1]])];
+    fragment.selection = [this.frame.genomeScale(fragment.domain[0]), this.frame.genomeScale(fragment.domain[1])];
+    d3.select('#brush-' + fragment.id).call(fragment.brush.move, fragment.selection);
+    this.update();
+  }
+
   renderChromoAxis() {
 
     let self = this;
@@ -820,7 +829,7 @@ class BrushContainer {
       .enter()
       .append('rect')
       .attr('id', (d,i) => d.identifier)
-      .attr('class', (d,i) => ('popovered shape ' + (this.frame.activeAnnotation && (d.annotation === this.frame.activeAnnotation) ? 'annotated' : '')))
+      .attr('class', (d,i) => ('popovered shape ' + ((this.frame.activeAnnotation && d.annotationArray.includes(this.frame.activeAnnotation)) ? 'annotated' : '')))
       .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d,i) => d.shapeWidth)
       .attr('height', this.frame.margins.intervals.bar)
@@ -886,7 +895,7 @@ class BrushContainer {
 
     shapes
       .attr('id', (d,i) => d.identifier)
-      .attr('class', (d,i) => ('popovered shape ' + (this.frame.activeAnnotation && (d.annotation === this.frame.activeAnnotation) ? 'annotated' : '')))
+      .attr('class', (d,i) => ('popovered shape ' + ((this.frame.activeAnnotation && d.annotationArray.includes(this.frame.activeAnnotation)) ? 'annotated' : '')))
       .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d,i) => d.shapeWidth)
       .style('fill', (d,i) => d.color)
@@ -1082,7 +1091,7 @@ class BrushContainer {
     connections.exit().remove();
 
     connections
-      .attr('class', (d,i) => d.styleClass)
+      .attr('class', (d,i) => (d.styleClass + ' ' + ((this.frame.activeAnnotation && d.annotationArray.includes(this.frame.activeAnnotation)) ? 'annotated' : '')))
       .style('fill', (d,i) => d.fill)
       .style('stroke', (d,i) => d.stroke)
       .style('opacity', (d,i) => this.frame.connectionWeightScale(d.weight))
@@ -1093,7 +1102,7 @@ class BrushContainer {
       .enter()
       .append('path')
       .attr('id', (d,i) => d.identifier)
-      .attr('class', (d,i) => d.styleClass)
+      .attr('class', (d,i) => (d.styleClass + ' ' + ((this.frame.activeAnnotation && d.annotationArray.includes(this.frame.activeAnnotation)) ? 'annotated' : '')))
       .attr('transform', (d,i) => d.transform)
       .style('fill', (d,i) => d.fill)
       .style('stroke', (d,i) => d.stroke)
