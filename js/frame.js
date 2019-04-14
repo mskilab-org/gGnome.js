@@ -13,7 +13,7 @@ class Frame extends Base {
       genes: {textGap: 5, selectionSize: 2, weightThreshold: 10},
       reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
       walks: {bar: 10},
-      annotations: {minDistance: 1e7, padding: 1e3},
+      annotations: {minDistance: 10000000, padding: 1000, maxClusters: 6},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
     this.updateDimensions(totalWidth, totalHeight);
@@ -98,8 +98,8 @@ class Frame extends Base {
         onChange: (value, text, $selectedItem) => {
           this.activeAnnotation = value;
           if (value) {
-            let annotatedIntervals = this.intervals.filter(d => d.annotationArray.includes(value));
-            let annotatedConnections = this.connections.filter(d => d.source && d.sink && d.annotationArray.includes(value)).map((d,i) => [d.source.interval, d.sink.interval]).flat();
+            let annotatedIntervals = this.intervals.filter(d => d.annotationArray.includes(value)).map((d,i) => { return {startPlace: d.startPlace, endPlace: d.endPlace} });
+            let annotatedConnections = this.connections.filter(d => d.source && d.sink && d.annotationArray.includes(value)).map((d,i) => [{startPlace: (d.source.place - 1), endPlace: (d.source.place + 1)}, {startPlace: (d.sink.place - 1), endPlace: (d.sink.place + 1)}]).flat();
             let annotated = annotatedIntervals.concat(annotatedConnections);
             annotated = [...new Set(annotated)].sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
             let clusters = [{startPlace: annotated[0].startPlace, endPlace: annotated[0].endPlace}];
@@ -109,6 +109,18 @@ class Frame extends Base {
               } else {
                 clusters[clusters.length - 1].endPlace = annotated[i + 1].endPlace;
               }
+            }
+            while (clusters.length > this.margins.annotations.maxClusters) {
+              clusters = clusters.sort((a,b) => a.startPlace - b.startPlace);
+              let minDistance = Number.MAX_SAFE_INTEGER;
+              let minIndex = 0;
+              for (let i = 0; i < clusters.length - 1; i++) {
+                if ((clusters[i + 1].startPlace - clusters[i].endPlace) < minDistance) {
+                  minDistance = clusters[i + 1].startPlace - clusters[i].endPlace;
+                  minIndex = i;
+                }
+              }
+              clusters = clusters.slice(0,minIndex).concat([{startPlace: clusters[minIndex].startPlace, endPlace: clusters[minIndex+1].endPlace}]).concat(clusters.slice(minIndex + 2, clusters.length));
             }
             this.brushContainer.reset();
             this.runDelete();
