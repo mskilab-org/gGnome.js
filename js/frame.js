@@ -102,6 +102,7 @@ class Frame extends Base {
             let annotatedConnections = this.connections.filter(d => d.source && d.sink && d.annotationArray.includes(value)).map((d,i) => [{startPlace: (d.source.place - 1), endPlace: (d.source.place + 1)}, {startPlace: (d.sink.place - 1), endPlace: (d.sink.place + 1)}]).flat();
             let annotated = annotatedIntervals.concat(annotatedConnections);
             annotated = [...new Set(annotated)].sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
+            annotated = Misc.merge(annotated);
             let clusters = [{startPlace: annotated[0].startPlace, endPlace: annotated[0].endPlace}];
             for (let i = 0; i < annotated.length - 1; i++) {
               if (annotated[i + 1].startPlace - annotated[i].endPlace > this.margins.annotations.minDistance) {
@@ -122,10 +123,13 @@ class Frame extends Base {
               }
               clusters = clusters.slice(0,minIndex).concat([{startPlace: clusters[minIndex].startPlace, endPlace: clusters[minIndex+1].endPlace}]).concat(clusters.slice(minIndex + 2, clusters.length));
             }
+            clusters = Misc.merge(clusters.map((d,i) => { return {
+              startPlace: d3.max([(d.startPlace - 0.66 * (d.endPlace - d.startPlace)),0]),
+              endPlace: d3.min([(d.endPlace + 0.66 * (d.endPlace - d.startPlace)), this.genomeLength])
+            }})).sort((a,b) => d3.ascending(a.startPlace, b.startPlace));
             this.brushContainer.reset();
             this.runDelete();
             clusters.forEach((d,i) => this.brushContainer.createDefaults([d.startPlace, d.endPlace]));
-            this.brushContainer.visibleFragments.forEach((fragment,i) => this.brushContainer.pad(fragment));
           } else {
             this.runLocate(this.chromoBins['1'].domain);
           }
@@ -146,6 +150,7 @@ class Frame extends Base {
   }
 
   updateCoveragePoints() {
+    d3.select("#loader").classed('hidden', false);
     Papa.parse('../../coverage/' + this.dataFileName + '.csv', {
       dynamicTyping: true,
       skipEmptyLines: true,
@@ -168,12 +173,13 @@ class Frame extends Base {
           this.brushContainer.updateFragments(true);
           // update the reads
           this.brushContainer.renderReads();
-          toastr.success(`Loaded ${results.data.length} coverage records!`);
+          toastr.success(`Loaded ${results.data.length} coverage records!`, {timeOut: 500});
           if (this.view === 'coverage') {
             $('.content .ui.dropdown').dropdown('set exactly', 'coverage');
             d3.select('#shadow').classed('hidden', true);
           }
         }
+        d3.select("#loader").classed('hidden', true);
       }
     });
   }
@@ -190,14 +196,16 @@ class Frame extends Base {
     // load the workers
     var worker = new Worker('js/genes-worker.js');
     // Setup an event listener that will handle messages received from the worker.
+    d3.select("#loader").classed('hidden', false);
     worker.addEventListener('message', (e) => {
       this.dataInput.genes = e.data.dataInput.genes;
       this.genes = e.data.genes;
       this.geneBins = e.data.geneBins;
-      toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`);
+      toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`, {timeOut: 500});
       if (this.view === 'genes') {
         $('.content .ui.dropdown').dropdown('set exactly', 'genes');
         d3.select('#shadow').classed('hidden', true);
+        d3.select("#loader").classed('hidden', true);
       }
     }, false);
     worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
