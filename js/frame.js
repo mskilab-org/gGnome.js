@@ -41,6 +41,7 @@ class Frame extends Base {
     this.genes = [];
     this.walks = [];
     this.coveragePoints = [];
+    this.RPKMIntervals = [];
     this.downsampledCoveragePoints = [];
     this.yWalkExtent = [];
     this.axis = null;
@@ -75,6 +76,7 @@ class Frame extends Base {
         this.render();
         this.updateGenes();
         this.updateCoveragePoints();
+        this.updateRPKMIntervals();
         this.updateDescription();
         this.updateAnnotations();
         if (this.view === 'walks') {
@@ -190,6 +192,39 @@ class Frame extends Base {
             $('.content .ui.dropdown').dropdown('set exactly', 'coverage');
             d3.select('#shadow').classed('hidden', true);
           }
+        }
+        d3.select("#loader").classed('hidden', true);
+      }
+    });
+  }
+
+  updateRPKMIntervals() {
+    this.yRPKMScale = d3.scaleLinear();
+    d3.select("#loader").classed('hidden', false);
+    Papa.parse('../../rpkm/' + this.dataFileName + '.csv', {
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      header: true,
+      worker: true,
+      download: true,
+      complete: (results) => {
+        if (results) {
+          results.data.forEach((d,i) => {
+            if (d.y > 0) {
+              d.iid = i;
+              d.color = this.chromoBins[d.chromosome].color;
+              d.startPoint = d.start;
+              d.endPoint = d.end;
+              d.startPlace = this.chromoBins[d.chromosome].scaleToGenome(d.startPoint);
+              d.endPlace = this.chromoBins[d.chromosome].scaleToGenome(d.endPoint);
+              this.RPKMIntervals.push(d);
+            }
+          })
+          // update the fragments
+          this.brushContainer.updateFragments(true);
+          // update the reads
+          this.brushContainer.renderRPKMIntervals();
+          toastr.success(`Loaded ${results.data.length} RPKM records!`, {timeOut: 500});
         }
         d3.select("#loader").classed('hidden', true);
       }
@@ -543,6 +578,10 @@ class Frame extends Base {
       .classed('hidden', !this.showWalks)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
+    this.RPKMshapesContainer = this.svg.append('g')
+      .attr('class', 'RPKM-shapes-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
+  
     this.brushContainer = new BrushContainer(this);
     this.brushContainer.render();
   }

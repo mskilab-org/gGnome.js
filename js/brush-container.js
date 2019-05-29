@@ -14,6 +14,7 @@ class BrushContainer {
     this.fragments = [];
     this.visibleFragments = [];
     this.visibleIntervals = [];
+    this.visibleRPKMIntervals = [];
     this.visibleGenes = [];
     this.panelWidth = 0;
     this.panelHeight = 0;
@@ -163,6 +164,9 @@ class BrushContainer {
     // Draw the intervals
     this.renderIntervals();
 
+    // Draw the RPKM intervals
+    this.renderRPKMIntervals();
+
     // Draw the genes
     this.renderGenes();
 
@@ -294,30 +298,22 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
-      // filter the coveragePoints
-      if (this.frame.showReads) {
-        if (d.changed || d.visibleCoveragePoints === undefined) {
-
-          d.visibleCoveragePoints = this.frame.downsampledCoveragePoints
-            .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])))
-            .map((cov,j) => {
-              let coveragePoint = new CoveragePoint(cov);
-              coveragePoint.fragment = d;
-              return coveragePoint;
-            });
-          
-          let remaining = this.frame.coveragePointsThreshold - d.visibleCoveragePoints.length;
-          if (remaining > 0 * this.frame.coveragePointsThreshold) {
-            let filteredPoints = this.frame.coveragePoints.filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])));
-            for (let k = 0; k < d3.min([remaining, filteredPoints.length]); k++) {
-              let index = remaining < filteredPoints.length ? Math.floor(filteredPoints.length * Math.random()) : k;
-              let coveragePoint = new CoveragePoint(filteredPoints[index]);
-              coveragePoint.fragment = d;
-              d.visibleCoveragePoints.push(coveragePoint);
+      // filter the RPKMIntervals
+      d.visibleRPKMIntervals = [];
+      if (this.frame.RPKMIntervals.length > 0) {
+        this.frame.RPKMIntervals
+          .filter((e, j) => ((e.startPlace <= d.domain[1]) && (e.startPlace >= d.domain[0])) || ((e.endPlace <= d.domain[1]) && (e.endPlace >= d.domain[0]))
+        || ((d.domain[1] <= e.endPlace) && (d.domain[1] >= e.startPlace)) || ((d.domain[0] <= e.endPlace) && (d.domain[0] >= e.startPlace)))
+          .forEach((inter,j) => {
+            let rpkmInterval = Object.assign(new RPKMInterval(inter), inter); 
+            rpkmInterval.identifier = Misc.guid + '|' + d.iid;
+            rpkmInterval.range = [d3.max([0, d.innerScale(inter.startPlace)]), d.innerScale(inter.endPlace)];
+            rpkmInterval.shapeWidth = rpkmInterval.range[1] - rpkmInterval.range[0];
+            rpkmInterval.fragment = d;
+            if (rpkmInterval.shapeWidth > 1) {
+              d.visibleRPKMIntervals.push(rpkmInterval);
             }
-          }
-          
-        }
+          });
       }
       // filter the Walks
       d.visibleWalkIntervals = [];
@@ -464,6 +460,14 @@ class BrushContainer {
       .tickFormat(d3.format("d"))
       .tickValues(d3.range(0, 10)
       .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
+    if (this.frame.yRPKMScale) {
+      // Calculate the yRPKMMax from all the RPKM intervals present in the current visible fragments
+      this.frame.yRPKMMax = d3.max(this.visibleFragments.map((d,i) => d.visibleRPKMIntervals.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c)));
+      this.frame.yRPKMScale.domain([0, this.frame.yRPKMMax]);
+      this.frame.yRPKMScale
+      .range([this.frame.yScale(this.frame.yMax), this.frame.yScale(this.frame.yMax + 1)]).nice();
+      this.frame.yRPKMAxis = d3.axisLeft(this.frame.yRPKMScale).tickSize(-this.frame.width);
+    }
     if (this.frame.showReads && this.frame.yCoverageScale) {
       // Calculate the yMax from all the coverage points present in the current visible fragments
       let points = [... new Set(this.visibleFragments.map((d,i) => d.visibleCoveragePoints.map((e,j) => Math.round(e.y * 10) / 10)).reduce((acc, c) => acc.concat(c),[]))].sort((a,b) => d3.descending(a,b));
@@ -569,6 +573,9 @@ class BrushContainer {
 
     // update the intervals
     this.renderIntervals();
+
+    // update the RPKM intervals
+    this.renderRPKMIntervals();
 
     // update the genes
     this.renderGenes();
@@ -898,6 +905,63 @@ class BrushContainer {
       .attr('class', (d,i) => ('popovered shape ' + ((this.frame.activeAnnotation && d.annotationArray.includes(this.frame.activeAnnotation)) ? 'annotated' : '')))
       .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yScale(d.y) - 0.5 * this.frame.margins.intervals.bar] + ')')
       .attr('width', (d,i) => d.shapeWidth)
+      .style('fill', (d,i) => d.color)
+      .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
+
+    shapes
+      .exit()
+      .remove();
+  }
+
+  renderRPKMIntervals() {
+    let self = this;
+
+    // create the g elements containing the intervals
+    let shapesPanels = this.frame.RPKMshapesContainer.selectAll('g.shapes-panel')
+      .data(this.visibleFragments, (d,i) => d.id);
+
+    shapesPanels
+      .enter()
+      .append('g')
+      .attr('class', 'shapes-panel')
+      .style('clip-path','url(#clip)')
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')');
+
+    shapesPanels
+      .exit()
+      .remove();
+
+    // add the actual intervals as rectangles
+    let shapes = shapesPanels.selectAll('rect.shape')
+      .data((d,i) => d.visibleRPKMIntervals, (d,i) =>  d.identifier);
+
+    shapes
+      .enter()
+      .append('rect')
+      .attr('id', (d,i) => d.identifier)
+      .attr('class', (d,i) => 'popovered shape')
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yRPKMScale(d.y)] + ')')
+      .attr('width', (d,i) => d.shapeWidth)
+      .attr('height', (d,i) => (-this.frame.yRPKMScale(d.y) + this.frame.yRPKMScale(0)))
+      .style('fill', (d,i) => d.color)
+      .style('stroke', (d,i) => d3.rgb(d.color).darker(1))
+      .on('mouseover', function(d,i) {
+        d3.select(this).classed('highlighted', true);
+      })
+      .on('mouseout', function(d,i) {
+        d3.select(this).classed('highlighted', false);
+      })
+      .on('mousemove', (d,i) => this.loadPopover(d))
+
+    shapes
+      .attr('id', (d,i) => d.identifier)
+      .attr('class', (d,i) => 'popovered shape ')
+      .attr('transform', (d,i) => 'translate(' + [d.range[0], this.frame.yRPKMScale(d.y)] + ')')
+      .attr('width', (d,i) => d.shapeWidth)
+      .attr('height', (d,i) => (-this.frame.yRPKMScale(d.y) + this.frame.yRPKMScale(0)))
       .style('fill', (d,i) => d.color)
       .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
 
