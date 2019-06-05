@@ -12,6 +12,7 @@ class Frame extends Base {
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2, weightThreshold: 10},
       reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
+      rpkm: {title: 'RPKM'},
       walks: {bar: 10},
       annotations: {minDistance: 10000000, padding: 1000, maxClusters: 6},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
@@ -47,6 +48,7 @@ class Frame extends Base {
     this.axis = null;
     this.connectionWeightScale;
     this.activeAnnotation = null;
+    this.yRPKMScale = d3.scaleLinear();
   }
 
   updateDimensions(totalWidth, totalHeight) {
@@ -151,12 +153,13 @@ class Frame extends Base {
     d3.select('#shadow').classed('hidden', true);
   }
 
-  toggleView(value) {
-    if (['intervals', 'genes', 'walks', 'coverage'].includes(value)) {
+  toggleView(value) { console.log(value)
+    if (['intervals', 'genes', 'walks', 'coverage', 'rpkm'].includes(value)) {
       this.margins.panels.upperGap = (value !== 'intervals') ? 0.8 * this.height : this.margins.defaults.upperGapPanel;
       this.showGenes = (value === 'genes');
       this.showWalks = (value === 'walks');
       this.showReads = (value === 'coverage');
+      this.showRPKM = (value === 'rpkm');
       this.toggleGenesPanel();
       this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
       history.replaceState(this.url, 'Project gGnome.js', this.url);
@@ -199,7 +202,6 @@ class Frame extends Base {
   }
 
   updateRPKMIntervals() {
-    this.yRPKMScale = d3.scaleLinear();
     d3.select("#loader").classed('hidden', false);
     Papa.parse('../../rpkm/' + this.dataFileName + '.csv', {
       dynamicTyping: true,
@@ -225,6 +227,10 @@ class Frame extends Base {
           // update the reads
           this.brushContainer.renderRPKMIntervals();
           toastr.success(`Loaded ${results.data.length} RPKM records!`, {timeOut: 500});
+          if (this.view === 'rpkm') {
+            $('.content .ui.dropdown').dropdown('set exactly', 'rpkm');
+            d3.select('#shadow').classed('hidden', true);
+          }
         }
         d3.select("#loader").classed('hidden', true);
       }
@@ -424,6 +430,7 @@ class Frame extends Base {
     }
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
     this.yCoverageScale = d3.scaleLinear().range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
+    this.yRPKMScale = d3.scaleLinear().range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer
@@ -437,6 +444,7 @@ class Frame extends Base {
     this.genesContainer.classed('hidden', !this.showGenes);
     this.walksContainer.classed('hidden', !this.showWalks);
     this.readsContainer.classed('hidden', !this.showReads);
+    this.rpkmContainer.classed('hidden', !this.showRPKM);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
     this.brushContainer.update();
   }
@@ -565,6 +573,35 @@ class Frame extends Base {
       .attr('text-anchor', 'middle')
       .text('loading ...');
 
+    this.rpkmContainer = this.svg.append('g')
+      .classed('rpkm-container', true)
+      .classed('hidden', !this.showRPKM)
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+
+    this.rpkmContainer.append('g')
+      .attr('class', 'axis axis--y')
+      .attr('transform', 'translate(' + [0, 0] + ')');
+
+    this.rpkmContainer.append('g')
+      .attr('class', 'y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * (this.margins.reads.gap + this.margins.panels.upperGap)] + ')rotate(-90)')
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .text(this.margins.rpkm.title);
+
+    this.rpkmContainer
+      .append('rect')
+      .attr('class', 'loading-box hidden')
+      .attr('width', this.width)
+      .attr('height', this.margins.top + this.margins.panels.upperGap - this.margins.reads.gap);
+
+    this.rpkmContainer
+      .append('text')
+      .attr('class', 'loading hidden')
+      .attr('transform', 'translate(' + [this.width/2, + 0.5 * (this.margins.top + this.margins.panels.upperGap)] + ')')
+      .attr('text-anchor', 'middle')
+      .text('loading ...');
+
     this.shapesContainer = this.svg.append('g')
       .attr('class', 'shapes-container')
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
@@ -578,10 +615,6 @@ class Frame extends Base {
       .classed('hidden', !this.showWalks)
       .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
 
-    this.RPKMshapesContainer = this.svg.append('g')
-      .attr('class', 'RPKM-shapes-container')
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.upperGap] + ')');
-  
     this.brushContainer = new BrushContainer(this);
     this.brushContainer.render();
   }
