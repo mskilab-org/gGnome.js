@@ -10,10 +10,10 @@ class Frame extends Base {
       panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10, yAxisTitleGap: 20},
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
-      genes: {textGap: 5, selectionSize: 2, weightThreshold: 10},
+      genes: {textGap: 5, selectionSize: 2, weightThreshold: 10, title: 'Genes'},
       reads: {gap: 2, coverageHeight: 140, selectionSize: 2, minCoverageRadius: 6, maxCoverageRadius: 16, coverageTitle: 'Coverage', domainSizeLimit: 30000},
       rpkm: {title: 'RPKM'},
-      walks: {bar: 10},
+      walks: {bar: 10, title: 'Walks'},
       annotations: {minDistance: 10000000, padding: 1000, maxClusters: 6},
       defaults: {upperGapPanel: 155, upperGapPanelWithGenes: 360}};
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemeCategory20b));
@@ -48,6 +48,8 @@ class Frame extends Base {
     this.axis = null;
     this.connectionWeightScale;
     this.activeAnnotation = null;
+    this.views = {coverage: false, genes: false, walks: false, rpkm: false};
+    this.selectedViews = [];
     this.yRPKMScale = d3.scaleLinear();
   }
 
@@ -153,17 +155,8 @@ class Frame extends Base {
     d3.select('#shadow').classed('hidden', true);
   }
 
-  toggleView(value) { console.log(value)
-    if (['intervals', 'genes', 'walks', 'coverage', 'rpkm'].includes(value)) {
-      this.margins.panels.upperGap = (value !== 'intervals') ? 0.8 * this.height : this.margins.defaults.upperGapPanel;
-      this.showGenes = (value === 'genes');
-      this.showWalks = (value === 'walks');
-      this.showReads = (value === 'coverage');
-      this.showRPKM = (value === 'rpkm');
-      this.toggleGenesPanel();
-      this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
-      history.replaceState(this.url, 'Project gGnome.js', this.url);
-    }
+  toggleView(value) {
+    // TODO: REFACTOR REMOVE
   }
 
   updateCoveragePoints() {
@@ -424,13 +417,41 @@ class Frame extends Base {
   }
 
   toggleGenesPanel() {
-    if (this.dataInput.walks) {
-      this.yWalkScale = d3.scaleLinear().domain(this.yWalkExtent).range([0 * this.margins.panels.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap - 0 * this.margins.panels.gap]).nice();
-      this.walkConnections.forEach((d,i) => d.yScale = this.yWalkScale);
-    }
-    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([0, this.margins.panels.upperGap - this.margins.panels.chromoGap]).nice();
-    this.yCoverageScale = d3.scaleLinear().range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
-    this.yRPKMScale = d3.scaleLinear().range([this.margins.reads.gap, this.margins.panels.upperGap - this.margins.panels.chromoGap]);
+    this.selectedViews = Object.keys(this.views).filter(d => this.views[d]);
+    this.margins.panels.upperGap = (this.selectedViews.length > 0) ? 0.8 * this.height : this.margins.defaults.upperGapPanel;
+    this.showGenes = this.selectedViews.includes('genes');
+    this.showWalks = this.selectedViews.includes('walks');
+    this.showReads = this.selectedViews.includes('coverage');
+    this.showRPKM  = this.selectedViews.includes('rpkm');
+    this.viewHeight = (this.margins.panels.upperGap - this.margins.panels.chromoGap) / this.selectedViews.length;
+    this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.gap, this.viewHeight]).nice();
+    this.yCoverageScale = d3.scaleLinear().range([this.margins.reads.gap, this.viewHeight]);
+    this.yRPKMScale = d3.scaleLinear().range([this.margins.reads.gap, this.viewHeight]);
+    this.svg.select('.genes-container').attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap + this.selectedViews.indexOf('genes') * this.viewHeight] + ')');
+    this.svg.select('.genes-container .y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * this.viewHeight] + ')rotate(-90)');
+    this.svg.select('.walks-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap + this.selectedViews.indexOf('walks') * this.viewHeight] + ')');
+    this.svg.select('.walk-connections-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap + this.selectedViews.indexOf('walks') * this.viewHeight] + ')');
+    this.svg.select('.walks-container .y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * this.viewHeight] + ')rotate(-90)');
+    this.svg.select('.reads-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap + this.selectedViews.indexOf('coverage') * this.viewHeight] + ')');
+    this.svg.select('.reads-container .y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * this.viewHeight] + ')rotate(-90)');
+    this.svg.select('.reads-container .loading-box')
+      .attr('height', this.viewHeight);
+    this.svg.select('.reads-container .loading')
+      .attr('transform', 'translate(' + [this.width / 2, + 0.5 * this.viewHeight] + ')');
+    this.svg.select('.rpkm-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap + this.selectedViews.indexOf('rpkm') * this.viewHeight] + ')');
+    this.svg.select('.rpkm-container .y-axis-title')
+      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * this.viewHeight] + ')rotate(-90)')
+    this.svg.select('.rpkm-container .loading-box')
+      .attr('height', this.viewHeight);
+    this.svg.select('.rpkm-container .loading')
+      .attr('transform', 'translate(' + [this.width / 2, + 0.5 * this.viewHeight] + ')');
     let connection = null;
     this.connections.forEach((d,i) => d.yScale = this.yScale);
     this.panelsContainer
@@ -447,6 +468,8 @@ class Frame extends Base {
     this.rpkmContainer.classed('hidden', !this.showRPKM);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
     this.brushContainer.update();
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
+    history.replaceState(this.url, 'Project gGnome.js', this.url);
   }
 
   renderGeneModal() {
@@ -536,18 +559,27 @@ class Frame extends Base {
 
     this.genesContainer = this.svg.append('g')
       .classed('genes-container', true)
-      .classed('hidden', !this.showGenes)
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
-    
+      .classed('hidden', !this.showGenes);
+
+    this.genesContainer.append('g')
+      .attr('class', 'y-axis-title')
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .text(this.margins.genes.title);
+
     this.walksContainer = this.svg.append('g')
       .classed('walks-container', true)
-      .classed('hidden', !this.showWalks)
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+      .classed('hidden', !this.showWalks);
+
+    this.walksContainer.append('g')
+      .attr('class', 'y-axis-title')
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .text(this.margins.walks.title);
 
     this.readsContainer = this.svg.append('g')
       .classed('reads-container', true)
-      .classed('hidden', !this.showReads)
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+      .classed('hidden', !this.showReads);
 
     this.readsContainer.append('g')
       .attr('class', 'axis axis--y')
@@ -555,7 +587,6 @@ class Frame extends Base {
 
     this.readsContainer.append('g')
       .attr('class', 'y-axis-title')
-      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * (this.margins.reads.gap + this.margins.panels.upperGap)] + ')rotate(-90)')
       .append('text')
       .attr('text-anchor', 'middle')
       .text(this.margins.reads.coverageTitle);
@@ -563,20 +594,17 @@ class Frame extends Base {
     this.readsContainer
       .append('rect')
       .attr('class', 'loading-box hidden')
-      .attr('width', this.width)
-      .attr('height', this.margins.top + this.margins.panels.upperGap - this.margins.reads.gap);
+      .attr('width', this.width);
 
     this.readsContainer
       .append('text')
       .attr('class', 'loading hidden')
-      .attr('transform', 'translate(' + [this.width/2, + 0.5 * (this.margins.top + this.margins.panels.upperGap)] + ')')
       .attr('text-anchor', 'middle')
       .text('loading ...');
 
     this.rpkmContainer = this.svg.append('g')
       .classed('rpkm-container', true)
-      .classed('hidden', !this.showRPKM)
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+      .classed('hidden', !this.showRPKM);
 
     this.rpkmContainer.append('g')
       .attr('class', 'axis axis--y')
@@ -584,7 +612,6 @@ class Frame extends Base {
 
     this.rpkmContainer.append('g')
       .attr('class', 'y-axis-title')
-      .attr('transform', 'translate(' + [-this.margins.panels.yAxisTitleGap,  + 0.5 * (this.margins.reads.gap + this.margins.panels.upperGap)] + ')rotate(-90)')
       .append('text')
       .attr('text-anchor', 'middle')
       .text(this.margins.rpkm.title);
@@ -592,13 +619,11 @@ class Frame extends Base {
     this.rpkmContainer
       .append('rect')
       .attr('class', 'loading-box hidden')
-      .attr('width', this.width)
-      .attr('height', this.margins.top + this.margins.panels.upperGap - this.margins.reads.gap);
+      .attr('width', this.width);
 
     this.rpkmContainer
       .append('text')
       .attr('class', 'loading hidden')
-      .attr('transform', 'translate(' + [this.width/2, + 0.5 * (this.margins.top + this.margins.panels.upperGap)] + ')')
       .attr('text-anchor', 'middle')
       .text('loading ...');
 
@@ -612,8 +637,7 @@ class Frame extends Base {
     
     this.walkConnectionsContainer = this.svg.append('g')
       .classed('walk-connections-container', true)
-      .classed('hidden', !this.showWalks)
-      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.chromoGap] + ')');
+      .classed('hidden', !this.showWalks);
 
     this.brushContainer = new BrushContainer(this);
     this.brushContainer.render();

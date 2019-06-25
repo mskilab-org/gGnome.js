@@ -298,6 +298,19 @@ class BrushContainer {
         d.yGenes = d3.map(d.visibleGenes, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
         d.yGeneScale = d3.scalePoint().domain(d.yGenes).padding([1]).rangeRound(this.frame.yGeneScale.range());
       }
+      // filter the coveragePoints
+      if (this.frame.showReads) {
+        if (d.changed || d.visibleCoveragePoints === undefined) {
+
+          d.visibleCoveragePoints = this.frame.downsampledCoveragePoints
+            .filter((e, j) => ((e.place <= d.domain[1]) && (e.place >= d.domain[0])))
+            .map((cov,j) => {
+              let coveragePoint = new CoveragePoint(cov);
+              coveragePoint.fragment = d;
+              return coveragePoint;
+            });
+        }
+      }
       // filter the RPKMIntervals
       d.visibleRPKMIntervals = [];
       if (this.frame.RPKMIntervals.length > 0) {
@@ -329,7 +342,7 @@ class BrushContainer {
         });
       });
       d.yWalks = d3.map(d.visibleWalkIntervals, e => e.y).keys().sort((x,y) => d3.ascending(x,y));
-      d.yWalkScale = d3.scalePoint().domain(d.yWalks).padding([1]).rangeRound([this.frame.margins.panels.gap, this.frame.margins.panels.upperGap - this.frame.margins.panels.chromoGap - this.frame.margins.panels.gap]);
+      d.yWalkScale = d3.scalePoint().domain(d.yWalks).padding([0.1]).rangeRound([this.frame.margins.reads.gap, this.frame.viewHeight]);
       // filter the connections on same fragment
       frameConnections = frameConnections.filter((e, j) => ((d.selectionSize < this.frame.margins.brushes.minSelectionSize) || (!e.isSubConnection)))
       frameConnections
