@@ -48,6 +48,15 @@ $(function() {
     frame.runLocate($('#locate-input').val());
   });
 
+  $('.ui.checkbox').checkbox({
+    'onChange': function() {
+      var $input = $(this);
+      var checked = $input.is(':checked');
+      frame.views[$input.attr('name')] = checked;
+      frame.toggleGenesPanel();
+    }
+  });
+  
   // Start file download.
   document.getElementById("download-button").addEventListener("click", function(){
       // Generate download of file with the elements in the current panels

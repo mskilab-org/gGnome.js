@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/external/loader.min.css">
   <link rel="stylesheet" href="css/external/transition.css">
   <link rel="stylesheet" href="css/external/dropdown.css">
+  <link rel="stylesheet" href="css/external/checkbox.min.css">
   <link rel="stylesheet" href="css/external/icon.css">
   <link rel="stylesheet" href="css/toastr.css">
   <link rel="stylesheet" href="css/index.css">
@@ -42,7 +43,7 @@
             </div>
           </div>
         </div>
-        <div class="form-group marleft20">
+        <!--div class="form-group marleft20">
           <div class="content">
             View as 
             <div class="ui simple inline dropdown">
@@ -56,6 +57,26 @@
                 <div class="item" data-text="Coverage">Coverage</div>
                 <div class="item" data-text="RPKM">RPKM</div>
               </div>
+            </div>
+          </div>
+        </div-->
+        <div class="form-group marleft20">
+          <div class="content">
+            <div class="ui checkbox">
+              <input type="checkbox" name="genes">
+              <label>Genes</label>
+            </div>
+            <div class="ui checkbox">
+              <input type="checkbox" name="walks">
+              <label>Walks</label>
+            </div>
+            <div class="ui checkbox">
+              <input type="checkbox" name="coverage">
+              <label>Coverage</label>
+            </div>
+            <div class="ui checkbox">
+              <input type="checkbox" name="rpkm">
+              <label>RPKM</label>
             </div>
           </div>
         </div>
@@ -194,6 +215,7 @@
   <script src="./js/external/regl.js"></script>
   <script src="./js/external/transition.js"></script>
   <script src="./js/external/dropdown.js"></script>
+  <script src="./js/external/checkbox.min.js"></script>
   <script src="./js/index.js"></script>
   <script src="./js/misc.js"></script>
   <script src="./js/combinations.js"></script>
