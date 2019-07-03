@@ -18,7 +18,7 @@ $(function() {
   var frame = new Frame(plotContainerId, totalWidth, totalHeight);
   // set the default location as parsed from the url
   frame.location = currentLocation;
-  frame.view = currentView;
+  frame.selectedViews = currentView.split(',');
 
   d3.csv('datafiles.csv', (error, results) => {
     if (error) {
@@ -137,14 +137,6 @@ $(function() {
   $('#validate-button').click(() => {
     window.location.href = "validator.html";
   }); 
-
-  $('.content .ui.dropdown').dropdown({
-    onChange: (value, text, $selectedItem) => {
-      frame.location = Misc.getUrlParameter('location');
-      frame.view = value;
-      frame.toggleView(value);
-    }
-  });
 
   // We can attach the `fileselect` event to all file inputs on the page
   $(document).on('change', ':file', function() {
