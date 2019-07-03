@@ -64,7 +64,7 @@ class Frame extends Base {
   loadData(dataFile) {
     this.dataFile = dataFile;
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
-    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
       .defer(d3.json, 'json/' + dataFile)
@@ -83,9 +83,8 @@ class Frame extends Base {
         this.updateRPKMIntervals();
         this.updateDescription();
         this.updateAnnotations();
-        if (this.view === 'walks') {
-          $('.content .ui.dropdown').dropdown('set exactly', 'walks');
-        }
+        this.selectedViews.forEach((d,i) => $(`#checkbox_${d}`).checkbox('check'));
+        this.toggleGenesPanel();
     });
   }
 
@@ -155,10 +154,6 @@ class Frame extends Base {
     d3.select('#shadow').classed('hidden', true);
   }
 
-  toggleView(value) {
-    // TODO: REFACTOR REMOVE
-  }
-
   updateCoveragePoints() {
     d3.select("#loader").classed('hidden', false);
     Papa.parse('../../coverage/' + this.dataFileName + '.csv', {
@@ -184,8 +179,8 @@ class Frame extends Base {
           // update the reads
           this.brushContainer.renderReads();
           toastr.success(`Loaded ${results.data.length} coverage records!`, {timeOut: 500});
-          if (this.view === 'coverage') {
-            $('.content .ui.dropdown').dropdown('set exactly', 'coverage');
+          if (this.selectedViews.includes('coverage')) {
+            this.brushContainer.update();
             d3.select('#shadow').classed('hidden', true);
           }
         }
@@ -220,8 +215,8 @@ class Frame extends Base {
           // update the reads
           this.brushContainer.renderRPKMIntervals();
           toastr.success(`Loaded ${results.data.length} RPKM records!`, {timeOut: 500});
-          if (this.view === 'rpkm') {
-            $('.content .ui.dropdown').dropdown('set exactly', 'rpkm');
+          if (this.selectedViews.includes('rpkm')) {
+            this.brushContainer.update();
             d3.select('#shadow').classed('hidden', true);
           }
         }
@@ -248,10 +243,10 @@ class Frame extends Base {
       this.genes = e.data.genes;
       this.geneBins = e.data.geneBins;
       toastr.success(`Loaded ${this.dataInput.genes.length} gene records!`, {timeOut: 500});
-      if (this.view === 'genes') {
-        $('.content .ui.dropdown').dropdown('set exactly', 'genes');
+      if (this.selectedViews.includes('genes')) {
         d3.select('#shadow').classed('hidden', true);
         d3.select("#loader").classed('hidden', true);
+        this.brushContainer.update();
       }
     }, false);
     worker.postMessage({dataInput: {metadata: this.dataInput.metadata, genes: []}, geneBins: {}, width: this.width});
@@ -468,7 +463,7 @@ class Frame extends Base {
     this.rpkmContainer.classed('hidden', !this.showRPKM);
     this.walkConnectionsContainer.classed('hidden', !this.showWalks);
     this.brushContainer.update();
-    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.view}`;
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
   }
 
