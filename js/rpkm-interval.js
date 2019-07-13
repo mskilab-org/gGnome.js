@@ -26,7 +26,7 @@ class RPKMInterval extends Base {
 
   // The title for the popover on the intervals
   get popoverTitle() {
-    return  ((this.siid > 0) ? 'Sub-' : '') + 'RPKM Bar #' + this.title + (this.annotation ? (' : ' + this.annotation) : '');
+    return  ((this.siid > 0) ? 'Sub-' : '') + 'Bar #' + this.title + (this.annotation ? (' : ' + this.annotation) : '');
   }
 
   // The content for the popover of the intervals
