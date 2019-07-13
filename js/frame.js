@@ -75,8 +75,13 @@ class Frame extends Base {
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
         this.coveragePointsThreshold = results[1].coveragePointsThreshold || this.margins.reads.domainSizeLimit;
+        this.margins.reads.coverageTitle = results[1].scatterPlot.title;
+        $("label.scatterplot").html(this.margins.reads.coverageTitle);
+        this.margins.rpkm.title = results[1].barPlot.title;
+        $("label.barplot").html(this.margins.rpkm.title);
         this.coveragePoints = [];
         this.downsampledCoveragePoints = [];
+        this.RPKMIntervals = [];
         this.render();
         this.updateGenes();
         this.updateCoveragePoints();
@@ -156,7 +161,7 @@ class Frame extends Base {
 
   updateCoveragePoints() {
     d3.select("#loader").classed('hidden', false);
-    Papa.parse('../../coverage/' + this.dataFileName + '.csv', {
+    Papa.parse('../../scatterPlot/' + this.dataFileName + '.csv', {
       dynamicTyping: true,
       skipEmptyLines: true,
       header: true,
@@ -178,7 +183,7 @@ class Frame extends Base {
           this.brushContainer.updateFragments(true);
           // update the reads
           this.brushContainer.renderReads();
-          toastr.success(`Loaded ${results.data.length} coverage records!`, {timeOut: 500});
+          toastr.success(`Loaded ${results.data.length} ${this.margins.reads.coverageTitle} records!`, {timeOut: 500});
           if (this.selectedViews.includes('coverage')) {
             this.brushContainer.update();
             d3.select('#shadow').classed('hidden', true);
@@ -191,7 +196,7 @@ class Frame extends Base {
 
   updateRPKMIntervals() {
     d3.select("#loader").classed('hidden', false);
-    Papa.parse('../../rpkm/' + this.dataFileName + '.csv', {
+    Papa.parse('../../barPlot/' + this.dataFileName + '.csv', {
       dynamicTyping: true,
       skipEmptyLines: true,
       header: true,
@@ -214,7 +219,7 @@ class Frame extends Base {
           this.brushContainer.updateFragments(true);
           // update the reads
           this.brushContainer.renderRPKMIntervals();
-          toastr.success(`Loaded ${results.data.length} RPKM records!`, {timeOut: 500});
+          toastr.success(`Loaded ${results.data.length} ${this.margins.rpkm.title} records!`, {timeOut: 500});
           if (this.selectedViews.includes('rpkm')) {
             this.brushContainer.update();
             d3.select('#shadow').classed('hidden', true);

@@ -27,5 +27,7 @@
     { "chromosome": "Y",  "startPoint": 1, "endPoint": 59373566,  "color": "#ad494a"}
   ],
 "sequences": {"T": "#E6E431", "A": "#5157FB", "G": "#1DBE21", "C": "#DE0A17", "backbone" : "#AD26FA"},
-"coveragePointsThreshold": 30000
+"coveragePointsThreshold": 30000,
+"scatterPlot": {"title": "Coverage"},
+"barPlot": {"title": "RPKM"}
 }
