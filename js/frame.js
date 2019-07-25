@@ -7,7 +7,7 @@ class Frame extends Base {
       top: 30, bottom: 70, left: 30, right: 30,
       modal: {width: 900, height: 300, top: 30, bottom: 30, left: 30, right: 30},
       legend: {bar: 30, upperGap: 0, lowerGap: 20, axisTop: 10},
-      panels: {upperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10, yAxisTitleGap: 20},
+      panels: {upperGap: 155, defaultUpperGap: 155, chromoGap: 155, lowerGap: 0, gap: 26, widthOffset: 1, legend: 50, label: 10, yAxisTitleGap: 20},
       brushes: {upperGap: -10, height: 50, minSelectionSize: 2},
       intervals: {bar: 10, gap: 20, geneBar: 2},
       genes: {textGap: 5, selectionSize: 2, weightThreshold: 10, title: 'Genes'},
@@ -531,6 +531,10 @@ class Frame extends Base {
     this.brushesContainer = this.controlsContainer.append('g')
       .attr('class', 'brushes')
       .attr('transform', 'translate(' + [0, this.margins.brushes.upperGap] + ')');
+
+    this.panelsZoomContainer = this.svg.append('g')
+      .attr('class', 'panels-zoom-container')
+      .attr('transform', 'translate(' + [this.margins.left, this.margins.panels.defaultUpperGap] + ')');
 
     this.panelsContainer = this.svg.append('g')
       .attr('class', 'panels-container')
