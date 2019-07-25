@@ -223,6 +223,7 @@ class BrushContainer {
     // determine the new Panel Width
     this.panelWidth = (this.frame.width - (this.visibleFragments.length - 1) * this.frame.margins.panels.gap) / this.visibleFragments.length;
     this.panelHeight = this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top;
+    this.panelZoomHeight = this.frame.height - this.frame.margins.panels.defaultUpperGap + this.frame.margins.top;
 
     // determine the Genes Panel Dimensions
     this.genesPanelWidth = (this.frame.width - (this.visibleFragments.length - 1) * this.frame.margins.panels.gap) / this.visibleFragments.length;
@@ -235,6 +236,7 @@ class BrushContainer {
     this.visibleFragments.forEach((d,i) => {
       d.panelWidth = this.panelWidth;
       d.panelHeight = this.panelHeight;
+      d.panelZoomHeight = this.panelZoomHeight;
       d.domainWidth = d.domain[1] - d.domain[0];
       d.range = [i * (d.panelWidth + this.frame.margins.panels.gap), (i + 1) * d.panelWidth + i * this.frame.margins.panels.gap];
       d.scale = d3.scaleLinear().domain(d.domain).range(d.range);
@@ -618,7 +620,7 @@ class BrushContainer {
 
   renderClipPath() {
     if (this.visibleFragments.length > 0) {
-      this.frame.svgFilter.renderClipPath(this.panelWidth + this.frame.margins.panels.widthOffset, this.panelHeight);
+      this.frame.svgFilter.renderClipPath(this.panelWidth + this.frame.margins.panels.widthOffset, this.panelZoomHeight);
     }
   }
 
@@ -673,11 +675,11 @@ class BrushContainer {
     let self = this;
     let correctionOffset = 1; // used for aligning the rectenges on the y Axis lines
 
-    // Draw the panel rectangles
-    let panelRectangles = this.frame.panelsContainer.selectAll('rect.panel')
-      .data(this.visibleFragments,  (d,i) => d.id);
+    // Draw the zoom panel rectangles
+    let panelZoomRectangles = this.frame.panelsZoomContainer.selectAll('rect.panel')
+      .data(this.visibleFragments, (d,i) => d.id);
 
-    panelRectangles
+    panelZoomRectangles
       .enter()
       .append('rect')
       .attr('class', 'panel')
@@ -685,7 +687,7 @@ class BrushContainer {
       .style('clip-path','url(#clip)')
       .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
       .attr('width', (d,i) => d.panelWidth + this.frame.margins.panels.widthOffset)
-      .attr('height', (d,i) => d.panelHeight + correctionOffset)
+      .attr('height', (d,i) => d.panelZoomHeight + correctionOffset)
       .each(function(d,i) {
         d3.select(this)
           .call(d.zoom.transform, d3.zoomIdentity
@@ -699,10 +701,10 @@ class BrushContainer {
         this.renderFragmentsNote(this.panelDomainsText());
       })
 
-    panelRectangles
+    panelZoomRectangles
       .attr('transform', (d,i) => 'translate(' + [d.range[0], 0] + ')')
       .attr('width', (d,i) => d.panelWidth + this.frame.margins.panels.widthOffset)
-      .attr('height', (d,i) => d.panelHeight + correctionOffset)
+      .attr('height', (d,i) => d.panelZoomHeight + correctionOffset)
       .each(function(d,i) {
         d3.select(this).call(d.zoom)
          .call(d.zoom.transform, d3.zoomIdentity
@@ -710,7 +712,7 @@ class BrushContainer {
          .translate(-d.selection[0], 0));
       });
 
-    panelRectangles
+    panelZoomRectangles
       .exit()
       .remove();
   }
