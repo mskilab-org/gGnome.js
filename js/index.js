@@ -68,7 +68,7 @@ $(function() {
 
   // Execute the delete operation
   $('html').keyup((e) => {
-    if ((e.keyCode === 46) || (e.keyCode === 8)) {
+    if (((e.keyCode === 46) || (e.keyCode === 8)) && (frame.brushContainer.visibleFragments.length > 1)) {
       frame.runDelete();
     }
   });
