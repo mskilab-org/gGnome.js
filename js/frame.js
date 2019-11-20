@@ -63,6 +63,7 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
+    this.location = Misc.getUrlParameter('location') || "1:1-249250620";
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
     this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
@@ -78,6 +79,7 @@ class Frame extends Base {
         this.margins.reads.coverageTitle = results[1].scatterPlot.title;
         $("label.scatterplot").html(this.margins.reads.coverageTitle);
         this.margins.rpkm.title = results[1].barPlot.title;
+        this.intervalsPanelHeightRatio = results[1].intervalsPanelHeightRatio;
         $("label.barplot").html(this.margins.rpkm.title);
         this.coveragePoints = [];
         this.downsampledCoveragePoints = [];
@@ -259,7 +261,6 @@ class Frame extends Base {
 
   updateData() {
     if (this.dataInput === null) return;
-    console.log('called updateData with dataInput!');
     this.settings = this.dataInput.settings;
     this.dataInput.metadata.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
     this.dataInput.intervals.forEach((d,i) => { d.endPoint += 1 }); // because endpoint is inclusive
@@ -385,7 +386,7 @@ class Frame extends Base {
     this.renderLegend();
     this.renderBrushes();
 
-    this.runLocate((this.location ? this.location : this.chromoBins['1'].domain));
+    this.runLocate(this.location);
 
     this.renderGeneModal();
   }
@@ -397,6 +398,7 @@ class Frame extends Base {
   runLocate(fullDomainString) {
     if ((/^\s*$/).test(fullDomainString)) return;
     if (fullDomainString.includes(':')) {
+      this.brushContainer.reset();
       this.runDelete();
       fullDomainString.split(' | ').forEach((subdomainString, i) => {
         let domains = [];
@@ -411,19 +413,35 @@ class Frame extends Base {
     } else {
       let matchedGenes = this.genes.filter(d => d.title === fullDomainString);
       if (matchedGenes.length > 0) {
-        this.brushContainer.createDefaults([matchedGenes[0].startPlace, matchedGenes[0].endPlace]);  
+        let currentFragments = this.brushContainer.visibleFragments;
+        this.brushContainer.reset();
+        this.runDelete();
+        let geneDomain = [matchedGenes[0].startPlace, matchedGenes[0].endPlace];
+        this.brushContainer.createDefaults(geneDomain);
+        currentFragments.map((d,i) => {
+          if ((geneDomain[0] < d.domain[1]) && (geneDomain[1] > d.domain[0])) {
+            if (geneDomain[0] > d.domain[0]) {
+              this.brushContainer.createDefaults([d.domain[0], geneDomain[0]]);
+            }
+            if (geneDomain[1] < d.domain[1]) {
+              this.brushContainer.createDefaults([geneDomain[1], d.domain[1]]);
+            }
+          } else {
+            this.brushContainer.createDefaults(d.domain);
+          }
+        });
       }
     }
   }
 
   toggleGenesPanel() {
     this.selectedViews = Object.keys(this.views).filter(d => this.views[d]);
-    this.margins.panels.upperGap = (this.selectedViews.length > 0) ? 0.8 * this.height : this.margins.defaults.upperGapPanel;
+    this.margins.panels.upperGap = (this.selectedViews.length > 0) ? ((1.0 - this.intervalsPanelHeightRatio) * (this.height + this.margins.panels.chromoGap)) : this.margins.defaults.upperGapPanel;
     this.showGenes = this.selectedViews.includes('genes');
     this.showWalks = this.selectedViews.includes('walks');
     this.showReads = this.selectedViews.includes('coverage');
     this.showRPKM  = this.selectedViews.includes('rpkm');
-    this.viewHeight = (this.margins.panels.upperGap - this.margins.panels.chromoGap) / this.selectedViews.length;
+    this.viewHeight = this.selectedViews.length > 0 ? ((this.margins.panels.upperGap - this.margins.panels.chromoGap) / this.selectedViews.length) : 0;
     this.yGeneScale = d3.scaleLinear().domain([10, 0]).range([this.margins.reads.gap, this.viewHeight]).nice();
     this.yCoverageScale = d3.scaleLinear().range([this.margins.reads.gap, this.viewHeight]);
     this.yRPKMScale = d3.scaleLinear().range([this.margins.reads.gap, this.viewHeight]);
@@ -642,6 +660,22 @@ class Frame extends Base {
     this.walkConnectionsContainer = this.svg.append('g')
       .classed('walk-connections-container', true)
       .classed('hidden', !this.showWalks);
+
+    this.noBrushesContainer = this.svg.append('g')
+      .attr('class', 'no-brushes-container')
+      .classed('hidden', true)
+      .attr('transform', 'translate(' + [0, this.margins.panels.chromoGap - 2 * this.margins.legend.bar] + ')');
+
+    this.noBrushesContainer.append('rect')
+      .attr('class', 'no-brushes-background')
+      .attr('width', this.width + 2 * this.margins.left)
+      .attr('height', this.height + 2 * this.margins.legend.bar);
+
+    this.noBrushesContainer.append('text')
+      .attr('class', 'no-brushes-text')
+      .attr('text-anchor', 'middle')
+      .attr('transform', 'translate(' + [(this.width + 2 * this.margins.left) / 2, (this.height + 2 * this.margins.legend.bar) /2] + ')')
+      .text('Drag your mouse pointer on the chromosome bar to make a selection');
 
     this.brushContainer = new BrushContainer(this);
     this.brushContainer.render();

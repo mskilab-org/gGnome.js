@@ -78,12 +78,12 @@ class BrushContainer {
         });
 
         // calculate the lower allowed selection edge this brush can move
-        let lowerEdge = d3.max(self.otherSelections.filter((d,i) => (d.selection !== null))
+        let lowerEdge = d3.max(self.otherSelections.filter((d,i) => (d && d.selection !== null))
           .filter((d,i) => originalSelection && (d[0] <= originalSelection[0]) && (originalSelection[0] <= d[1]))
           .map((d,i) => d[1]));
 
         // calculate the upper allowed selection edge this brush can move
-        let upperEdge = d3.min(self.otherSelections.filter((d,i) => (d.selection !== null))
+        let upperEdge = d3.min(self.otherSelections.filter((d,i) => (d && d.selection !== null))
           .filter((d,i) => originalSelection && (d[1] >= originalSelection[0]) && (originalSelection[1] <= d[1]))
           .map((d,i) => d[0]));
 
@@ -101,6 +101,7 @@ class BrushContainer {
 
         // move the brush to stay within the allowed bounded selection zone
         if ((selection !== undefined) && (selection !== null) && (selection[1] !== selection[0])) {
+          fragment.selection = selection;
           d3.select(this).call(fragment.brush.move, selection);
         }
 
@@ -120,26 +121,27 @@ class BrushContainer {
         // Figure out if our latest brush has a selection
         let lastBrushID = self.fragments[self.fragments.length - 1].id;
         let lastBrush = d3.select('#brush-' + lastBrushID).node();
-        let selection = d3.brushSelection(lastBrush);
+        let selection = lastBrush && d3.brushSelection(lastBrush);
 
         // If it does, that means we need another one
         if (selection && selection[0] !== selection[1]) {
           self.createBrush();
         }
 
-        // finally, update the chart with the selection in question
-        self.update();
+        self.frame.location = self.panelDomainsText() || Misc.getUrlParameter('location');
 
         // update the url state
-        self.frame.url = `index.html?file=${self.frame.dataFile}&location=${self.frame.note}&view=${self.frame.selectedViews.join(',')}`;
+        self.frame.url = `index.html?file=${self.frame.dataFile}&location=${self.frame.location}&view=${self.frame.selectedViews.join(',')}`;
         history.replaceState(self.frame.url, 'Project gGnome.js', self.frame.url);
+
+        // finally, update the chart with the selection in question
+        self.update();
     });
 
     this.fragments.push(new Fragment(brush));
   }
 
-  update() {
-
+  update() { 
     // first recalculate the current selections
     this.updateFragments(false);
 
@@ -189,6 +191,7 @@ class BrushContainer {
     this.renderReads();
 
     window.pc = this;
+
   }
 
   updateFragments(force) {
@@ -607,13 +610,23 @@ class BrushContainer {
     //d3.selectAll('circle.coverage-circle').style('opacity', 0.33);
     // update the reads
     this.renderReads();
+
+    // Render a message if no active fragments are enabled
+    this.renderNoBrushes()
+  }
+
+
+  renderNoBrushes() {
+    this.frame.noBrushesContainer.select('.no-brushes-container')
+      .classed('hidden', this.visibleFragments.length > 0);
   }
 
   zoomEnded(fragment) {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
 
+    this.frame.location = this.panelDomainsText() || Misc.getUrlParameter('location');
     // update the browser history
-    this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.note}&view=${this.frame.selectedViews.join(',')}`;
+    this.frame.url = `index.html?file=${this.frame.dataFile}&location=${this.frame.location}&view=${this.frame.selectedViews.join(',')}`;
     history.replaceState(this.frame.url, 'Project gGnome.js', this.frame.url);
 
   }
@@ -635,7 +648,7 @@ class BrushContainer {
     var self = this;
 
     let brushSelection = this.frame.brushesContainer.selectAll('.brush')
-      .data(this.fragments,  (d,i) => d.id);
+      .data(this.fragments, (d,i) => d.id);
 
     // Set up new brushes
     brushSelection

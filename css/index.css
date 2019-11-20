@@ -214,3 +214,13 @@ div.popover .table-value {
 .custom-modal-body {
   padding: 20px 20px 5px;
 }
+/* No brushes container */
+.no-brushes-background {
+  fill: white;
+}
+.no-brushes-text {
+  fill: steelblue;
+  font: 26px sans-serif;
+  font-weight: normal;
+  shape-rendering: "optimizeQuality";
+}
