@@ -30,5 +30,5 @@
 "coveragePointsThreshold": 30000,
 "scatterPlot": {"title": "Coverage"},
 "barPlot": {"title": "RPKM"},
-"intervalsPanelHeightRatio": 0.5
+"intervalsPanelHeightRatio": 0.6
 }

@@ -216,20 +216,27 @@ $(function() {
   }
 
   function populateTags(results) {
-    let tags = [ ...new Set(results.map((d,i) => d.description.split('|')).flat())].sort(); console.log(tags)
+    let splittedTags = results.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat();
+    let tags = [ ...new Set(splittedTags)].sort();
+    let tagsCounter = new Map([...new Set(splittedTags)].map(x => [x, splittedTags.filter(y => y === x).length]));
+
     $(`#${tagsSelector}`)
       .dropdown({
         clearable: true,
-        placeholder: 'Filter tags',
+        placeholder: 'Browse samples',
         on: 'hover',
         action: 'activate',
-        values: tags.map((d,i) => {return {name: d, value: d}}),
+        values: tags.map((d,i) => {return {name: `<span class="description">${tagsCounter.get(d)} ${Misc.pluralize('sample',tagsCounter.get(d))}</span><span class="text">${d}</span>`, value: d, text: d}}),
         onChange: (value, text, $selectedItem) => {
           let filtered = [...results];
           if (value) {
-            filtered = results.filter((d,i) => value.split(',').map((v) => d.description.split('|').includes(v)).flat().reduce((a,b) => a && b, true)); 
+            filtered = results.filter((d,i) => value.split(',').map((v) => d.description.includes(v)).flat().reduce((a,b) => a && b, true));
           }
           let values = filtered.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile}});
+          let filteredTags = [ ...new Set(filtered.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat())].sort();
+          d3.selectAll('#tags-selector .item')
+            .datum(function() { return this.dataset; })
+            .classed('disabled', (d,i) => !filteredTags.includes(d.value));
           $('#data-selector').dropdown('clear');
           $('#data-selector').dropdown('setup menu', {values: values});
           if (values.length > 0) {

@@ -158,4 +158,8 @@ class Misc {
     return list[kIndex];
   }
 
+  static pluralize(word, count) {
+    return count > 1 ? `${word}s` : word;
+  }
+
 }

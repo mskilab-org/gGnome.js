@@ -1,6 +1,51 @@
 datafile,description
-HCC1143_100.json,Lung Cancer|smoker|male
-data.json,Colon Cancer|non-smoker|female
-data2.json,Colon Cancer|smoker|male
-data3.json,Prostate Cancer|non-smoker|male
-annotated.json,Prostate Cancer|non-smoker|male
+data.json,ATCC; CDKN2A-; SMARCA4mut
+Sample_A549-AB.json,ATCC/Brugge
+Sample_A549-B.json,GPP; 2014; low.passage; cas9; SMARCA4mut
+Sample_A549-C.json,CCLE; 2017
+Sample_A549-D.json,CCLE; SMARCA4mut
+Sample_A549-F.json,CCLE; sgRNA-chr26; SMARCA4mut
+Sample_A549-G.json,CCLE; sgRNA-TRIB; CDKN2A-; SMARCA4mut
+Sample_A549-H.json,CCLE; pLX313-Renilla; 
+Sample_A549-I.json,GPP
+Sample_A549-J.json,GPP; cas9
+Sample_A549-K.json,ATCC
+Sample_A549-L.json,ATCC; DX-HPRT-1
+Sample_A549-M.json,ATCC; 2016; low.passage
+Sample_A549-N.json,ATCC; 2016; GFP
+Sample_A549-O.json,ATCC; 2016; high.passage; CDKN2A-; SMARCA4mut
+Sample_A549-P.json,Connectivity map; 2009; SMARCA4mut
+Sample_A549-Q.json,Connectivity map; 2011; Freeze.thaw
+Sample_A549-R.json,Connectivity map; 2013; Freeze.thaw; CDKN2A-; SMARCA4mut
+Sample_A549-V.json,ATCC; 2013; cas9
+Sample_A549-W.json,ATCC; 2013
+Sample_A549-X.json,CCLE; DNA.barcoded; CDKN2A-; SMARCA4mut
+Sample_A549-Y.json,CCLE; DNA.barcoded
+Sample_A549-Z.json,CCLE
+Sample_MCF7-A.json,Connectivity map; Freeze.thaw; 2005; PTEN- ; ESR1+
+Sample_MCF7-AA.json,ATCC; Low Passage; 2014; PTEN-
+Sample_MCF7-B.json,CCLE; 2010; PTEN-
+Sample_MCF7-C.json,CCLE; 2010; EGFP+; PTEN-; ESR1-
+Sample_MCF7-D.json,ATCC; 2005; PTEN-
+Sample_MCF7-E.json,ATCC; 2005; PTEN-
+Sample_MCF7-F.json,Connectivity map; 2012; Freeze.thaw; ESR1+
+Sample_MCF7-G.json,Clontech; 2006; Tet-off; PTEN-; ESR1-
+Sample_MCF7-H.json,Unknown origin; 2008; ESR1-
+Sample_MCF7-I.json,CCLE; 2014; High Passage; PTEN-
+Sample_MCF7-J.json,CCLE; 2014; DNA.barcoded; PTEN-
+Sample_MCF7-K.json,CCLE; 2014; Cas9; PTEN-
+Sample_MCF7-L.json,ATCC; 2014; High Passage; PTEN-; ESR1+
+Sample_MCF7-M.json,BHC; 2014; In.vivo.tamoxifen; PTEN-
+Sample_MCF7-N.json,INSERM; 2008; YFP; PTEN-; ESR1+
+Sample_MCF7-O.json,ATCC; 2014; Luciferase; PTEN-; ESR1-
+Sample_MCF7-P.json,CCLE; 2015; High Passage; 
+Sample_MCF7-Q.json,BHC; 2014; ESR1-
+Sample_MCF7-R.json,Connectivity map; 2004; Freeze.thaw; PTEN-; ESR1+
+Sample_MCF7-S.json,Connectivity map; 2005; Freeze.thaw; ESR1+
+Sample_MCF7-T.json,Connectivity map; 2007; Freeze.thaw; PTEN-; ESR1+
+Sample_MCF7-U.json,Connectivity map; 2008; Freeze.thaw; ESR1+
+Sample_MCF7-V.json,Connectivity map; 2009; Freeze.thaw; ESR1+
+Sample_MCF7-W.json,Connectivity map; 2012; Freeze.thaw; PTEN-
+Sample_MCF7-X.json,Connectivity map; 2013; Freeze.thaw; ESR1+
+Sample_MCF7-Y.json,Connectivity map; 2014; Freeze.thaw; PTEN-; ESR1+
+Sample_MCF7-Z.json,Connectivity map; 2014; Freeze.thaw; PTEN-; ESR1+

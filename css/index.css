@@ -36,7 +36,9 @@ canvas.plot {
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
-
+strong.info {
+  color: #31708f;
+}
 .highlighted .selection {
   stroke: orange;
   stroke-width: 2;
