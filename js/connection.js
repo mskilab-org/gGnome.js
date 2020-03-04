@@ -172,7 +172,7 @@ class Connection extends Base {
   get popoverContent() {
     var content = '';
     var array = [
-      ['&nbsp;', '<strong>Source</strong>', '<strong>Sink</strong>'], 
+      [`<strong class="info">${this.title}</strong>`, '<strong>Source</strong>', '<strong>Sink</strong>'],
       ['Chromosome', ((!this.source) ? 'Unknown' : this.source.interval.chromosome), ((!this.sink) ? 'Unknown' : this.sink.interval.chromosome)], 
       ['Interval', ((!this.source) ? 'Unknown' : (this.source.intervalId + (this.source.sign > 0 ? ' (right)' : ' (left)'))), ((!this.sink) ? 'Unknown' : (this.sink.intervalId + (this.sink.sign > 0 ? ' (right)' : ' (left)')))],
       ['Point (chromosome)', ((!this.source) ? 'Unknown' : d3.format(',')(this.source.point)), ((!this.sink) ? 'Unknown' : d3.format(',')(this.sink.point))],

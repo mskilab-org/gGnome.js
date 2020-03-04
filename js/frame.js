@@ -51,6 +51,9 @@ class Frame extends Base {
     this.views = {coverage: false, genes: false, walks: false, rpkm: false};
     this.selectedViews = [];
     this.yRPKMScale = d3.scaleLinear();
+    toastr.options.closeButton = true;
+    toastr.options.timeOut = 30;
+    toastr.options.closeDuration = 30;
   }
 
   updateDimensions(totalWidth, totalHeight) {
