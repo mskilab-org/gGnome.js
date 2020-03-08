@@ -1,6 +1,6 @@
 datafile,description
 data.json,ATCC; CDKN2A-; SMARCA4mut
-Sample_A549-AB.json,ATCC/Brugge
+annotated.json,ATCC/Brugge
 Sample_A549-B.json,GPP; 2014; low.passage; cas9; SMARCA4mut
 Sample_A549-C.json,CCLE; 2017
 Sample_A549-D.json,CCLE; SMARCA4mut
