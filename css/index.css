@@ -4,11 +4,14 @@
 .marleft20 {
   margin-left: 20px;
 }
-.data-selector, .annotations-selector {
-  margin-left: 50px;
+.marleft10 {
+  margin-left: 10px;
 }
-#tags-selector {
-  margin-left: 70px;
+.data-selector, .annotations-selector {
+  margin-left: 0px;
+}
+#tags-selector, #tags-selector span.text {
+  min-width: 200px !important;
 }
 .data-selector span.text {
   margin-right: 20px !important;
@@ -20,6 +23,13 @@
 }
 .fragments-note-container {
   min-height: 40px
+}
+.checkbox-container {
+  padding: 10px 0px;
+}
+.counter-label {
+  padding: 11px 0px;
+  height: 38px;
 }
 /* Main SVG styling */
 svg.plot {

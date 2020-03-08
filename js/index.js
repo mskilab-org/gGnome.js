@@ -5,6 +5,7 @@ $(function() {
   var plotContainerId = 'plot-container';
   var dataSelector = 'data-selector';
   var tagsSelector = 'tags-selector';
+  var counterLabel = 'counter-label';
   var annotationsSelector = 'annotations-selector';
   var totalWidth = $('#' + plotContainerId).width();
   var totalHeight = $(window).height() - $('#' + plotContainerId).offset().top;
@@ -201,10 +202,10 @@ $(function() {
   function populateComboBox(results) {
     $(`#${dataSelector}`)
       .dropdown({
-        clearable: true,
+        clearable: false,
         compact: true,
         on: 'hover',
-        values: results.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
+        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
         fullTextSearch: true,
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
@@ -219,6 +220,8 @@ $(function() {
     let splittedTags = results.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat();
     let tags = [ ...new Set(splittedTags)].sort();
     let tagsCounter = new Map([...new Set(splittedTags)].map(x => [x, splittedTags.filter(y => y === x).length]));
+    tags = tags.sort((a, b) => d3.descending(tagsCounter.get(a), tagsCounter.get(b)));
+    $(`.${counterLabel}`).html(`browse ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
 
     $(`#${tagsSelector}`)
       .dropdown({
@@ -232,15 +235,26 @@ $(function() {
           if (value) {
             filtered = results.filter((d,i) => value.split(',').map((v) => d.description.includes(v)).flat().reduce((a,b) => a && b, true));
           }
-          let values = filtered.map((d,i) => {return {name: (d.description ? `<span class="description">${d.description}</span><span class="text">${d.datafile}</span>` : d.datafile), value: d.datafile}});
-          let filteredTags = [ ...new Set(filtered.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat())].sort();
+          let values = filtered.map((d,i) => {return {name: d.datafile, value: d.datafile}});
+          let filteredSplittedTags = filtered.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat();
+          let filteredTags = [ ...new Set(filteredSplittedTags)].sort();
+          let filteredTagsCounter = new Map([...new Set(filteredSplittedTags)].map(x => [x, filteredSplittedTags.filter(y => y === x).length]));
+
+          $(`.${counterLabel}`).html(`browse ${filtered.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
+
           d3.selectAll('#tags-selector .item')
             .datum(function() { return this.dataset; })
-            .classed('disabled', (d,i) => !filteredTags.includes(d.value));
-          $('#data-selector').dropdown('clear');
-          $('#data-selector').dropdown('setup menu', {values: values});
+            .classed('hidden', (d,i) => !filteredTags.includes(d.value))
+            .sort((a,b) => d3.descending(filteredTagsCounter.get(a.value), filteredTagsCounter.get(b.value)))
+            .each(function(d,i) {
+              d3.select(this).select('span.text').text(d.value);
+              d3.select(this).select('span.description').text(`${filteredTagsCounter.get(d.value)} ${Misc.pluralize('sample',filteredTagsCounter.get(d.value))}`)
+            });
+
+          $(`#${dataSelector}`).dropdown('clear');
+          $(`#${dataSelector}`).dropdown('setup menu', {values: values});
           if (values.length > 0) {
-            $('#data-selector').dropdown('set exactly', values[0].value);
+            $(`#${dataSelector}`).dropdown('set exactly', values[0].value);
           }
         }
     });
