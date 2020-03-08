@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Project gGnome</title>
+  <title>gGnome.js</title>
   <link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
   <link rel="stylesheet prefetch" href="css/external/bootstrap.min.css">
   <link rel="stylesheet" href="css/external/semantic.css">
@@ -18,15 +18,40 @@
   <nav id="navbar" class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="navbar-brand" href="./index.html">Project gGnome.js</a>
+        <a class="navbar-brand" href="./index.html">gGnome.js</a>
       </div>
       <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <div id="tags-selector" class="ui floating fluid labeled scrolling multiple icon dropdown">
+            <input type="hidden" name="filters">
+            <i class="filter icon"></i>
+            <span class="text"></span>
+          </div>
+        </div>
+        <div class="form-group">
+         <span class="counter-label"></span>
+        </div>
+        <div class="form-group marleft10">
+          <select id="data-selector" class="ui floating fluid search selection dropdown data-selector"></select>
+        </div>
+        <div class="form-group marleft20">
+          <div id="annotations-selector" class="ui fluid search selection dropdown data-selector">
+            <input type="hidden" name="country">
+            <div class="default text">Select Annotation</div>
+            <i class="dropdown icon"></i>
+            <div class="menu"></div>
+          </div>
+        </div>
+      </form>
+      <form class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <div id="loader" class="ui active inline loader hidden"></div>
+        </div>
         <div class="form-group">
           <div class="ui simple dropdown">
             <div class="text">Tools</div>
             <i class="dropdown icon"></i>
             <div class="menu">
-
               <div class="item">
                 <span id="locate-button" data-toggle="modal" data-target="#locate-modal"><i class="map marker alternate icon"></i>  Locate</span>
               </div>
@@ -44,7 +69,7 @@
           </div>
         </div>
         <div class="form-group marleft20">
-          <div class="content">
+          <div class="content checkbox-container">
             <div id="checkbox_genes" class="ui checkbox">
               <input type="checkbox" name="genes">
               <label>Genes</label>
@@ -62,29 +87,6 @@
               <label class="barplot">RPKM</label>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <select id="data-selector" class="ui fluid search selection dropdown data-selector"></select>
-        </div>
-        <div class="form-group">
-          <div id="tags-selector" class="ui floating fluid labeled scrolling multiple icon dropdown">
-            <input type="hidden" name="filters">
-            <i class="filter icon"></i>
-            <span class="text"></span>
-          </div>
-        </div>
-        <div class="form-group">
-          <div id="annotations-selector" class="ui fluid search selection dropdown data-selector">
-            <input type="hidden" name="country">
-            <div class="default text">Select Annotation</div>
-            <i class="dropdown icon"></i>
-            <div class="menu"></div>
-          </div>
-        </div>
-      </form>
-      <form class="navbar-form navbar-right" role="search">
-        <div class="form-group">
-          <div id="loader" class="ui active inline loader hidden"></div>
         </div>
       </form>
     </div><!-- .container-fluid -->
