@@ -221,12 +221,12 @@ $(function() {
     let tags = [ ...new Set(splittedTags)].sort();
     let tagsCounter = new Map([...new Set(splittedTags)].map(x => [x, splittedTags.filter(y => y === x).length]));
     tags = tags.sort((a, b) => d3.descending(tagsCounter.get(a), tagsCounter.get(b)));
-    $(`.${counterLabel}`).html(`browse ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
+    $(`.${counterLabel}`).html(`listing ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
 
     $(`#${tagsSelector}`)
       .dropdown({
         clearable: true,
-        placeholder: 'Browse samples',
+        placeholder: 'Browse categories',
         on: 'hover',
         action: 'activate',
         values: tags.map((d,i) => {return {name: `<span class="description">${tagsCounter.get(d)} ${Misc.pluralize('sample',tagsCounter.get(d))}</span><span class="text">${d}</span>`, value: d, text: d}}),
@@ -240,11 +240,12 @@ $(function() {
           let filteredTags = [ ...new Set(filteredSplittedTags)].sort();
           let filteredTagsCounter = new Map([...new Set(filteredSplittedTags)].map(x => [x, filteredSplittedTags.filter(y => y === x).length]));
 
-          $(`.${counterLabel}`).html(`browse ${filtered.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
+          $(`.${counterLabel}`).html(`listing <b>${filtered.length}</b> of <b>${results.length}</b> ${Misc.pluralize('sample', results.length)}:`);
 
           d3.selectAll('#tags-selector .item')
             .datum(function() { return this.dataset; })
             .classed('hidden', (d,i) => !filteredTags.includes(d.value))
+            .classed('disabled', (d,i) => !filteredTags.includes(d.value))
             .sort((a,b) => d3.descending(filteredTagsCounter.get(a.value), filteredTagsCounter.get(b.value)))
             .each(function(d,i) {
               d3.select(this).select('span.text').text(d.value);

@@ -10,7 +10,13 @@
 .data-selector, .annotations-selector {
   margin-left: 0px;
 }
-#tags-selector, #tags-selector span.text {
+#tags-selector {
+  min-width: 300px !important;
+}
+#tags-selector > div.default.text {
+  padding: 3px 27px;
+}
+.data-selector {
   min-width: 200px !important;
 }
 .data-selector span.text {
