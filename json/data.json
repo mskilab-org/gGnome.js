@@ -8662,7 +8662,12 @@
       "sink": 30,
       "title": "DUPLICATION",
       "type": "ALT",
-      "weight": 3
+      "weight": 3,
+      "metadata": {
+        "SV_ID": "c_1_6517001_6542001_163C",
+        "QUAL": 99,
+        "evidence": "TSI_G"
+      }
     },
     {
       "cid": 236,

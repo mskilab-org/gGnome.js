@@ -60,11 +60,9 @@ $(function() {
   
   // Start file download.
   document.getElementById("download-button").addEventListener("click", function(){
-      // Generate download of file with the elements in the current panels
-    let text = document.getElementById("fragmentsDetails").innerHTML;
-    let filename = "export.txt";
-
-    download(filename, text);
+    // Download the current file
+    let filename = frame.dataFile;
+    Misc.download(filename);
   }, false);
 
   // Execute the delete operation
@@ -189,16 +187,6 @@ $(function() {
     });
   });
 
-  function download(filename, text) {
-    let element = document.getElementById("downloadLink");
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-
-    element.click();
-  };
-
   function populateComboBox(results) {
     $(`#${dataSelector}`)
       .dropdown({
@@ -221,7 +209,7 @@ $(function() {
     let tags = [ ...new Set(splittedTags)].sort();
     let tagsCounter = new Map([...new Set(splittedTags)].map(x => [x, splittedTags.filter(y => y === x).length]));
     tags = tags.sort((a, b) => d3.descending(tagsCounter.get(a), tagsCounter.get(b)));
-    $(`.${counterLabel}`).html(`listing ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
+    $(`.${counterLabel}`).html(`Browse ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
 
     $(`#${tagsSelector}`)
       .dropdown({
@@ -240,7 +228,7 @@ $(function() {
           let filteredTags = [ ...new Set(filteredSplittedTags)].sort();
           let filteredTagsCounter = new Map([...new Set(filteredSplittedTags)].map(x => [x, filteredSplittedTags.filter(y => y === x).length]));
 
-          $(`.${counterLabel}`).html(`listing <b>${filtered.length}</b> of <b>${results.length}</b> ${Misc.pluralize('sample', results.length)}:`);
+          $(`.${counterLabel}`).html(`Browse <b>${filtered.length}</b> of <b>${results.length}</b> ${Misc.pluralize('sample', results.length)}:`);
 
           d3.selectAll('#tags-selector .item')
             .datum(function() { return this.dataset; })

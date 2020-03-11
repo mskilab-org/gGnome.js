@@ -111,15 +111,21 @@ class Misc {
     return 'Percentile expect number >= 0 but given "' + p + '" and its type is "' + (typeof p) + '".';
   }
 
-
   static graterThanHundredError(p) {
     return 'Percentile expect number <= 100 but given "' + p + '" and its type is "' + (typeof p) + '".';
   }
 
-
   static nanError(p) {
     return 'Percentile expect number but given "' + p + '" and its type is "' + (typeof p) + '".';
   }
+
+  static humanize(str) {
+    return str
+        .replace(/^[\s_]+|[\s_]+$/g, '')
+        .replace(/[_\s]+/g, ' ')
+        .replace(/^[a-z]/, function(m) { return m.toUpperCase(); });
+  }
+
 
   static percentile(p, list, fn) {
     if (isNaN(Number(p))) {
@@ -162,4 +168,14 @@ class Misc {
     return count > 1 ? `${word}s` : word;
   }
 
+  static download(filename) {
+    let element = document.getElementById("downloadLink");
+
+    element.setAttribute('href', 'json/' + filename);
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+
+    element.click();
+  };
 }

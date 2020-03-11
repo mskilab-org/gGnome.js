@@ -11,7 +11,7 @@
   margin-left: 0px;
 }
 #tags-selector {
-  min-width: 300px !important;
+  min-width: 200px !important;
 }
 #tags-selector > div.default.text {
   padding: 3px 27px;
@@ -204,6 +204,10 @@ div.popover .table-value {
   color: #404041;
   line-height: 16px;
   padding: 5px 5px 3px 5px;
+}
+div.popover .connections-popover .row-chromosome, 
+div.popover .connections-popover .row-weight {
+  border-top: 1px solid #CCC; 
 }
 /* Modal window styling */
 .modal {
