@@ -8,6 +8,7 @@ class Connection extends Base {
     this.title = con.title;
     this.type = con.type;
     this.weight = con.weight;
+    this.metadata = con.metadata || {};
     this.annotation = con.annotation;
     this.annotationArray = con.annotation ? con.annotation.split('|') : [];
     this.styleClass = `popovered connection local ${con.type}`;
@@ -180,12 +181,15 @@ class Connection extends Base {
       ['Weight', '&nbsp;', this.weight]
     ];
     array.forEach(function(e,j) {
-       content += '<tr><td class="table-label" align="left" width="150" valign="top"><strong>' + e[0] + 
+       content += '<tr class="row-'+ e[0].replace(/<[^>]*>?/gm, '').toLowerCase() +'"><td class="table-label" align="left" width="150" valign="top"><strong>' + e[0] + 
       '</strong></td><td class="table-value" width="100" align="right" valign="top">' + e[1] + 
       '</td><td class="table-value" width="100" align="right" valign="top">' + e[2] + '</td></tr>';
      });
      content += '<tr><td class="table-label" align="left" width="250" valign="top" colspan="2"><strong>Distance</strong></td><td class="table-value" width="100" align="right" valign="top">' + (this.distance) + '</td></tr>';
-    return '<div class="row"><div class="col-lg-12"><table width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
+     Object.keys(this.metadata).forEach((key) => {
+        content += '<tr><td class="table-label" align="left" width="250" valign="top" colspan="2"><strong>' +  Misc.humanize(key) +'</strong></td><td class="table-value" width="100" align="right" valign="top">' + this.metadata[key] + '</td></tr>';
+     })
+    return '<div class="row"><div class="col-lg-12"><table class="connections-popover"width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
   }
 
   get location() {

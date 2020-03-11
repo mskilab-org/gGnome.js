@@ -75,6 +75,7 @@ class Frame extends Base {
       .defer(d3.json, 'public/metadata.json')
       .awaitAll((error, results) => {
         if (error) return;
+        this.dataContent = results[0];
         this.dataInput = results[0];
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
