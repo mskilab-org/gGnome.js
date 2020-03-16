@@ -284,7 +284,12 @@
       "y": 4,
       "title": "28 (28|100)",
       "type": "interval",
-      "strand": "*"
+      "strand": "*",
+			"metadata": {
+        "SV_ID": "c_1_6517001_6542001_163C",
+        "QUAL": 99,
+        "evidence": "TSI_G"
+		 }
     },
     {
       "iid": 29,
