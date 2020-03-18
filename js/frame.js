@@ -109,6 +109,7 @@ class Frame extends Base {
         clearable: true,
         compact: true,
         on: 'hover',
+				fullTextSearch: true,
         values: values.map((d,i) => {return {name: d, value: d}}),
         action: 'activate',
         onChange: (value, text, $selectedItem) => {

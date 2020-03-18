@@ -192,6 +192,7 @@ $(function() {
       .dropdown({
         clearable: false,
         compact: true,
+				fullTextSearch: true,
         on: 'hover',
         values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
         fullTextSearch: true,
@@ -208,7 +209,7 @@ $(function() {
     let splittedTags = results.map((d,i) => d.description.split(';').map((e,j) => e.trim()).filter(Boolean)).flat();
     let tags = [ ...new Set(splittedTags)].sort();
     let tagsCounter = new Map([...new Set(splittedTags)].map(x => [x, splittedTags.filter(y => y === x).length]));
-    tags = tags.sort((a, b) => d3.descending(tagsCounter.get(a), tagsCounter.get(b)));
+    tags = tags.sort((a, b) => d3.descending(tagsCounter.get(a), tagsCounter.get(b)) || d3.ascending(a.toLowerCase(),b.toLowerCase()));
     $(`.${counterLabel}`).html(`Browse ${results.length} of ${results.length} ${Misc.pluralize('sample', results.length)}:`);
 
     $(`#${tagsSelector}`)
@@ -216,6 +217,7 @@ $(function() {
         clearable: true,
         placeholder: 'Browse categories',
         on: 'hover',
+				fullTextSearch: true,
         action: 'activate',
         values: tags.map((d,i) => {return {name: `<span class="description">${tagsCounter.get(d)} ${Misc.pluralize('sample',tagsCounter.get(d))}</span><span class="text">${d}</span>`, value: d, text: d}}),
         onChange: (value, text, $selectedItem) => {
@@ -234,7 +236,7 @@ $(function() {
             .datum(function() { return this.dataset; })
             .classed('hidden', (d,i) => !filteredTags.includes(d.value))
             .classed('disabled', (d,i) => !filteredTags.includes(d.value))
-            .sort((a,b) => d3.descending(filteredTagsCounter.get(a.value), filteredTagsCounter.get(b.value)))
+            .sort((a,b) => d3.descending(filteredTagsCounter.get(a.value), filteredTagsCounter.get(b.value)) || d3.ascending(a.value.toLowerCase(),b.value.toLowerCase()))
             .each(function(d,i) {
               d3.select(this).select('span.text').text(d.value);
               d3.select(this).select('span.description').text(`${filteredTagsCounter.get(d.value)} ${Misc.pluralize('sample',filteredTagsCounter.get(d.value))}`)
