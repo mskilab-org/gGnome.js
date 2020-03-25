@@ -232,15 +232,25 @@ $(function() {
 
           $(`.${counterLabel}`).html(`Browse <b>${filtered.length}</b> of <b>${results.length}</b> ${Misc.pluralize('sample', results.length)}:`);
 
-          d3.selectAll('#tags-selector .item')
-            .datum(function() { return this.dataset; })
-            .classed('hidden', (d,i) => !filteredTags.includes(d.value))
-            .classed('disabled', (d,i) => !filteredTags.includes(d.value))
-            .sort((a,b) => d3.descending(filteredTagsCounter.get(a.value), filteredTagsCounter.get(b.value)) || d3.ascending(a.value.toLowerCase(),b.value.toLowerCase()))
-            .each(function(d,i) {
-              d3.select(this).select('span.text').text(d.value);
-              d3.select(this).select('span.description').text(`${filteredTagsCounter.get(d.value)} ${Misc.pluralize('sample',filteredTagsCounter.get(d.value))}`)
-            });
+          let filteredTagValues = filteredTags
+					  .map((d,i) => {return {value: d, text: d, name: `<span class="description">${filteredTagsCounter.get(d)} ${Misc.pluralize('sample',filteredTagsCounter.get(d))}</span><span class="text">${d}</span>`, count: filteredTagsCounter.get(d)}})
+					  .sort((a,b) => d3.descending(a.count, b.count) || d3.ascending(a.value.toLowerCase(),b.value.toLowerCase()));
+
+				d3.selectAll(`#${tagsSelector} .item`)
+					.datum((d,i,nodes) => nodes[i].getAttribute("data-text"))
+					.sort((a,b) => d3.descending(filteredTagsCounter.get(a), filteredTagsCounter.get(b)))
+          .classed('hidden', (d,i) => !filteredTags.includes(d))
+          .classed('disabled', (d,i) => !filteredTags.includes(d))
+					.attr('data-text', (d) => d)
+					.attr('data-value', (d) => d)
+					.attr('data-count', (d) => filteredTagsCounter.get(d) || 0)
+				  .each(function(d,i) {
+				     d3.select(this).select('span.text').text(d);
+				     d3.select(this).select('span.description').text(`${filteredTagsCounter.get(d)} ${Misc.pluralize('sample',filteredTagsCounter.get(d))}`)
+				 });
+				 d3.selectAll(`#${tagsSelector} .item`)
+				   .datum((d,i,nodes) => +nodes[i].getAttribute("data-count"))
+				   .sort((a,b) => d3.descending(a,b));
 
           $(`#${dataSelector}`).dropdown('clear');
           $(`#${dataSelector}`).dropdown('setup menu', {values: values});
