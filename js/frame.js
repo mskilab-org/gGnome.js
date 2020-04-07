@@ -66,7 +66,7 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
-    this.location = Misc.getUrlParameter('location') || "1:1-249250620";
+    this.location = Misc.getUrlParameter('location') //|| "1:1-249250620";
     this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
     this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
     history.replaceState(this.url, 'Project gGnome.js', this.url);
@@ -109,7 +109,7 @@ class Frame extends Base {
         clearable: true,
         compact: true,
         on: 'hover',
-				fullTextSearch: true,
+        fullTextSearch: true,
         values: values.map((d,i) => {return {name: d, value: d}}),
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
@@ -120,7 +120,7 @@ class Frame extends Base {
               this.clusterer(value, text, $selectedItem);
             }, 10);
           } else {
-            this.runLocate(this.chromoBins['1'].domain);
+            this.runLocate(Object.values(this.chromoBins)[0].domain);
           }
         }
     });
