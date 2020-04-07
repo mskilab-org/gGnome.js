@@ -31,8 +31,8 @@ class ReglCanvas extends Base {
       attribute vec2 position;
       attribute float pointWidth;
       attribute vec4 color;
-    	// variables to send to the fragment shader
-    	varying vec4 fragColor;
+      // variables to send to the fragment shader
+      varying vec4 fragColor;
       uniform float stageWidth;
       uniform float stageHeight;
       // helper function to transform from pixel space to normalized

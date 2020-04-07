@@ -1052,7 +1052,12 @@ class BrushContainer {
           // show the gene location on the fragment note
           this.renderFragmentsNote(d.location);
           // filter the Genes
-          var geneScale = d3.scaleLinear().domain([d.startPoint, d.endPoint]).range([0, this.frame.genesPlotWidth]);
+          let geneExtent = d3.extent(
+            this.frame.dataInput.genes
+              .filter((e, j) => (e.group_id === d.group_id))
+              .map((e, j) => [e.startPoint,e.endPoint])
+              .flat());
+          let geneScale = d3.scaleLinear().domain(geneExtent).range([0, this.frame.genesPlotWidth]).nice();
           let modalGenes = [];
           this.frame.dataInput.genes
           .filter((e, j) => (e.group_id === d.group_id))
