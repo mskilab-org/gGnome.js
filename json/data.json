@@ -2,7 +2,8 @@
   "settings": {
     "y_axis": {
       "title": "copy number",
-      "visible": true
+      "visible": true,
+      "scale": "linear"
     }
   },
   "intervals": [
@@ -281,15 +282,15 @@
       "chromosome": "1",
       "startPoint": 120928602,
       "endPoint": 142698801,
-      "y": 4,
+      "y": 42.6365,
       "title": "28 (28|100)",
       "type": "interval",
       "strand": "*",
-			"metadata": {
+      "metadata": {
         "SV_ID": "c_1_6517001_6542001_163C",
         "QUAL": 99,
         "evidence": "TSI_G"
-		 }
+     }
     },
     {
       "iid": 29,

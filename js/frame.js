@@ -66,10 +66,6 @@ class Frame extends Base {
 
   loadData(dataFile) {
     this.dataFile = dataFile;
-    this.location = Misc.getUrlParameter('location') //|| "1:1-249250620";
-    this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
-    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
-    history.replaceState(this.url, 'Project gGnome.js', this.url);
     d3.queue()
       .defer(d3.json, 'json/' + dataFile)
       .defer(d3.json, 'public/metadata.json')
@@ -88,6 +84,7 @@ class Frame extends Base {
         this.coveragePoints = [];
         this.downsampledCoveragePoints = [];
         this.RPKMIntervals = [];
+        this.updateLocation();
         this.render();
         this.updateGenes();
         this.updateCoveragePoints();
@@ -97,6 +94,14 @@ class Frame extends Base {
         this.selectedViews.forEach((d,i) => $(`#checkbox_${d}`).checkbox('check'));
         this.toggleGenesPanel();
     });
+  }
+
+  updateLocation() {
+    // set the default location to the coordinates of the first chromosome
+    this.location = Misc.getUrlParameter('location') || `${this.dataInput.metadata[0].chromosome}:${this.dataInput.metadata[0].startPoint}-${this.dataInput.metadata[0].endPoint}`;
+    this.dataFileName = this.dataFile.substring(0, this.dataFile.length - 5);
+    this.url = `index.html?file=${this.dataFile}&location=${this.location}&view=${this.selectedViews.join(',')}`;
+    history.replaceState(this.url, 'Project gGnome.js', this.url);
   }
 
   updateAnnotations() {

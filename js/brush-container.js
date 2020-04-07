@@ -463,19 +463,29 @@ class BrushContainer {
     });
     // Calculate the yMax from all the intervals present in the current visible fragments
     this.frame.yMax = d3.min([d3.max(this.visibleFragments.map((d,i) => d.visibleIntervals.map((d,i) => d.y)).reduce((acc, c) => acc.concat(c),[9])), 500]);
-    // if we are at less than 10, then render the y axis from 0 to 10
-    if (this.frame.yMax < 10) {
-      this.frame.yMax = 10;
+    // in case the user sets that the scale should be linear in the data.json file
+    if (this.frame.settings && this.frame.settings.y_axis && this.frame.settings.y_axis.scale === "linear") {
+      this.frame.yMax += 10;
       this.frame.yScale.domain([0, this.frame.yMax]).range([this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top, 2 * this.frame.margins.intervals.bar]).nice();
-    } else { // else render the y axis from 0 to 10 and then in orders of 10
-      this.frame.yMax = 10 * Math.ceil(this.frame.yMax / 10  + 1);
-      this.frame.yScale.domain([0, 10, this.frame.yMax]).range([this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top, 0.4 * (this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top), 2 * this.frame.margins.intervals.bar]).nice();
-    }
     this.frame.yAxis = d3.axisLeft(this.frame.yScale)
       .tickSize(-this.frame.width)
-      .tickFormat(d3.format("d"))
-      .tickValues(d3.range(0, 10)
-      .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
+      .tickFormat(d3.format("d"));
+    } else {
+      // if we are at less than 10, then render the y axis from 0 to 10
+      if (this.frame.yMax < 10) {
+        this.frame.yMax = 10;
+        this.frame.yScale.domain([0, this.frame.yMax]).range([this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top, 2 * this.frame.margins.intervals.bar]).nice();
+      } else { // else render the y axis from 0 to 10 and then in orders of 10
+        this.frame.yMax = 10 * Math.ceil(this.frame.yMax / 10  + 1);
+        this.frame.yScale.domain([0, 10, this.frame.yMax]).range([this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top, 0.4 * (this.frame.height - this.frame.margins.panels.upperGap + this.frame.margins.top), 2 * this.frame.margins.intervals.bar]).nice();
+      }
+      this.frame.yAxis = d3.axisLeft(this.frame.yScale)
+        .tickSize(-this.frame.width)
+        .tickFormat(d3.format("d"))
+        .tickValues(d3.range(0, 10)
+        .concat(d3.range(10, 10 * Math.ceil(this.frame.yMax / 10  + 1), 10)));
+    }
+
     if (this.frame.showRPKM && this.frame.yRPKMScale) {
       // Calculate the yRPKMMax from all the RPKM intervals present in the current visible fragments
       try {
