@@ -172,7 +172,7 @@ polygon.gene {
   cursor: pointer;
 }
 text.gene-label {
-  font: 9px sans-serif;
+  font: 12px sans-serif;
   fill: steelblue;
   pointer-events: none;
   user-select: none;
