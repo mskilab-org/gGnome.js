@@ -49,7 +49,11 @@ class Connection extends Base {
     }
     return this.errors.length < 1;
   }
-  
+
+  get isDoubleClickable() {
+    return this.source.place && this.sink.place;
+  }
+
   pinpoint(intervalBins) {
     if (this.source) {
       this.source.interval = intervalBins[this.source.intervalId];

@@ -304,9 +304,11 @@ class Frame extends Base {
         }
       }
       let interval = new Interval(d);
-      interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
-      interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-      interval.color = this.chromoBins[interval.chromosome].color;
+      if (this.chromoBins[interval.chromosome]) { // if the chromosome is listed in the metadata.json
+        interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+        interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+        interval.color = this.chromoBins[interval.chromosome].color;
+      }
       this.intervalBins[interval.iid] = interval;
       return interval;
     });
