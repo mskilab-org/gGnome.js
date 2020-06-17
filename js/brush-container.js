@@ -1233,6 +1233,9 @@ class BrushContainer {
         this.renderFragmentsNote(d.location);
       })
       .on('dblclick', (d,i) => {
+        if (!d.isDoubleClickable) {
+          return;
+        }
         if (d.kind === 'ANCHOR') {
           this.createBrush();
           let fragment = this.fragments[this.fragments.length - 1];
