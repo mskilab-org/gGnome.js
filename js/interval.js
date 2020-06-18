@@ -48,9 +48,6 @@ class Interval extends Base {
     if (!Misc.isString(this.chromosome)) {
       this.errors.push(`The chromosome ${this.chromosome} must be a string!`);
     }
-    if (!Misc.chromosomeLabels.includes(this.chromosome)) {
-      this.errors.push(`The chromosome ${this.chromosome} is not a valid type! It must be one of ${Misc.chromosomeLabels}`);
-    }
     if (!Number.isInteger(this.y) || (this.y < 0)) {
       this.errors.push(`The y ${this.y} must be a non-negative integer!`);
     }
