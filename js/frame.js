@@ -75,6 +75,12 @@ class Frame extends Base {
         this.dataInput = results[0];
         this.dataInput.metadata = results[1].metadata;
         this.dataInput.sequences = results[1].sequences;
+        this.walks = [];
+        this.walkConnections = [];
+        this.coveragePoints = [];
+        this.RPKMIntervals = [];
+        this.downsampledCoveragePoints = [];
+        this.yWalkExtent = [];
         this.coveragePointsThreshold = results[1].coveragePointsThreshold || this.margins.reads.domainSizeLimit;
         this.margins.reads.coverageTitle = results[1].scatterPlot.title;
         $("label.scatterplot").html(this.margins.reads.coverageTitle);
@@ -333,9 +339,11 @@ class Frame extends Base {
         walk.intervals = walk.iids.map((d,i) => {
           d.endPoint += 1; // because endpoint is inclusive
           let interval = new WalkInterval(d, walk);
-          interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
-          interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
-          interval.color = this.chromoBins[interval.chromosome].color;
+          if (this.chromoBins[interval.chromosome]) { // if the chromosome is listed in the metadata.json
+            interval.startPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.startPoint));
+            interval.endPlace = Math.floor(this.chromoBins[interval.chromosome].scaleToGenome(interval.endPoint));
+            interval.color = this.chromoBins[interval.chromosome].color;
+          }
           interval.shapeHeight = this.margins.walks.bar;
           this.walkIntervals.push(interval);
           return interval;
