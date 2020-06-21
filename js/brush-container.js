@@ -1319,6 +1319,9 @@ class BrushContainer {
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
         .on('dblclick', (d,i) => {
+          if (!d.isDoubleClickable) {
+            return;
+          }
           if (d.kind === 'ANCHOR') {
             this.createBrush();
             let fragment = this.fragments[this.fragments.length - 1];
