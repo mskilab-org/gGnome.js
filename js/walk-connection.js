@@ -57,6 +57,10 @@ class WalkConnection extends Connection {
     this.distance = ((this.source) && (this.sink)) ? d3.format(',')(Math.abs(this.sink.place - this.source.place)) : '-';
   }
 
+  get isDoubleClickable() {
+    return this.source.place && this.sink.place;
+  }
+
   // Calculate the points for inter-chromosome connections
   get interConnectorEndpoints() {
     var points = [];

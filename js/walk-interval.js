@@ -26,9 +26,6 @@ class WalkInterval extends Interval {
     if (!Misc.isString(this.chromosome)) {
       this.errors.push(`The chromosome ${this.chromosome} must be a string!`);
     }
-    if (!Misc.chromosomeLabels.includes(this.chromosome)) {
-      this.errors.push(`The chromosome ${this.chromosome} is not a valid type! It must be one of ${Misc.chromosomeLabels}`);
-    }
     if (!Misc.isString(this.title)) {
       this.errors.push(`The title ${this.title} must be a string!`);
     }
