@@ -9,7 +9,7 @@ You may find the online version of the gGnome.js project at the following [locat
 
 ## Requirements
 
-For execution, you will only need Node.js installed on your environment.
+For execution, you will need Node.js installed on your environment, as well as [git lfs](https://git-lfs.github.com/).
 
 ### Node
 
@@ -44,6 +44,16 @@ If everything when fine, you should run
 
 Just go on [official Node.js website](http://nodejs.org/) & grab the installer.
 Also, be sure to have `git` available in your PATH, `npm` might need it.
+
+### git lfs
+
+[git lfs](https://git-lfs.github.com/) is available to download on github as well as with brew.
+
+After you download and install git lfs, run the following command in order to set it up:
+
+```
+git lfs install
+```
 
 ---
 
