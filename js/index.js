@@ -189,12 +189,11 @@ $(function() {
 
   function populateComboBox(results) {
     $(`#${dataSelector}`)
-      .dropdown({
+      .dropdown({ // first set the configuration
         clearable: false,
         compact: true,
         fullTextSearch: true,
         on: 'hover',
-        values: results.map((d,i) => {return {name: d.datafile, value: d.datafile, selected: (Misc.getUrlParameter('file') === d.datafile) || (i === 0)}}),
         fullTextSearch: true,
         action: 'activate',
         onChange: (value, text, $selectedItem) => {
@@ -202,7 +201,9 @@ $(function() {
             frame.loadData(value);
           }
         }
-    });
+      })
+     .dropdown('setup menu', { values: results.map((d,i) => {return {name: d.datafile, value: d.datafile}}) }) //set the values
+     .dropdown('set exactly', Misc.getUrlParameter('file') || results[0].datafile); // set the selected
   }
 
   function populateTags(results) {
@@ -221,6 +222,7 @@ $(function() {
         action: 'activate',
         values: tags.map((d,i) => {return {name: `<span class="description">${tagsCounter.get(d)} ${Misc.pluralize('sample',tagsCounter.get(d))}</span><span class="text">${d}</span>`, value: d, text: d}}),
         onChange: (value, text, $selectedItem) => {
+          if (!value) return; // don't go further if nothing is typed in
           let filtered = [...results];
           if (value) {
             filtered = results.filter((d,i) => value.split(',').map((v) => d.description.includes(v)).flat().reduce((a,b) => a && b, true));
