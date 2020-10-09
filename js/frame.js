@@ -188,9 +188,11 @@ class Frame extends Base {
       complete: (results) => {
         if (results) {
           results.data.forEach((d,i) => {
-            d.color = this.chromoBins[d.chromosome].color;
-            d.place = this.chromoBins[d.chromosome].scaleToGenome(d.x);
-            this.coveragePoints.push(d);
+            if (this.chromoBins[d.chromosome]) {
+              d.color = this.chromoBins[d.chromosome].color;
+              d.place = this.chromoBins[d.chromosome].scaleToGenome(d.x);
+              this.coveragePoints.push(d);
+            }
           })
           for (let k = 0; k < d3.min([this.coveragePointsThreshold, results.data.length]); k++) {
             let index = this.coveragePointsThreshold < results.data.length ? Math.floor(results.data.length * Math.random()) : k;
@@ -225,12 +227,14 @@ class Frame extends Base {
           results.data.forEach((d,i) => {
             if (d.y > 0) {
               d.iid = i;
-              d.color = this.chromoBins[d.chromosome].color;
-              d.startPoint = d.start;
-              d.endPoint = d.end;
-              d.startPlace = this.chromoBins[d.chromosome].scaleToGenome(d.startPoint);
-              d.endPlace = this.chromoBins[d.chromosome].scaleToGenome(d.endPoint);
-              this.RPKMIntervals.push(d);
+              if (this.chromoBins[d.chromosome]) {
+                d.color = this.chromoBins[d.chromosome].color;
+                d.startPoint = d.start;
+                d.endPoint = d.end;
+                d.startPlace = this.chromoBins[d.chromosome].scaleToGenome(d.startPoint);
+                d.endPlace = this.chromoBins[d.chromosome].scaleToGenome(d.endPoint);
+                this.RPKMIntervals.push(d);
+              }
             }
           })
           // update the fragments
