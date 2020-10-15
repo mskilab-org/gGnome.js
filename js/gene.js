@@ -27,6 +27,10 @@ class Gene extends Interval {
     return ((0 <= gene.range[1] - this.range[0] + this.arrowLegth) && (0 <= this.range[1] - gene.range[0] + this.arrowLegth));
   }
 
+  get hyperlink() {
+    return `https://www.genecards.org/cgi-bin/carddisp.pl?gene=${this.title}`
+  }
+
   get stroke() {
     if (this.type === 'gene') {
       return d3.rgb(this.color).darker(1);

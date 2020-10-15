@@ -1110,7 +1110,11 @@ class BrushContainer {
         .attr('id', (d,i) => d.identifier)
         .attr('class', (d,i) => 'gene-label')
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
-        .text((d,i) => d.title);
+        .text((d,i) => d.title)
+        .on('click', (d,i) => {
+          var win = window.open(d.hyperlink, '_blank');
+          win.focus();
+        });
     
       genesLabels
         .attr('id', (d,i) => d.identifier)

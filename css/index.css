@@ -174,8 +174,8 @@ polygon.gene {
 text.gene-label {
   font: 12px sans-serif;
   fill: steelblue;
-  pointer-events: none;
   user-select: none;
+  cursor: pointer;
 }
 text.chromo-text {
   fill: #FFF;
