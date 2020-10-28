@@ -1056,10 +1056,6 @@ class BrushContainer {
           d3.select(this).classed('highlighted', false);
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
-        .on('dblclick', (d,i) => {
-          var win = window.open(d.hyperlink, '_blank');
-          win.focus();
-        })
         .on('click', (d,i) => {
           // make this gene visible for the remaining session
           this.frame.genes.filter((e,j) => (e.iid === d.iid) && e.type === 'gene').forEach((e,j) => {e.weight = this.frame.margins.genes.weightThreshold});
@@ -1115,7 +1111,8 @@ class BrushContainer {
         .attr('class', (d,i) => 'gene-label')
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
         .text((d,i) => d.title)
-        .on('dblclick', (d,i) => {
+        .style('opacity', 1)
+        .on('click', (d,i) => {
           var win = window.open(d.hyperlink, '_blank');
           win.focus();
         });
@@ -1123,6 +1120,7 @@ class BrushContainer {
       genesLabels
         .attr('id', (d,i) => d.identifier)
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
+        .style('opacity', 1)
         .text((d,i) => d.title);
 
       genesLabels
@@ -1131,9 +1129,7 @@ class BrushContainer {
 
       genesPanels.selectAll('text.gene-label')
         .style('opacity', function(d,i) {
-          let textLength = d3.select(this).node().getComputedTextLength();
-          let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)) && (e.opacity > 0))).length;
-          d.opacity = ((collisions < 1) ? 1 : 0);
+          d.opacity = d3.select(this).node().getComputedTextLength() > d.shapeWidth ? 0 : 1;
           return d.opacity;
         });
     } else {

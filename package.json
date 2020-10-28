@@ -1,0 +1,21 @@
+{
+  "name": "gGnome",
+  "version": "1.0.0",
+  "description": "gGnome project",
+  "main": "js/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node js/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mskilab/gGnome.js.git"
+  },
+  "author": "Charalampos Xanthopoulakis",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "npm": "^6.0.1"
+  }
+}
