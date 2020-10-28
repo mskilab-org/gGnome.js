@@ -1056,6 +1056,10 @@ class BrushContainer {
           d3.select(this).classed('highlighted', false);
         })
         .on('mousemove', (d,i) => this.loadPopover(d))
+        .on('dblclick', (d,i) => {
+          var win = window.open(d.hyperlink, '_blank');
+          win.focus();
+        })
         .on('click', (d,i) => {
           // make this gene visible for the remaining session
           this.frame.genes.filter((e,j) => (e.iid === d.iid) && e.type === 'gene').forEach((e,j) => {e.weight = this.frame.margins.genes.weightThreshold});
@@ -1111,7 +1115,7 @@ class BrushContainer {
         .attr('class', (d,i) => 'gene-label')
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yGeneScale(d.y) - this.frame.margins.genes.textGap] + ')')
         .text((d,i) => d.title)
-        .on('click', (d,i) => {
+        .on('dblclick', (d,i) => {
           var win = window.open(d.hyperlink, '_blank');
           win.focus();
         });
