@@ -1129,7 +1129,9 @@ class BrushContainer {
 
       genesPanels.selectAll('text.gene-label')
         .style('opacity', function(d,i) {
-          d.opacity = d3.select(this).node().getComputedTextLength() > d.shapeWidth ? 0 : 1;
+          let textLength = d3.select(this).node().getComputedTextLength();
+          let collisions = d.fragment.visibleGenes.filter((e,j) => ((e.identifier !== d.identifier) && (e.y === d.y) && (e.range[0] > d.range[0]) && (e.range[0] <= (d.range[0] + textLength)) && (e.opacity > 0))).length;
+          d.opacity = ((collisions < 1) ? 1 : 0);
           return d.opacity;
         });
     } else {
