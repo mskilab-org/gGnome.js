@@ -5,7 +5,7 @@
 
 ## Demo
 
-You may find the online version of the gGnome.js project at the following [location](https://xanthopoulakis.github.io/).
+If you wish to use gGnome.js to explore data from [Hadi et al. 2020](https://pubmed.ncbi.nlm.nih.gov/33007263/), you can use [this link](http://mskilab.com/gGraph/). You can also find some demo data to play demonstrating the different features of the interface at the following [location](https://xanthopoulakis.github.io/).
 
 ## Requirements
 
@@ -50,13 +50,13 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 ## Install
 
     $ git clone git@github.com:mskilab/gGnome.js.git
+    $ cd gGnome.js/
     $ npm install
 
 ## Start application
 
 In the project folder, you may initiate the application via the terminal:
 
-    $ cd gGnome.js/
     $ ./start.sh
 
 In case it doesn't start automatically, open your preferred browser and navigate to the url
