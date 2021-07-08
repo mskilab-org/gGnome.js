@@ -79,3 +79,11 @@ The application is reading
 - the chromosome metadata from the json file in gGnome.js/json/metadata.json
 
 In order to test your own data, simply replace the file gGnome.js/json/data.json with your own, on condition you maintain the same structure
+
+## hg38 configuration
+
+hg38 configuration files are available in the public/hg38 directory, if you are using hg38 for your project please copy these files into the `public` directory to override the JSON files that are there. In otherwords, from within the project directory simply:
+
+```
+    $ cp public/hg38/* public/
+```
