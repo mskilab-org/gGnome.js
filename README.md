@@ -109,7 +109,7 @@ When you hover above nodes and edges you can see some information:
 
 ![image](https://user-images.githubusercontent.com/17661044/125691396-d93b0a71-4e1c-45f0-b1d2-0a8634d15250.png)
 
-The genome bar shows you which segments of the genome are currently in view. Notice that you can have multiple split windows showing separate locations accross the genome.
+The genome bar shows you which segments of the genome are currently in view. Notice that you can have multiple split windows showing separate locations across the genome.
 
 There are multiple ways to change the zoom. You can modify the width of each individual window by clicking on one of it's sides and dragging it, or you can use the mouse scroll when positioning the mouse pointer above the genome graph track. Similarly, you can also click and drag each window (both in the genome bar and in the genome graph track).
 
@@ -153,7 +153,7 @@ On the top right of the interface there are optional tracks that could be shown 
 At the top right (next to the optional tracks), you can find the "Tools" menu. When you click on it, you have for options:
 1. Locate - this is a very useful feature! When you click on this a window will open allowing you to search any gene or genomic location and open a new split window focused on that gene or genomic region.
 2. Validate - you can use this to upload a JSON file and validate that it is formatted correctly.
-3. Upload - you can use this to upload a CSV of coverage data. But the preffered way to incorporate coverage data is the way [described above](#optional-tracks).
+3. Upload - you can use this to upload a CSV of coverage data. But the preferred way to incorporate coverage data is the way [described above](#optional-tracks).
 4. Export - if you click on this then a copy of the genome graph JSON file will be downloaded. This is useful when browsing data that is hosted on a remote server (e.g. [mskilab.com/gGraph](http://mskilab.com/gGraph))
 
 ## Genome graph JSON format description
@@ -167,3 +167,9 @@ The genome graph JSON format generally includes the following main fields:
 ### Genome graph annotations
 
 The intervals and connections in the genome graph JSON have a special field called "annotation". The unique list of annotation strings will appear in a dropdown menu at the top left of the interface and when you choose a certain annotation then the interface would automatically adjust the zoom to focus on all nodes and edges that were annotated using the annotation that was chosen. For details on how to use the [gGnome]() package to get annotations of complex structural variation please refer to the [gGnome tutorial]()
+
+## FAQs
+
+### How can I close one of the split windows?
+
+To close a window click on that window in the genome graph track and then hit the _backspace_ key.
