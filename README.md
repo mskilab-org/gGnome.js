@@ -118,7 +118,7 @@ Once you launch the interface (following the [instructions above](#start-applica
 
 There is a lot to unfold so the following image includes overview of the components in the interface:
 
-
+![gGnome js interface outline](https://user-images.githubusercontent.com/17661044/125821130-9f79883b-d77a-4152-add9-79569cf9c826.png)
 
 In the bottom, you see the genome graph, where each node of the graph (representing a segment of the genome) is plotted with the y-axis position according to the values in the JSON file. The red edges between nodes are "ALT" junctions, and the black edges are "REF" junctions.
 
