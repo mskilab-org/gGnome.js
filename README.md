@@ -116,6 +116,10 @@ Once you launch the interface (following the [instructions above](#start-applica
 
 ![image](https://user-images.githubusercontent.com/17661044/125677539-3657d64d-ef53-4afc-84ba-d604046eb74c.png)
 
+There is a lot to unfold so the following image includes overview of the components in the interface:
+
+
+
 In the bottom, you see the genome graph, where each node of the graph (representing a segment of the genome) is plotted with the y-axis position according to the values in the JSON file. The red edges between nodes are "ALT" junctions, and the black edges are "REF" junctions.
 
 When you hover above nodes and edges you can see some information:
@@ -132,8 +136,9 @@ When you hover above nodes and edges you can see some information:
 ![image](https://user-images.githubusercontent.com/17661044/125691396-d93b0a71-4e1c-45f0-b1d2-0a8634d15250.png)
 
 The genome bar shows you which segments of the genome are currently in view. Notice that you can have multiple split windows showing separate locations across the genome.
+You can open a new split window by clicking and dragging the mouse pointer on a location in the genome bar.
 
-There are multiple ways to change the zoom. You can modify the width of each individual window by clicking on one of it's sides and dragging it, or you can use the mouse scroll when positioning the mouse pointer above the genome graph track. Similarly, you can also click and drag each window (both in the genome bar and in the genome graph track).
+There are multiple ways to change the zoom. You can modify the width of each individual window in the genome bar by clicking on one of it's sides and dragging it, or you can use the mouse scroll when positioning the mouse pointer above the genome graph track. Similarly, you can also click and drag each window (both in the genome bar and in the genome graph track).
 
 Notice that junctions are drawn only if both ends of the junction are currently in view, but the ends of the junction can be in different windows (this allows you to focus on specific junction/s even when the nodes it connects are distant:
 
