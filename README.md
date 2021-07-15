@@ -3,6 +3,28 @@
 
 # Project gGnome
 
+# Contents
+
+- [Demo](#demo)
+- [Requirements](#requirements)
+  - [Node](#node)
+    - [Node installation on OS X](#node-installation-on-os-x)
+    - [Node installation on Linux](#node-installation-on-linux)
+    - [Node installation on Windows](#node-installation-on-windows)
+- [Install](#install)
+- [Start application](#start-application)
+- [Configuration](#configuration)
+  - [hg38 configuration](#hg38-configuration)
+- [The gGnome.js interface](#the-ggnomejs-interface)
+  - [The genome bar and zooming in and out](#the-genome-bar-and-zooming-in-and-out)
+  - [The top options bar](#the-top-options-bar)
+  - [Optional tracks](#optional-tracks)
+  - [Tools menu](#tools-menu)
+- [Genome graph JSON format description](#genome-graph-json-format-description)
+  - [Genome graph annotations](#genome-graph-annotations)
+- [FAQ](#faqs)
+  - [How can I close one of the split windows?](#how-can-i-close-one-of-the-split-windows)
+
 ## Demo
 
 If you wish to use gGnome.js to explore data from [Hadi et al. 2020](https://pubmed.ncbi.nlm.nih.gov/33007263/), you can use [this link](http://mskilab.com/gGraph/). You can also find some demo data to play demonstrating the different features of the interface at the following [location](https://xanthopoulakis.github.io/).
@@ -80,7 +102,7 @@ The application is reading
 
 In order to test your own data, simply replace the file gGnome.js/json/data.json with your own, on condition you maintain the same structure
 
-## hg38 configuration
+### hg38 configuration
 
 hg38 configuration files are available in the public/hg38 directory, if you are using hg38 for your project please copy these files into the `public` directory to override the JSON files that are there. In otherwords, from within the project directory simply:
 
@@ -124,7 +146,7 @@ The arrows in the screenshot below highlight the two half circles representing j
 <img src="https://user-images.githubusercontent.com/17661044/125692808-f80e73ab-d375-4bc4-a016-3758befedc7e.png" width=100 align=center>
 
 
-### the top bar
+### The top options bar
 
 The top bar includes for options for you to choose from:
 
@@ -140,7 +162,7 @@ If your sample includes annotations (see [JSON format description below](#genome
 
 The most common use for annotations is to annotate nodes and edges with SV annotations as described in the [gGnome tutorial](http://mskilab.com/gGnome/tutorial.html#Interactive_visualization)
 
-### optional tracks
+### Optional tracks
 
 On the top right of the interface there are optional tracks that could be shown or hidden:
 1. Genes - this track shows the location of genes as arrows (pointing in the direction of transcription). When clicking on a gene name you would be directed to the [gene card entry](https://www.genecards.org/) for the gene. When hovering over the gene body (the arrows) you can see some information regarding each gene. When clicking on an arrow, a window would pop up showing the location of UTRs and CDSs. Genes are defined inside the gGnome.js directory in `public/genes.json`. Instructions on how to make this file from any GTF are coming soon (if this is 2022 and there are no instructions then please contact us).
