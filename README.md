@@ -22,6 +22,7 @@
   - [Tools menu](#tools-menu)
 - [Genome graph JSON format description](#genome-graph-json-format-description)
   - [Genome graph annotations](#genome-graph-annotations)
+- [Adding description of your samples](#adding-description-of-your-samples)
 - [FAQ](#faqs)
   - [How can I close one of the split windows?](#how-can-i-close-one-of-the-split-windows)
 
@@ -194,6 +195,11 @@ The genome graph JSON format generally includes the following main fields:
 ### Genome graph annotations
 
 The intervals and connections in the genome graph JSON have a special field called "annotation". The unique list of annotation strings will appear in a dropdown menu at the top left of the interface and when you choose a certain annotation then the interface would automatically adjust the zoom to focus on all nodes and edges that were annotated using the annotation that was chosen. For details on how to use the [gGnome]() package to get annotations of complex structural variation please refer to the [gGnome tutorial]()
+
+## Adding description of your samples
+
+You can add some tags to describe various charachteristics of your samples. If added then these are searchable using the description tags menu at the top left of the interface. This is useful for projects in which you have a lot of samples and you wish to be able to take a look at a subset of samples with a certain charachteristic (e.g. BRCA1 mutation).
+The tags are provided using a file named `datafiles.csv`. This file should be placed in the gGnome.js directory and an example file is [provided here](datafiles.csv0). Each line corresponds to a sample where the first column should match one of the JSON files in the json subdirectory of the gGnome.js directory and the second column includes your tags deparated by a semicolon and single space (`; `).
 
 ## FAQs
 
