@@ -6,12 +6,13 @@
 # Contents
 
 - [Demo](#demo)
-- [Requirements](#requirements)
-  - [Node](#node)
-    - [Node installation on OS X](#node-installation-on-os-x)
-    - [Node installation on Linux](#node-installation-on-linux)
-    - [Node installation on Windows](#node-installation-on-windows)
-- [Install](#install)
+- [Setup](#setup)
+  - [Requirements](#requirements)
+    - [Node](#node)
+      - [Node installation on OS X](#node-installation-on-os-x)
+      - [Node installation on Linux](#node-installation-on-linux)
+      - [Node installation on Windows](#node-installation-on-windows)
+  - [Install](#install)
 - [Start application](#start-application)
 - [Configuration](#configuration)
   - [hg38 configuration](#hg38-configuration)
@@ -28,6 +29,8 @@
 ## Demo
 
 If you wish to use gGnome.js to explore data from [Hadi et al. 2020](https://pubmed.ncbi.nlm.nih.gov/33007263/), you can use [this link](http://mskilab.com/gGraph/). You can also find some demo data to play demonstrating the different features of the interface at the following [location](https://xanthopoulakis.github.io/).
+
+# Setup
 
 ## Requirements
 
@@ -67,7 +70,6 @@ If everything when fine, you should run
 Just go on [official Node.js website](http://nodejs.org/) & grab the installer.
 Also, be sure to have `git` available in your PATH, `npm` might need it.
 
----
 
 ## Install
 
