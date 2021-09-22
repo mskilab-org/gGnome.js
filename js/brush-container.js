@@ -1174,7 +1174,7 @@ class BrushContainer {
         .attr('class', 'popovered shape')
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
         .attr('points', (d,i) => d.points)
-        .style('fill', (d,i) => 'url(#fill-tilted)')
+        .style('fill', (d,i) => (d.metadata && d.metadata.color) || 'url(#fill-tilted)')
         .style('stroke', (d,i) => d3.rgb(d.color).darker(1))
         .on('mouseover', function(d,i) {
           d3.selectAll('polygon.shape').filter((e,j) => e.walk.pid === d.walk.pid).classed('walk-highlighted', true);
@@ -1192,7 +1192,7 @@ class BrushContainer {
         .attr('id', (d,i) => d.identifier)
         .attr('transform', (d,i) => 'translate(' + [d.range[0], d.fragment.yWalkScale(d.y) - 0.5 * this.frame.margins.walks.bar] + ')')
         .attr('points', (d,i) => d.points)
-        .style('fill', (d,i) => 'url(#fill-tilted)')
+        .style('fill', (d,i) => (d.metadata && d.metadata.color) || 'url(#fill-tilted)')
         .style('stroke', (d,i) => d3.rgb(d.color).darker(1));
 
       shapes
@@ -1298,7 +1298,7 @@ class BrushContainer {
       connections
         .attr('class', (d,i) => d.styleClass)
         .style('fill', (d,i) => d.fill)
-        .style('stroke', (d,i) => d.stroke)
+        .style('stroke', (d,i) => (d.metadata && d.metadata.color) || d.stroke)
         .attr('transform', (d,i) => d.transform)
         .attr('d', (d,i) => d.render);
 
@@ -1309,7 +1309,7 @@ class BrushContainer {
         .attr('class', (d,i) => d.styleClass)
         .attr('transform', (d,i) => d.transform)
         .style('fill', (d,i) => d.fill)
-        .style('stroke', (d,i) => d.stroke)
+        .style('stroke', (d,i) => (d.metadata && d.metadata.color) || d.stroke)
         .attr('d', (d,i) =>  d.render)
         .on('mouseover', function(d,i) {
           d3.select(this).classed('highlighted', true);
