@@ -57,6 +57,9 @@ class WalkInterval extends Interval {
       .forEach(function(e,j) {
        content += '<tr><td class="table-label" align="left" width="200" valign="top"><strong>' + e.label + ':</strong></td><td class="table-value" width="100" align="right" valign="top">' + e.value + '</td></tr>';
      });
+     Object.keys(this.metadata).forEach((key) => {
+        content += '<tr><td class="table-label" align="left" width="250" valign="top" colspan="1"><strong>' +  Misc.humanize(key) +'</strong></td><td class="table-value" width="100" align="right" valign="top">' + this.metadata[key] + '</td></tr>';
+     })
     return '<div class="row"><div class="col-lg-12"><table width="0" border="0" align="left" cellpadding="0" cellspacing="0"><tbody>' + content + '</tbody></table></div></div>';
   }
 
