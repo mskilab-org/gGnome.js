@@ -78,6 +78,31 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
     $ cd gGnome.js/
     $ npm install
 
+### Setting up the reference files
+
+In order to use the application, you must have the reference JSON files: `genes.json` and `metadata.json` under the `public` subdirectory inside the gGnome.js directory. If you are using hg19, then the `genes.json` file will be downloaded automatically for you upon the first launch of the application and you can skip this section.
+
+Notice that the default reference file for hg19 does not include 'chr' as a prefix in sequence names. If your data includes the 'chr' prefix ('chr1', 'chr2', ...), then download the hg19_chr reference and replace the existing `gene.json` with this file. To do so, run the following command from inside your gGnome.js directory:
+
+```
+wget -O public/genes.json https://mskilab.s3.amazonaws.com/pgv/hg19_chr.genes.json
+mv public/metadata_chr.json public/metadata.json
+```
+
+If you are using hg38, then run the following command to download the hg38 reference file:
+
+```
+wget -O public/genes.json https://mskilab.s3.amazonaws.com/pgv/hg38.genes.json
+cp public/hg38/metadata.json public/
+```
+
+And if you are using hg38 and the sequence names in your data include the 'chr' prefix, then run:
+
+```
+wget -O public/genes.json https://mskilab.s3.amazonaws.com/pgv/hg38_chr.genes.json
+cp public/hg38/metadata_chr.json public/
+```
+
 ## Start application
 
 In the project folder, you may initiate the application via the terminal:
