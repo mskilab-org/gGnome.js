@@ -14,6 +14,7 @@
       - [Node installation on Windows](#node-installation-on-windows)
   - [Install](#install)
 - [Start application](#start-application)
+- [Processing your own data](#processing-your-own-data)
 - [Configuration](#configuration)
   - [hg38 configuration](#hg38-configuration)
 - [The gGnome.js interface](#the-ggnomejs-interface)
@@ -119,6 +120,10 @@ The validation of the data.json files is available at the respective Validator p
     http://localhost:8080/validator.html
     
 ---
+
+## Preparing your own data
+
+The [gGnome](https://github.com/mskilab/gGnome) package includes tools for producing all required data for visualization with gGnome.js. More details are available in [this section of the gGnome tutorial](http://mskiweb.nygenome.org/ashaiber/gGnome/tutorial/index.html#Interactive_visualization_with_gGnomejs).
 
 ## Configuration
 
