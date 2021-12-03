@@ -14,7 +14,7 @@
       - [Node installation on Windows](#node-installation-on-windows)
   - [Install](#install)
 - [Start application](#start-application)
-- [Processing your own data](#processing-your-own-data)
+- [Preparing your own data](#preparing-your-own-data)
 - [Configuration](#configuration)
   - [hg38 configuration](#hg38-configuration)
 - [The gGnome.js interface](#the-ggnomejs-interface)
