@@ -16,7 +16,6 @@
 - [Start application](#start-application)
 - [Preparing your own data](#preparing-your-own-data)
 - [Configuration](#configuration)
-  - [hg38 configuration](#hg38-configuration)
 - [The gGnome.js interface](#the-ggnomejs-interface)
   - [The genome bar and zooming in and out](#the-genome-bar-and-zooming-in-and-out)
   - [The top options bar](#the-top-options-bar)
@@ -81,16 +80,20 @@ Also, be sure to have `git` available in your PATH, `npm` might need it.
 
 ### Setting up the reference files
 
-In order to use the application, you must have the reference JSON files: `genes.json` and `metadata.json` under the `public` subdirectory inside the gGnome.js directory. If you are using hg19, then the `genes.json` file will be downloaded automatically for you upon the first launch of the application and you can skip this section.
+In order to use the application, you must have the reference JSON files: `genes.json` and `metadata.json` under the `public` subdirectory inside the gGnome.js directory. If you are using hg19, then the `genes.json` file will be downloaded automatically for you upon the first launch of the application and you can skip this section. If from some reason the hg19 genes.json file did not download automatically then you can run this command:
 
-Notice that the default reference file for hg19 does not include 'chr' as a prefix in sequence names. If your data includes the 'chr' prefix ('chr1', 'chr2', ...), then download the hg19_chr reference and replace the existing `gene.json` with this file. To do so, run the following command from inside your gGnome.js directory:
+```
+wget -P public/ https://mskilab.s3.amazonaws.com/pgv/genes.json
+```
+
+Notice that the default reference file for hg19 does not include 'chr' as a prefix in sequence names. If your data includes the 'chr' prefix ('chr1', 'chr2', ...), then you need to download the hg19_chr reference and replace the existing `gene.json` with this file. To do so, run the following command from inside your gGnome.js directory:
 
 ```
 wget -O public/genes.json https://mskilab.s3.amazonaws.com/pgv/hg19_chr.genes.json
 mv public/metadata_chr.json public/metadata.json
 ```
 
-If you are using hg38, then run the following command to download the hg38 reference file:
+If you are using hg38 (no chr prefix), then run the following command to download the hg38 reference file:
 
 ```
 wget -O public/genes.json https://mskilab.s3.amazonaws.com/pgv/hg38.genes.json
@@ -134,14 +137,6 @@ The application is reading
 - the chromosome metadata from the json file in gGnome.js/json/metadata.json
 
 In order to test your own data, simply replace the file gGnome.js/json/data.json with your own, on condition you maintain the same structure
-
-### hg38 configuration
-
-hg38 configuration files are available in the public/hg38 directory, if you are using hg38 for your project please copy these files into the `public` directory to override the JSON files that are there. In otherwords, from within the project directory simply:
-
-```
-    $ cp public/hg38/* public/
-```
 
 ## The gGnome.js interface
 
