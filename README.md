@@ -13,6 +13,7 @@
       - [Node installation on Linux](#node-installation-on-linux)
       - [Node installation on Windows](#node-installation-on-windows)
   - [Install](#install)
+    - [Setting up the reference files](#setting-up-the-reference-files)
 - [Start application](#start-application)
 - [Preparing your own data](#preparing-your-own-data)
 - [Configuration](#configuration)
