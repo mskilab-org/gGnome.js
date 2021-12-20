@@ -34,6 +34,10 @@ If you wish to use gGnome.js to explore data from [Hadi et al. 2020](https://pub
 
 # Setup
 
+## Browser
+
+gGnome.js runs in a web browser. We recommend using [Google Chrome](https://www.google.com/chrome/) since that's what we used when testing the application. It should work on other browsers too, but we make no promises.
+
 ## Requirements
 
 For execution, you will only need Node.js installed on your environment.
