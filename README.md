@@ -7,6 +7,7 @@
 
 - [Demo](#demo)
 - [Setup](#setup)
+  - [Browser](#browser)
   - [Requirements](#requirements)
     - [Node](#node)
       - [Node installation on OS X](#node-installation-on-os-x)
@@ -40,7 +41,7 @@ gGnome.js runs in a web browser. We recommend using [Google Chrome](https://www.
 
 ## Requirements
 
-For execution, you will only need Node.js installed on your environment.
+For execution, you will only need Node.js installed on your environment. Notice that gGnome.js has only been tested on unix systems (MacOS, Linux).
 
 ### Node
 
@@ -74,7 +75,7 @@ If everything when fine, you should run
 #### Node installation on Windows
 
 Just go on [official Node.js website](http://nodejs.org/) & grab the installer.
-Also, be sure to have `git` available in your PATH, `npm` might need it.
+Also, be sure to have `git` available in your PATH, `npm` might need it. Notice that gGnome.js has only been tested on unix systems (MacOS, Linux). It should work on Windows too, but has not been fully tested on Windows. If you run into trouble then please [let us know](https://github.com/mskilab/gGnome.js/issues).
 
 
 ## Install
