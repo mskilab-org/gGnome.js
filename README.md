@@ -132,7 +132,7 @@ The validation of the data.json files is available at the respective Validator p
 
 ## Preparing your own data
 
-The [gGnome](https://github.com/mskilab/gGnome) package includes tools for producing all required data for visualization with gGnome.js. More details are available in [this section of the gGnome tutorial](http://mskiweb.nygenome.org/ashaiber/gGnome/tutorial/index.html#Interactive_visualization_with_gGnomejs).
+The [gGnome](https://github.com/mskilab/gGnome) package includes tools for producing all required data for visualization with gGnome.js. More details are available in [this section of the gGnome tutorial](http://mskilab.com/gGnome/tutorial.html#Interactive_visualization_with_gGnomejs).
 
 ## Configuration
 
